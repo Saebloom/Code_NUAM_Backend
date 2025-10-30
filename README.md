@@ -42,6 +42,7 @@ test\Scripts\activate
 
 - **Linux / Mac**
 python3 -m venv test
+
 source test/bin/activate
 
 
@@ -50,6 +51,7 @@ pip install -r requirements.txt
 
 ### 4. Aplicar migraciones
 python manage.py makemigrations
+
 python manage.py migrate
 
 
@@ -62,7 +64,9 @@ python manage.py migrate
 python manage.py createsuperuser
 
 Completa los datos solicitados:
+
 Username: valeadmin
+
 Email: vale@example.com
 
 Password: ContraseñaSegura123!
@@ -100,10 +104,14 @@ Abre el navegador en [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/
 
 ##Uso
 
-- **Admin:** `/admin/` con superusuario  
-- **Registro y login:** usuarios pueden registrarse con nombre, email y contraseña  
-- **Publicación de retos:** solo superusuario o creador del reto puede publicar/eliminar  
-- **Responder retos:** usuarios acumulan puntos por respuestas correctas  
+- **Admin:** `/admin/` con superusuario
+  
+- **Registro y login:** usuarios pueden registrarse con nombre, email y contraseña
+  
+- **Publicación de retos:** solo superusuario o creador del reto puede publicar/eliminar
+  
+- **Responder retos:** usuarios acumulan puntos por respuestas correctas
+  
 - **Ranking:** top 10 usuarios por puntaje
 
 ---
@@ -163,13 +171,16 @@ pip install -r requirements.txt
 - Actualizar dependencias:
 
 pip install <paquete>
+
 pip freeze > requirements.txt
 
 
 
 - Subir cambios a git:
 git add .
+
 git commit -m "Mensaje breve y claro"
+
 git push origin main
 
 
