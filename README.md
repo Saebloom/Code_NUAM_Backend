@@ -37,6 +37,7 @@ cd Proyecto_NUAM_TIHI43_V
 - **Windows**
 
 python -m venv test
+
 test\Scripts\activate
 
 - **Linux / Mac**
