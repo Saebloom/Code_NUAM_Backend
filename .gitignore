@@ -1,0 +1,37 @@
+# Entorno virtual
+test/
+venv/
+env/
+
+# Base de datos local
+db.sqlite3
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Variables de entorno
+*.env
+.env
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+
+# Distribución / build
+*.egg-info/
+build/
+dist/
+
+# pytest / coverage
+.coverage
+htmlcov/
+pytest_cache/

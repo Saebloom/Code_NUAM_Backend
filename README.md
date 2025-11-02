@@ -187,4 +187,3 @@ git push origin main
 - Levantar servidor:
 
 python manage.py runserver
-

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>NUAM - Sistema</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .hidden { display: none; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    .logout-btn {
+      float: right;
+      background: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card" id="loginCard">
+  <h2>Iniciar Sesión</h2>
+  <input id="username" placeholder="Usuario">
+  <input id="password" type="password" placeholder="Contraseña">
+  <button onclick="login()">Ingresar</button>
+  <p id="loginMsg" style="color:red"></p>
+</div>
+
+<div class="card hidden" id="appCard">
+  <h2>Panel NUAM</h2>
+  <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+
+  <h3>Crear Calificación</h3>
+  <input id="c_monto" placeholder="Monto factor">
+  <input id="c_emision" type="date">
+  <input id="c_pago" type="date">
+  <input id="c_instrumento" placeholder="ID Instrumento">
+  <input id="c_mercado" placeholder="ID Mercado">
+  <input id="c_estado" placeholder="ID Estado">
+  <button onclick="crearCalificacion()">Crear</button>
+  <p id="createMsg"></p>
+
+  <h3>Calificaciones Registradas</h3>
+  <button onclick="listarCalificaciones()">Actualizar lista</button>
+
+  <table id="tablaCalificaciones">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Monto</th>
+        <th>F. Emisión</th>
+        <th>F. Pago</th>
+        <th>Editar</th>
+        <th>Borrar</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
