@@ -28,7 +28,7 @@ Antes de comenzar, asegúrate de tener instalado:
 
 Clona el repositorio y entra a la carpeta:
 
-git clone https://github.com/Saebloom/Proyecto_NUAM_TIHI43_V.git
+git clone https://github.com/Saebloom/Code_NUAM_Backend.git
 
 cd Proyecto_NUAM_TIHI43_V
 
