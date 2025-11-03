@@ -30,7 +30,7 @@ Clona el repositorio y entra a la carpeta:
 
 git clone https://github.com/Saebloom/Code_NUAM_Backend.git
 
-cd Proyecto_NUAM_TIHI43_V
+cd Code_NUAM_Backend
 
 
 ### 2. Crear y activar entorno virtual
