@@ -4,6 +4,7 @@ Aplicación web desarrollada con **Django** y **Django REST Framework**, que inc
 
 - Panel de administración (superusuario)
 - API REST
+- -Requerimientos y dependencias
 - Templates HTML, CSS y JS
 - CRUD para usuarios y contenidos
 
