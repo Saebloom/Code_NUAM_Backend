@@ -57,6 +57,7 @@ python manage.py migrate
 
 ### 4.Ejecutar servidor de desarrollo:
 python manage.py runserver
+
 Luego abre tu navegador en http://127.0.0.1:8000/
 
 ---
