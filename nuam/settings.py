@@ -11,6 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    "jazzmin",  # Debe estar antes de django.contrib.admin
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -21,6 +22,38 @@ INSTALLED_APPS = [
     "drf_yasg",
     "api",
 ]
+
+# Configuración de Jazzmin
+JAZZMIN_SETTINGS = {
+    "site_title": "NUAM Admin",
+    "site_header": "NUAM",
+    "site_brand": "NUAM",
+    "welcome_sign": "Bienvenido al Panel de Administración NUAM",
+    "copyright": "NUAM",
+    "search_model": ["auth.User", "api.Calificacion"],
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Swagger", "url": "schema-swagger-ui", "permissions": ["auth.view_user"]},
+        {"model": "auth.User"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "api.Calificacion": "fas fa-star",
+        "api.Instrumento": "fas fa-tools",
+        "api.Mercado": "fas fa-chart-line",
+        "api.Estado": "fas fa-toggle-on",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": True,
+    "custom_css": None,
+    "custom_js": None,
+    "show_ui_builder": True,
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+}
 
 # Swagger settings
 SWAGGER_SETTINGS = {

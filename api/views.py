@@ -52,11 +52,65 @@ class ArchivoViewSet(viewsets.ModelViewSet):
 
 # Calificacion
 class CalificacionViewSet(viewsets.ModelViewSet):
-    queryset = Calificacion.objects.select_related("instrumento", "mercado", "usuario", "estado").all()
+    """
+    API endpoint para gestionar calificaciones.
+    
+    retrieve:
+    Retorna los detalles de una calificación específica.
+
+    list:
+    Retorna una lista de todas las calificaciones.
+    
+    create:
+    Crea una nueva calificación.
+    
+    update:
+    Actualiza una calificación existente.
+    
+    partial_update:
+    Actualiza parcialmente una calificación.
+    
+    delete:
+    Elimina una calificación.
+    """
+    queryset = Calificacion.objects.select_related(
+        "instrumento", "mercado", "usuario", "estado"
+    ).prefetch_related('tributarias').all()
+    
     serializer_class = CalificacionSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    
+    def get_queryset(self):
+        """
+        Filtra el queryset base según los parámetros de la URL.
+        Soporta filtrado por:
+        - fecha_desde
+        - fecha_hasta
+        - estado
+        - mercado
+        """
+        queryset = super().get_queryset()
+        
+        fecha_desde = self.request.query_params.get('fecha_desde', None)
+        fecha_hasta = self.request.query_params.get('fecha_hasta', None)
+        estado = self.request.query_params.get('estado', None)
+        mercado = self.request.query_params.get('mercado', None)
+        
+        if fecha_desde:
+            queryset = queryset.filter(fecha_emision__gte=fecha_desde)
+        if fecha_hasta:
+            queryset = queryset.filter(fecha_emision__lte=fecha_hasta)
+        if estado:
+            queryset = queryset.filter(estado_id=estado)
+        if mercado:
+            queryset = queryset.filter(mercado_id=mercado)
+            
+        return queryset
 
     def get_object(self):
+        """
+        Retorna el objeto con caché implementado.
+        """
         obj = super().get_object()
         cache_key = f'calificacion_{obj.id}'
         cached_obj = cache.get(cache_key)
