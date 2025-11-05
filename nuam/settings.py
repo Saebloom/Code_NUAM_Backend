@@ -11,7 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
-    "JAZZMIN",  # Debe estar antes de django.contrib.admin
+    "jazzmin",  # Debe estar antes de django.contrib.admin
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -24,7 +24,8 @@ INSTALLED_APPS = [
     "api",
 ]
 
-# Configuración de Jazzmin
+# Configuración de Jazzmin, customiza el nivel de administrador
+#NOTA: Esto ayudara evitar los drop-downs y tendra modal windows, ui, componentes y mas
 JAZZMIN_SETTINGS = {
     "site_title": "NUAM Admin",
     "site_header": "NUAM",
@@ -67,6 +68,7 @@ SWAGGER_SETTINGS = {
     }
 }
 
+#Mecanismo de seguridad para navegadores
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
