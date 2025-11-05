@@ -126,7 +126,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "templates"]
+# Serve both the templates folder (contains app.js in this project) and the project-level static/ directory
+STATICFILES_DIRS = [BASE_DIR / "templates", BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
