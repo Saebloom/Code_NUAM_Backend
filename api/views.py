@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
+from django.db import transaction
+from django.core.cache import cache
 from .models import (
     Rol, Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
@@ -54,22 +56,47 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     serializer_class = CalificacionSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
+    def get_object(self):
+        obj = super().get_object()
+        cache_key = f'calificacion_{obj.id}'
+        cached_obj = cache.get(cache_key)
+        if not cached_obj:
+            cache.set(cache_key, obj, timeout=300)  # Cache por 5 minutos
+        return obj
+
+    def list(self, request, *args, **kwargs):
+        cache_key = 'calificaciones_list'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is None:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                data = self.get_paginated_response(serializer.data).data
+            else:
+                serializer = self.get_serializer(queryset, many=True)
+                data = serializer.data
+            cache.set(cache_key, data, timeout=300)
+            return Response(data)
+        
+        return Response(cached_data)
+
     def perform_create(self, serializer):
-        # si el usuario no setea usuario_id en el payload, lo asignamos desde request.user
-        usuario = self.request.user
-        # allow admin to set any usuario via usuario_id in serializer; otherwise force current user
-        data = serializer.validated_data
-        if not data.get("usuario"):
-            serializer.save(usuario=usuario)
-        else:
-            serializer.save()
-        # log
-        Log.objects.create(
-            accion="Crear calificacion",
-            detalle=f"Calificacion creada por {self.request.user}",
-            usuario=self.request.user,
-            calificacion=serializer.instance
-        )
+        with transaction.atomic():
+            # si el usuario no setea usuario_id en el payload, lo asignamos desde request.user
+            usuario = self.request.user
+            # allow admin to set any usuario via usuario_id in serializer; otherwise force current user
+            data = serializer.validated_data
+            if not data.get("usuario"):
+                instance = serializer.save(usuario=usuario)
+            else:
+                instance = serializer.save()
+
+            # Invalidar caché
+            cache_key = f'calificacion_{instance.id}'
+            cache.delete(cache_key)
+            cache.delete('calificaciones_list')
 
     def perform_update(self, serializer):
         instance = serializer.save()
