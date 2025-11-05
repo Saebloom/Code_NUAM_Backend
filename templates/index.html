@@ -283,10 +283,107 @@
     <!-- Role specific panels (hidden by default, shown by JS according to role) -->
     <div id="adminPanel" class="card mb-4 hidden">
       <div class="card-body">
-        <h3 class="mb-3 text-danger"><i class="fas fa-user-shield me-2"></i>Panel Administrador</h3>
-        <p>Accesos administrativos: ver logs, usuarios y configuración.</p>
-        <div class="d-flex gap-2">
-          <a href="/admin/" class="btn btn-outline-secondary">Ir al Admin</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <img src="/static/img/nuam-logo.svg" style="width:100px" alt="NUAM">
+          </div>
+          <div>
+            <button class="btn btn-outline-secondary me-2" onclick="location.href='/admin/'">Ir al Admin</button>
+            <button class="btn btn-dark" onclick="logout()">Salir</button>
+          </div>
+        </div>
+
+        <h2 class="text-center text-danger mb-4">Panel de gestión</h2>
+        <p class="text-center text-muted">Gestión de usuarios y roles</p>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mt-4" id="adminTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-usuarios" data-bs-toggle="tab" data-bs-target="#pane-usuarios" type="button" role="tab">Usuarios</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-auditoria" data-bs-toggle="tab" data-bs-target="#pane-auditoria" type="button" role="tab">Auditoría</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-respaldos" data-bs-toggle="tab" data-bs-target="#pane-respaldos" type="button" role="tab">Respaldos</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-historial" data-bs-toggle="tab" data-bs-target="#pane-historial" type="button" role="tab">Historial de cargas masivas</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-bolsa" data-bs-toggle="tab" data-bs-target="#pane-bolsa" type="button" role="tab">Bolsa de valores</button>
+          </li>
+        </ul>
+
+        <div class="tab-content p-3 border rounded-bottom" id="adminTabsContent">
+          <!-- Usuarios -->
+          <div class="tab-pane fade show active" id="pane-usuarios" role="tabpanel">
+            <div class="mb-3">
+              <div class="p-3 border rounded">
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <input id="filter_user" class="form-control" placeholder="Inserte nombre de usuario">
+                  </div>
+                  <div class="col-md-2">
+                    <select id="filter_role" class="form-select"><option value="">Todos</option></select>
+                  </div>
+                  <div class="col-md-3">
+                    <input id="filter_email" class="form-control" placeholder="Inserte email">
+                  </div>
+                  <div class="col-md-3 text-end">
+                    <button class="btn btn-outline-secondary" onclick="limpiarFiltrosUsuarios()">Limpiar</button>
+                    <button class="btn btn-danger" onclick="buscarUsuarios()">Filtrar Usuario</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-bordered" id="adminUsersTable">
+                <thead>
+                  <tr>
+                    <th>USUARIO</th>
+                    <th>ROL</th>
+                    <th>EMAIL</th>
+                    <th>ESTADO</th>
+                    <th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Auditoría -->
+          <div class="tab-pane fade" id="pane-auditoria" role="tabpanel">
+            <div class="p-3 border rounded mb-3">
+              <div class="row g-3">
+                <div class="col-md-4"><input id="aud_user" class="form-control" placeholder="Inserte nombre de usuario"></div>
+                <div class="col-md-3"><select id="aud_action" class="form-select"><option value="">Todos</option></select></div>
+                <div class="col-md-3"><input id="aud_from" type="date" class="form-control"></div>
+                <div class="col-md-2 text-end"><button class="btn btn-danger" onclick="filtrarAuditoria()">Filtrar logs</button></div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-bordered" id="auditoriaTable"><thead><tr><th>FECHA/HORA</th><th>ROL</th><th>USUARIO</th><th>ACCIÓN</th><th>REGISTRO AFECTADO</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Respaldos -->
+          <div class="tab-pane fade" id="pane-respaldos" role="tabpanel">
+            <div class="mb-3"><button class="btn btn-danger" onclick="crearRespaldo()">CREAR RESPALDO</button></div>
+            <div class="table-responsive"><table class="table table-bordered" id="respaldosTable"><thead><tr><th>ID RESPALDO</th><th>FECHA CREACIÓN</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody></tbody></table></div>
+          </div>
+
+          <!-- Historial de cargas -->
+          <div class="tab-pane fade" id="pane-historial" role="tabpanel">
+            <div class="table-responsive"><table class="table table-bordered" id="historialTable"><thead><tr><th>ARCHIVO</th><th>ROL</th><th>USUARIO</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody></tbody></table></div>
+          </div>
+
+          <!-- Bolsa de valores (placeholder) -->
+          <div class="tab-pane fade" id="pane-bolsa" role="tabpanel">
+            <p>Sección Bolsa de valores - pendiente de integración.</p>
+          </div>
         </div>
       </div>
     </div>

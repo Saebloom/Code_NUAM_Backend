@@ -8,9 +8,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 
 class UserSerializer(serializers.ModelSerializer):
+    groups = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name"]
+        fields = ["id", "username", "email", "first_name", "last_name", "groups"]
+
+    def get_groups(self, obj):
+        return [g.name for g in obj.groups.all()]
 
 
 class CurrentUserSerializer(UserSerializer):

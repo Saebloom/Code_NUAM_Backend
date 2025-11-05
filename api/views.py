@@ -29,6 +29,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
+from rest_framework.permissions import IsAdminUser
 
 
 @api_view(['GET'])
@@ -40,6 +41,19 @@ def current_user(request):
     """
     serializer = CurrentUserSerializer(request.user, context={'request': request})
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([DRFIsAuthenticated, IsAdminUser])
+def disable_user(request, pk):
+    """Deshabilita un usuario (is_active=False). Requiere permisos de administrador."""
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'detail': 'User not found'}, status=404)
+    user.is_active = False
+    user.save()
+    return Response({'detail': 'User disabled'})
 
 # Instrumento
 class InstrumentoViewSet(viewsets.ModelViewSet):
