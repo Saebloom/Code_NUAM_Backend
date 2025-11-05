@@ -2,97 +2,392 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NUAM - Sistema</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
+    :root {
+      --nuam-red: #FF3E1D;
+      --nuam-text: #333333;
+      --nuam-background: #F5F5F5;
+    }
+    
     body {
-      font-family: Arial;
-      background: #f0f0f0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-image: url('/static/img/background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
       margin: 0;
       padding: 20px;
+      color: var(--nuam-text);
     }
-    .card {
-      background: white;
-      padding: 20px;
+
+    .nuam-logo {
+      width: 120px;
+      margin-bottom: 2rem;
+    }
+
+    /* Place auth card fixed on the left side so credentials are always visible over the background */
+    .auth-container {
+      position: absolute;
+      left: 48px;
+      top: 80px;
+      width: 420px;
+      max-width: 90vw;
+      background: rgba(255,255,255,0.98);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .form-control {
       border-radius: 8px;
-      max-width: 600px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 0.8rem 1rem;
+      border: 1px solid #E0E0E0;
+      margin-bottom: 1rem;
     }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 10px;
-      margin-bottom: 15px;
+
+    .form-control:focus {
+      border-color: var(--nuam-red);
+      box-shadow: 0 0 0 0.2rem rgba(255, 62, 29, 0.25);
     }
-    button {
-      padding: 10px 15px;
-      background: #007bff;
+
+    .form-label {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-nuam {
+      background-color: var(--nuam-red);
       color: white;
       border: none;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .hidden { display: none; }
-    table {
+      border-radius: 8px;
+      padding: 0.8rem;
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
+      font-weight: 500;
+      margin-top: 1rem;
     }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
+
+    .btn-nuam:hover {
+      background-color: #e63517;
+      color: white;
     }
-    .logout-btn {
-      float: right;
-      background: #dc3545;
+
+    .auth-links {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .auth-links a {
+      color: var(--nuam-red);
+      text-decoration: none;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .info-box {
+      background: #F8F9FA;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .hidden { 
+      display: none !important;
+    }
+
+    .loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.9);
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
 
-<div class="card" id="loginCard">
-  <h2>Iniciar Sesión</h2>
-  <input id="username" placeholder="Usuario">
-  <input id="password" type="password" placeholder="Contraseña">
-  <button onclick="login()">Ingresar</button>
-  <p id="loginMsg" style="color:red"></p>
+<!-- Loading Spinner -->
+<div id="loading" class="loading hidden">
+  <div class="spinner-border text-danger" role="status">
+    <span class="visually-hidden">Cargando...</span>
+  </div>
 </div>
 
-<div class="card hidden" id="appCard">
-  <h2>Panel NUAM</h2>
-  <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
-
-  <h3>Crear Calificación</h3>
-  <input id="c_monto" placeholder="Monto factor">
-  <input id="c_emision" type="date">
-  <input id="c_pago" type="date">
-  <input id="c_instrumento" placeholder="ID Instrumento">
-  <input id="c_mercado" placeholder="ID Mercado">
-  <input id="c_estado" placeholder="ID Estado">
-  <button onclick="crearCalificacion()">Crear</button>
-  <p id="createMsg"></p>
-
-  <h3>Calificaciones Registradas</h3>
-  <button onclick="listarCalificaciones()">Actualizar lista</button>
-
-  <table id="tablaCalificaciones">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Monto</th>
-        <th>F. Emisión</th>
-        <th>F. Pago</th>
-        <th>Editar</th>
-        <th>Borrar</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<!-- Login Form -->
+<div class="auth-container" id="loginCard">
+  <div class="text-center">
+    <img src="/static/img/nuam-logo.svg" alt="NUAM" class="nuam-logo">
+  </div>
+  
+  <div class="form-group">
+    <label for="username" class="form-label">Email</label>
+    <input id="username" class="form-control" type="email" placeholder="Ingrese su correo corporativo">
+  </div>
+  
+  <div class="form-group">
+    <label for="password" class="form-label">Contraseña</label>
+    <input id="password" type="password" class="form-control" placeholder="Introduzca la contraseña">
+  </div>
+  
+  <button onclick="login()" class="btn btn-nuam">
+    Iniciar sesión
+  </button>
+  
+  <div class="auth-links">
+    <a href="#" onclick="showForgotPassword()">¿Contraseña Olvidada?</a><br>
+    <a href="#" onclick="showRegister()">¿Eres nuevo? Regístrese aquí</a>
+  </div>
+  
+  <p id="loginMsg" class="text-danger mt-3 text-center"></p>
 </div>
 
+<!-- Register Form -->
+<div class="auth-container hidden" id="registerCard">
+  <div class="text-center">
+    <img src="/static/img/nuam-logo.svg" alt="NUAM" class="nuam-logo">
+  </div>
+  
+  <h4 class="text-center mb-4">Registro de Nuevo Usuario</h4>
+  <p class="text-muted mb-4">Complete todos los campos para solicitar su cuenta</p>
+  
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label">Nombres</label>
+        <input type="text" id="reg_nombres" class="form-control" placeholder="Ej: Roberto Eugenio">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label">Apellidos</label>
+        <input type="text" id="reg_apellidos" class="form-control" placeholder="Ej: Pérez González">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">RUT</label>
+    <input type="text" id="reg_rut" class="form-control" placeholder="Ej: 12.345.678-0">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Email corporativo</label>
+    <input type="email" id="reg_email" class="form-control" placeholder="correo@nuam.cl">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Género</label>
+    <select id="reg_genero" class="form-control">
+      <option value="">Seleccione</option>
+      <option value="M">Masculino</option>
+      <option value="F">Femenino</option>
+      <option value="O">Otro</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Número de contacto</label>
+    <input type="tel" id="reg_telefono" class="form-control" placeholder="+56 9 XXXXXXXX">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Dirección de hogar</label>
+    <input type="text" id="reg_direccion" class="form-control" placeholder="Calle, número, depto, comuna/ciudad">
+  </div>
+
+  <button onclick="register()" class="btn btn-nuam">
+    Enviar
+  </button>
+
+  <div class="auth-links">
+    <a href="#" onclick="showLogin()">Ya tengo una cuenta. Volver al inicio Sesión</a>
+  </div>
+
+  <div class="info-box">
+    <p class="mb-0">Se notificará los datos para habilitar su cuenta. Recibirá un correo de confirmación</p>
+  </div>
+</div>
+
+<!-- Forgot Password Form -->
+<div class="auth-container hidden" id="forgotCard">
+  <div class="text-center">
+    <img src="/static/img/nuam-logo.svg" alt="NUAM" class="nuam-logo">
+  </div>
+  
+  <h4 class="text-center mb-4">Recuperar contraseña olvidada</h4>
+  
+  <div class="form-group">
+    <label class="form-label">Última contraseña recordada</label>
+    <input type="password" id="forgot_lastpass" class="form-control" placeholder="Última contraseña recordada">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Ingrese email corporativo</label>
+    <input type="email" id="forgot_email" class="form-control" placeholder="tu.correo@nuam.cl">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">RUT</label>
+    <input type="text" id="forgot_rut" class="form-control" placeholder="Ej: 12.345.678-9">
+  </div>
+
+  <button onclick="recoverPassword()" class="btn btn-nuam">
+    Enviar
+  </button>
+
+  <div class="auth-links">
+    <a href="#" onclick="showLogin()">Volver al inicio sesión</a>
+  </div>
+
+  <div class="info-box">
+    <p class="mb-0">Se enviará una notificación a soporte respecto a este cambio para mayor seguridad y respaldo</p>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="appCard" class="hidden">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-chart-line me-2"></i>NUAM
+      </a>
+      <div class="d-flex">
+        <span class="navbar-text me-3" id="userInfo"></span>
+        <button onclick="logout()" class="btn btn-outline-danger">
+          <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Role specific panels (hidden by default, shown by JS according to role) -->
+    <div id="adminPanel" class="card mb-4 hidden">
+      <div class="card-body">
+        <h3 class="mb-3 text-danger"><i class="fas fa-user-shield me-2"></i>Panel Administrador</h3>
+        <p>Accesos administrativos: ver logs, usuarios y configuración.</p>
+        <div class="d-flex gap-2">
+          <a href="/admin/" class="btn btn-outline-secondary">Ir al Admin</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="corredorPanel" class="card mb-4 hidden">
+      <div class="card-body">
+        <h3 class="mb-3 text-primary"><i class="fas fa-briefcase me-2"></i>Panel Corredor</h3>
+        <p>Herramientas de corredor: creación y seguimiento de calificaciones.</p>
+      </div>
+    </div>
+
+    <div id="supervisorPanel" class="card mb-4 hidden">
+      <div class="card-body">
+        <h3 class="mb-3 text-warning"><i class="fas fa-user-tie me-2"></i>Panel Supervisor</h3>
+        <p>Herramientas de supervisión: revisión y aprobación.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="mb-4">
+        <i class="fas fa-plus-circle me-2"></i>Nueva Calificación
+      </h3>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Monto Factor</label>
+            <input id="c_monto" type="number" step="0.0001" class="form-control" placeholder="Ej: 100.0000">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fecha Emisión</label>
+            <input id="c_emision" type="date" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fecha Pago</label>
+            <input id="c_pago" type="date" class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Instrumento</label>
+            <select id="c_instrumento" class="form-select"></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mercado</label>
+            <select id="c_mercado" class="form-select"></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Estado</label>
+            <select id="c_estado" class="form-select"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-end mt-3">
+        <button onclick="crearCalificacion()" class="btn btn-primary">
+          <i class="fas fa-save me-2"></i>Crear Calificación
+        </button>
+      </div>
+      
+      <div id="createMsg" class="mt-3"></div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+          <i class="fas fa-list me-2"></i>Calificaciones Registradas
+        </h3>
+        <div class="d-flex gap-2">
+          <button onclick="listarCalificaciones()" class="btn btn-outline-primary">
+            <i class="fas fa-sync-alt me-2"></i>Actualizar
+          </button>
+          <button onclick="exportarExcel()" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Exportar
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover" id="tablaCalificaciones">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Monto Factor</th>
+              <th>F. Emisión</th>
+              <th>F. Pago</th>
+              <th>Instrumento</th>
+              <th>Mercado</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

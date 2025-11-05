@@ -5,11 +5,24 @@ from .models import (
     Log, Auditoria
 )
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "first_name", "last_name"]
+
+
+class CurrentUserSerializer(UserSerializer):
+    is_staff = serializers.BooleanField(read_only=True)
+    is_superuser = serializers.BooleanField(read_only=True)
+    groups = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ["is_staff", "is_superuser", "groups"]
+
+    def get_groups(self, obj):
+        return [g.name for g in obj.groups.all()]
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,9 +71,9 @@ class CalificacionSerializer(serializers.ModelSerializer):
         fields = [
             "id", "monto_factor", "fecha_emision", "fecha_pago",
             "usuario", "usuario_id", "instrumento", "mercado",
-            "archivo", "estado", "fecha_registro", "tributarias"
+            "archivo", "estado", "created_at", "tributarias"
         ]
-        read_only_fields = ["fecha_registro", "usuario"]
+        read_only_fields = ["created_at", "usuario"]
 
     def create(self, validated_data):
         # usuario ya fue seteado por usuario_id

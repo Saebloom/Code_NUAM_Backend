@@ -14,7 +14,7 @@ from .serializers import (
     UserSerializer, RolSerializer, EstadoSerializer, InstrumentoSerializer,
     MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
     CalificacionTributariaSerializer, FactorTributarioSerializer,
-    Log as LogModel
+    Log as LogModel, CurrentUserSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from rest_framework import serializers
@@ -25,6 +25,21 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
+
+
+@api_view(['GET'])
+@permission_classes([DRFIsAuthenticated])
+def current_user(request):
+    """Devuelve información del usuario actual, incluyendo grupos/roles.
+
+    Esto permite al frontend decidir qué panel mostrar según rol.
+    """
+    serializer = CurrentUserSerializer(request.user, context={'request': request})
+    return Response(serializer.data)
 
 # Instrumento
 class InstrumentoViewSet(viewsets.ModelViewSet):
