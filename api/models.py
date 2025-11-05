@@ -41,15 +41,23 @@ class Archivo(models.Model):
         return self.nombre_archivo
 
 class Calificacion(models.Model):
-    monto_factor = models.DecimalField(max_digits=18, decimal_places=4)
-    fecha_emision = models.DateField()
-    fecha_pago = models.DateField()
+    monto_factor = models.DecimalField(max_digits=18, decimal_places=4, db_index=True)
+    fecha_emision = models.DateField(db_index=True)
+    fecha_pago = models.DateField(db_index=True)
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="calificaciones")
-    instrumento = models.ForeignKey(Instrumento, on_delete=models.SET_NULL, null=True)
-    mercado = models.ForeignKey(Mercado, on_delete=models.SET_NULL, null=True)
+    instrumento = models.ForeignKey(Instrumento, on_delete=models.SET_NULL, null=True, db_index=True)
+    mercado = models.ForeignKey(Mercado, on_delete=models.SET_NULL, null=True, db_index=True)
     archivo = models.ForeignKey(Archivo, on_delete=models.SET_NULL, null=True, blank=True)
-    estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
+    estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True, db_index=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['fecha_emision', 'estado']),
+            models.Index(fields=['usuario', 'fecha_registro']),
+            models.Index(fields=['instrumento', 'mercado']),
+        ]
+        ordering = ['-fecha_registro']
 
     def __str__(self):
         return f"Calificación {self.id} - {self.instrumento}"
