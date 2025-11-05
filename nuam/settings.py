@@ -11,7 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
-    "jazzmin",  # Debe estar antes de django.contrib.admin
+    "JAZZMIN",  # Debe estar antes de django.contrib.admin
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -160,6 +160,10 @@ SIMPLE_JWT = {
 
 # CORS (ajustar en producción)
 CORS_ALLOW_ALL_ORIGINS = True
+
+#Asegura que la carpeta "Logs" exista y evitar errores
+LOG_DIR = BASE_DIR / 'logs'
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # Logging Configuration
 LOGGING = {
