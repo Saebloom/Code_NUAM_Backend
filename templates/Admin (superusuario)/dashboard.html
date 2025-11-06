@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrador - NUAM</title>
+    
+    <!-- 
+      FIX: CSS y JS son internos. Se eliminó la dependencia externa de Font Awesome.
+      Los iconos se han reemplazado por SVG inline.
+    -->
+    
+    <style>
+        /* --- Configuración Global --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Evita el scroll */
+            background-color: #f4f4f4; /* Color de fondo base */
+        }
+
+        /* --- Estructura Principal de la App --- */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* 1. Barra Superior (Consistente con index.html) */
+        .top-bar {
+            background-color: white;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #FD441E;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .top-bar-logo {
+            height: 32px;
+            width: auto;
+        }
+
+        /* --- Cuerpo del Dashboard --- */
+        .dashboard-body {
+            display: flex;
+            flex-grow: 1; /* Ocupa el resto del espacio */
+            height: calc(100% - 60px); /* Resta la altura de la barra superior */
+        }
+
+        /* 2. Barra Lateral (Sidenav) */
+        .sidenav {
+            flex-basis: 260px; /* Ancho fijo */
+            flex-shrink: 0;
+            background-color: #2c2c2c; /* Fondo oscuro para contraste */
+            color: white;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidenav-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #555;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sidenav-profile-pic {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #FD441E;
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+        
+        .sidenav-profile .username {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .sidenav-profile .role {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .sidenav-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        
+        .sidenav-nav button {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            padding: 0.9rem 1.25rem;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* Espacio entre icono y texto */
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* Estilo para los SVG de los iconos del Sidenav */
+        .sidenav-nav button svg {
+            width: 1.1em; /* Ancho fa-fw */
+            height: 1.1em;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+        
+        .sidenav-nav button:hover {
+            background-color: #444;
+        }
+        
+        .sidenav-nav button.active {
+            background-color: #FD441E;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .sidenav-logout {
+            padding-top: 1rem;
+            border-top: 1px solid #555;
+        }
+        
+        .sidenav-logout button {
+             width: 100%;
+        }
+
+        /* 3. Contenido Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto; /* Scroll solo para el contenido */
+            background-color: #f4f4f4;
+        }
+
+        .content-view {
+            display: none; /* Oculto por defecto */
+        }
+        .content-view.active {
+            display: block; /* Muestra la vista activa */
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-header h2 {
+            color: #FD441E;
+            font-size: 1.8rem;
+        }
+
+        .btn-primary {
+            background-color: #FD441E;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background-color: #e03c1a;
+        }
+        /* Iconos SVG en botones */
+        .btn-primary svg {
+             width: 1em;
+             height: 1em;
+             fill: currentColor;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+
+        /* Estilos de Pestañas Internas (para Usuarios/Roles) */
+        .inner-tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 1.5rem;
+        }
+        .inner-tab-button {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #888;
+            padding: 0.75rem 0.25rem;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+        }
+        .inner-tab-button.active {
+            color: #FD441E;
+            border-bottom-color: #FD441E;
+        }
+        .inner-tab-content { display: none; }
+        .inner-tab-content.active { display: block; }
+        
+        /* Estilos de Filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .filters input, .filters select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Estilos de Tabla */
+        .table-container {
+            width: 100%;
+            overflow-x: auto; /* Scroll horizontal si la tabla es muy ancha */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        thead {
+            background-color: #f9f9f9;
+        }
+        th, td {
+            padding: 0.9rem 0.75rem;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap; /* Evita que el texto se rompa */
+        }
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        /* Botones de Acción en Tabla */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+        }
+        /* Iconos SVG en botones de tabla */
+        .btn-icon svg {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+        }
+
+        .btn-edit { color: #007bff; }
+        .btn-delete { color: #dc3545; }
+        .btn-download { color: #28a745; }
+        .btn-restore { color: #ffc107; } /* Naranja/Amarillo para restaurar */
+
+        /* --- Estilos del Modal --- */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px; /* Ancho para el formulario */
+            position: relative;
+            max-height: 90vh; /* Altura máxima */
+            overflow-y: auto; /* Scroll si el formulario es muy largo */
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h2 {
+            color: #FD441E;
+        }
+        .modal-close {
+            color: #aaa;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: black;
+        }
+        
+        /* Estilos del Formulario del Modal */
+        .modal-body form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        /* Grupo de campos en línea (País y RUT) */
+        .form-group-inline {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap; /* responsive */
+        }
+        .form-group-inline .form-group {
+            flex-grow: 1;
+        }
+        .form-group-inline .form-group.col-pais {
+            flex-basis: 30%;
+            min-width: 150px;
+        }
+        .form-group-inline .form-group.col-rut {
+            flex-basis: 60%;
+            min-width: 200px;
+        }
+        
+        /* Grupo de campo con botón (Dirección) */
+        .input-with-button {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .input-with-button input {
+            flex-grow: 1;
+        }
+        .input-with-button button {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #ccc;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .input-with-button button svg {
+            width: 1em;
+            height: 1em;
+            fill: #333;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #ddd;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end; /* Alinea botones a la derecha */
+            gap: 1rem;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- 1. Barra Superior -->
+        <header class="top-bar">
+            <!-- Asumiendo que esta ruta es correcta para tu servidor Django -->
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
+            nuam
+        </header>
+
+        <!-- 2. Cuerpo del Dashboard -->
+        <div class="dashboard-body">
+            
+            <!-- 2A. Barra Lateral (Sidenav) -->
+            <nav class="sidenav">
+                
+                <div class="sidenav-profile">
+                    <div class="sidenav-profile-pic">A</div>
+                    <span class="username">Admin</span>
+                    <span class="role">Superusuario</span>
+                </div>
+                
+                <div class="sidenav-nav">
+                    <!-- Vista por defecto al cargar -->
+                    <button class="active" onclick="showView('view-usuarios', this)">
+                        <!-- FIX: Icono SVG (Usuarios) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192h7.5c8.9 0 17.1 2.2 24.7 6.2C156.4 210.8 171.7 224 192 224s35.6-13.2 53.1-25.8c7.6-4 15.8-6.2 24.7-6.2h7.5C336.2 192 384 239.8 384 298.7V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V298.7zM464 224c20.3 0 35.6 13.2 53.1 25.8 7.6 4 15.8 6.2 24.7 6.2h7.5C624.2 256 672 303.8 672 362.7V464c0 26.5-21.5 48-48 48H480c-26.5 0-48-21.5-48-48V362.7c0-58.9 47.8-106.7 106.7-106.7h7.5c8.9 0 17.1 2.2 24.7 6.2C428.4 210.8 443.7 224 464 224z"/></svg>
+                        Usuarios
+                    </button>
+                    <button onclick="showView('view-logs', this)">
+                        <!-- FIX: Icono SVG (Archivo/Log) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M0 64C0 28.7 28.7 0 64 0H224V128c0 17.7 14.3 32 32 32H384V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384 64H256V0L384 128z"/></svg>
+                        Logs / Auditoría
+                    </button>
+                    <button onclick="showView('view-respaldos', this)">
+                        <!-- FIX: Icono SVG (Base de datos) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM448 368c0 44.2-100.3 80-224 80S0 412.2 0 368V265.1c14.9 11.8 34 21.2 54.8 28.6C99.7 309.7 159.5 320 224 320s124.3-10.3 169.2-26.3c20.8-7.4 39.9-16.9 54.8-28.6V368zM0 432v32c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V432c-14.9 11.8-34 21.2-54.8 28.6C348.3 476.7 288.5 480 224 480s-124.3-3.3-169.2-19.4C34 453.2 14.9 443.8 0 432z"/></svg>
+                        Respaldos
+                    </button>
+                    <button onclick="showView('view-cargas', this)">
+                        <!-- FIX: Icono SVG (Carga) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
+                        Historial Cargas
+                    </button>
+                </div>
+                
+                <div class="sidenav-logout">
+                    <button onclick="logout()">
+                        <!-- FIX: Icono SVG (Salir) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </nav>
+
+            <!-- 2B. Contenido Principal -->
+            <main class="main-content">
+
+                <!-- 
+                  VISTA 1: GESTIÓN DE USUARIOS
+                  (Corrección de tablas y modal)
+                -->
+                <div id="view-usuarios" class="content-view active">
+                    <div class="content-header">
+                        <h2>Gestión de Usuarios</h2>
+                        <button class="btn-primary" onclick="showModal('modal-crear-usuario')">
+                            <!-- FIX: Icono SVG (Plus) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                            Crear Usuario
+                        </button>
+                    </div>
+
+                    <!-- Pestañas internas para Usuarios y Roles -->
+                    <div class="inner-tabs">
+                        <button class="inner-tab-button active" onclick="showInnerTab('tab-users', this)">Usuarios</button>
+                        <button class="inner-tab-button" onclick="showInnerTab('tab-roles', this)">Roles</button>
+                    </div>
+
+                    <!-- Contenido Pestaña Usuarios (CORREGIDO) -->
+                    <div id="tab-users" class="inner-tab-content active">
+                        <div class="card">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Nombres</th>
+                                            <th>Apellidos</th>
+                                            <th>País</th>
+                                            <th>RUT</th>
+                                            <th>Rol</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <!-- FIX: TBODY CORREGIDO -->
+                                    <tbody>
+                                        <!-- Fila de Ejemplo 1 -->
+                                        <tr>
+                                            <td>admin@nuam.com</td>
+                                            <td>Admin</td>
+                                            <td>Principal</td>
+                                            <td>CL</td>
+                                            <td>11111111-1</td>
+                                            <td>Administrador</td>
+                                            <td>Activo</td>
+                                            <td class="action-buttons">
+                                                <button class="btn-icon btn-edit" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
+                                                <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                                            </td>
+                                        </tr>
+                                        <!-- Fila de Ejemplo 2 -->
+                                        <tr>
+                                            <td>corredor@nuam.com</td>
+                                            <td>Juan</td>
+                                            <td>Pérez</td>
+                                            <td>CL</td>
+                                            <td>22222222-2</td>
+                                            <td>Corredor</td>
+                                            <td>Activo</td>
+                                            <td class="action-buttons">
+                                                <button class="btn-icon btn-edit" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
+                                                <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenido Pestaña Roles -->
+                    <div id="tab-roles" class="inner-tab-content">
+                         <div class="card">
+                            <h3>Gestión de Roles</h3>
+                            <p>Aquí iría la interfaz para definir los permisos de los roles (Administrador, Corredor, Supervisor).</p>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- 
+                  VISTA 2: LOGS / AUDITORÍA (CORREGIDO)
+                -->
+                <div id="view-logs" class="content-view">
+                    <div class="content-header">
+                        <h2>Logs / Auditoría</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="filters">
+                            <input type="date" id="filter-log-fecha">
+                            <select id="filter-log-accion">
+                                <option value="">Todas las Acciones</option>
+                                <option value="login">Inicio Sesión</option>
+                                <option value="create">Creación</option>
+                                <option value="update">Actualización</option>
+                                <option value="delete">Eliminación</option>
+                            </select>
+                            <input type="text" id="filter-log-usuario" placeholder="Filtrar por usuario...">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Acción</th>
+                                        <th>Usuario</th>
+                                        <th>Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2025-11-06 14:30:01</td>
+                                        <td>Creación</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>Se creó la Calificación ID: 1024</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-11-06 14:25:10</td>
+                                        <td>Actualización</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>Se actualizó la Calificación ID: 988</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 
+                  VISTA 3: GESTIÓN DE RESPALDOS (CORREGIDO)
+                -->
+                <div id="view-respaldos" class="content-view">
+                    <div class="content-header">
+                        <h2>Gestión de Respaldos</h2>
+                        <button class="btn-primary" onclick="generarRespaldo()">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                            Generar Respaldo
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Usuario</th>
+                                        <th>Archivo</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <!-- FIX: TBODY CORREGIDO -->
+                                <tbody>
+                                    <tr>
+                                        <td>2025-11-05 03:00:00</td>
+                                        <td>Sistema (Automático)</td>
+                                        <td>backup_20251105_0300.sql.gz</td>
+                                        <td>Completado</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-download" title="Descargar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                                            <button class="btn-icon btn-restore" title="Restaurar este respaldo" onclick="confirmarRestauracion('backup_20251105_0300.sql.gz')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M142.9 142.9c62.2-62.2 162.7-62.2 224.9 0s62.2 162.7 0 224.9s-162.7 62.2-224.9 0s-62.2-162.7 0-224.9zM416 256c0-88.4-71.6-160-160-160S96 167.6 96 256s71.6 160 160 160s160-71.6 160-160zM256 48a208 208 0 1 0 0 416 208 208 0 1 0 0-416zm-48 112c0-13.3-10.7-24-24-24s-24 10.7-24 24v96c0 13.3 10.7 24 24 24h96c13.3 0 24-10.7 24-24s-10.7-24-24-24H208V160z"/></svg></button>
+                                            <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 
+                  VISTA 4: HISTORIAL DE CARGAS MASIVAS (CORREGIDO)
+                -->
+                <div id="view-cargas" class="content-view">
+                    <div class="content-header">
+                        <h2>Historial de Cargas Masivas</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha Carga</th>
+                                        <th>Usuario</th>
+                                        <th>Archivo</th>
+                                        <th>Estado</th>
+                                        <th>Registros Procesados</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <!-- FIX: TBODY CORREGIDO -->
+                                <tbody>
+                                     <tr>
+                                        <td>2025-11-06 10:00:00</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>carga_nov_2025.csv</td>
+                                        <td>Completado</td>
+                                        <td>1500</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-11-05 09:30:00</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>carga_erronea.csv</td>
+                                        <td>Fallido (Error Fila 10)</td>
+                                        <td>9</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+    
+    <!-- 
+      MODAL PARA CREAR USUARIO 
+      (Añadido según solicitud)
+    -->
+    <div id="modal-crear-usuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Crear Nuevo Usuario</h2>
+                <span class="modal-close" onclick="closeModal('modal-crear-usuario')">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <form onsubmit="handleCrearUsuario(event)">
+                    <div class="form-group-inline">
+                        <div class="form-group" style="flex-basis: 50%;">
+                            <label for="reg-nombres">Nombres</label>
+                            <input type="text" id="reg-nombres" required>
+                        </div>
+                        <div class="form-group" style="flex-basis: 50%;">
+                            <label for="reg-apellidos">Apellidos</label>
+                            <input type="text" id="reg-apellidos" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-email">Email Corporativo</label>
+                        <input type="email" id="reg-email" placeholder="ingrese email corporativo" required>
+                    </div>
+
+                    <div class="form-group-inline">
+                        <div class="form-group col-pais">
+                            <label for="reg-pais">País</label>
+                            <select id="reg-pais">
+                                <option value="CL">Chile</option>
+                                <option value="PE">Perú</option>
+                                <option value="CO">Colombia</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-rut">
+                            <label for="reg-rut">RUT / Documento</label>
+                            <input type="text" id="reg-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group-inline">
+                        <div class="form-group" style="flex-basis: 50%;">
+                            <label for="reg-genero">Género</label>
+                            <select id="reg-genero" required>
+                                <option value="">Seleccione...</option>
+                                <option value="mujer">Mujer</option>
+                                <option value="hombre">Hombre</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex-basis: 50%;">
+                             <label for="reg-contacto">Número de Contacto</label>
+                             <input type="tel" id="reg-contacto" placeholder="Contacto (sólo números)" onkeydown="validateNumericInput(event)" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-direccion">Dirección de Hogar</label>
+                        <div class="input-with-button">
+                            <input type="text" id="reg-direccion" placeholder="Dirección" required>
+                            <button type="button" onclick="getGeolocation()">
+                                <!-- Icono SVG Ubicación -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <hr style="margin: 0.5rem 0;">
+
+                    <div class="form-group-inline">
+                         <div class="form-group" style="flex-basis: 50%;">
+                            <label for="reg-rol">Rol del Usuario</label>
+                            <select id="reg-rol" required>
+                                <option value="">Seleccione Rol...</option>
+                                <option value="admin">Administrador</option>
+                                <option value="corredor">Corredor</option>
+                                <option value="supervisor">Supervisor</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex-basis: 50%;">
+                            <label for="reg-pass">Contraseña Inicial</label>
+                            <input type="password" id="reg-pass" placeholder="Asignar contraseña" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-crear-usuario')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Crear Usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        /**
+         * Muestra la vista de contenido principal solicitada (ej. Usuarios, Logs).
+         * @param {string} viewId - El ID de la vista (ej. 'view-usuarios').
+         * @param {HTMLElement} clickedButton - El botón del sidenav que se presionó.
+         */
+        function showView(viewId, clickedButton) {
+            // Ocultar todas las vistas de contenido
+            document.querySelectorAll('.content-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Desactivar todos los botones del sidenav
+            document.querySelectorAll('.sidenav-nav button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Mostrar la vista solicitada
+            const activeView = document.getElementById(viewId);
+            if (activeView) {
+                activeView.classList.add('active');
+            }
+            
+            // Activar el botón presionado
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+        }
+
+        /**
+         * Muestra la pestaña interna solicitada (ej. Usuarios, Roles).
+         * @param {string} tabId - El ID del contenido de la pestaña.
+         * @param {HTMLElement} clickedTab - El botón de la pestaña que se presionó.
+         */
+        function showInnerTab(tabId, clickedTab) {
+            const parent = clickedTab.closest('.content-view');
+            
+            // Ocultar todo el contenido de pestañas internas en esta vista
+            parent.querySelectorAll('.inner-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todos los botones de pestañas internas
+            parent.querySelectorAll('.inner-tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Mostrar el contenido solicitado
+            const activeTabContent = document.getElementById(tabId);
+            if (activeTabContent) {
+                activeTabContent.classList.add('active');
+            }
+            
+            // Activar la pestaña presionada
+            clickedTab.classList.add('active');
+        }
+
+        // --- Funciones de Modales ---
+        
+        /**
+         * Muestra un modal por su ID.
+         * @param {string} modalId
+         */
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        /**
+         * Cierra un modal por su ID.
+         * @param {string} modalId
+         */
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('active');
+            }
+        }
+        
+        // --- Funciones de Botones (Simuladas) ---
+        
+        function generarRespaldo() {
+            alert("Acción: Iniciar generación de nuevo respaldo.");
+        }
+        
+        function confirmarRestauracion(nombreArchivo) {
+            const confirmacion = confirm(`¿Estás ABSOLUTAMENTE SEGURO que deseas restaurar el sistema usando el respaldo:\n${nombreArchivo}\n\nEsta acción es IRREVERSIBLE y sobreescribirá todos los datos actuales.`);
+            
+            if (confirmacion) {
+                alert(`Iniciando restauración con ${nombreArchivo}... (Simulado)`);
+                // Aquí iría la llamada al API de restauración
+            }
+        }
+        
+        function logout() {
+            // Redirige al usuario de vuelta al index.html
+            alert("Cerrando sesión...");
+            window.location.href = 'index.html'; // Ajusta esta ruta si es necesario
+        }
+
+        /**
+         * Manejador para el formulario de crear usuario (simulado).
+         */
+        function handleCrearUsuario(event) {
+            event.preventDefault(); // Evita que el formulario recargue la página
+            const email = document.getElementById('reg-email').value;
+            const rol = document.getElementById('reg-rol').value;
+            alert(`Simulando creación de usuario:\nEmail: ${email}\nRol: ${rol}`);
+            closeModal('modal-crear-usuario');
+            // Aquí iría la llamada al API para crear el usuario
+        }
+
+        // --- Funciones de Validación (Copiadas de index.html) ---
+
+        /**
+         * Validador para permitir solo números en campos de input.
+         * @param {KeyboardEvent} event - El evento del teclado.
+         */
+        function validateNumericInput(event) {
+            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {
+                return;
+            }
+            if (event.key < '0' || event.key > '9') {
+                event.preventDefault();
+            }
+        }
+
+        /**
+         * Intenta obtener la geolocalización y rellenar la dirección.
+         */
+        function getGeolocation() {
+            const direccionInput = document.getElementById('reg-direccion');
+            if (navigator.geolocation) {
+                direccionInput.value = "Detectando ubicación...";
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        direccionInput.value = `Coords: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+                    },
+                    (error) => {
+                        let errorMsg = "Error al detectar ubicación. ";
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED: errorMsg += "Permiso denegado."; break;
+                            case error.POSITION_UNAVAILABLE: errorMsg += "Posición no disponible."; break;
+                            case error.TIMEOUT: errorMsg += "Tiempo de espera agotado."; break;
+                        }
+                        direccionInput.value = "";
+                        alert(errorMsg);
+                    }
+                );
+            } else {
+                alert("La geolocalización no es soportada por este navegador.");
+            }
+        }
+
+    </script>
+</body>
+</html>

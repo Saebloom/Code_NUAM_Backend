@@ -2,32 +2,589 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Supervisor - Auditoría y Reportes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Supervisor - NUAM</title>
+    
+    <!-- 
+      FIX: CSS y JS son internos. Se eliminó la dependencia externa de Font Awesome.
+      Los iconos se han reemplazado por SVG inline.
+    -->
+    
+    <style>
+        /* --- Configuración Global --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: #f4f4f4;
+        }
+
+        /* --- Estructura Principal de la App --- */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* 1. Barra Superior */
+        .top-bar {
+            background-color: white;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #FD441E;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .top-bar-logo {
+            height: 32px;
+            width: auto;
+        }
+
+        /* --- Cuerpo del Dashboard --- */
+        .dashboard-body {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100% - 60px); 
+        }
+
+        /* 2. Barra Lateral (Sidenav) */
+        .sidenav {
+            flex-basis: 260px;
+            flex-shrink: 0;
+            background-color: #2c2c2c;
+            color: white;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidenav-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #555;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sidenav-profile-pic {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #FD441E;
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+        
+        .sidenav-profile .username {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .sidenav-profile .role {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .sidenav-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        
+        .sidenav-nav button {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            padding: 0.9rem 1.25rem;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .sidenav-nav button svg {
+            width: 1.1em;
+            height: 1.1em;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+        
+        .sidenav-nav button:hover {
+            background-color: #444;
+        }
+        
+        .sidenav-nav button.active {
+            background-color: #FD441E;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .sidenav-logout {
+            padding-top: 1rem;
+            border-top: 1px solid #555;
+        }
+        
+        .sidenav-logout button {
+             width: 100%;
+        }
+
+        /* 3. Contenido Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+            background-color: #f4f4f4;
+        }
+
+        .content-view {
+            display: none;
+        }
+        .content-view.active {
+            display: block;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-header h2 {
+            color: #FD441E;
+            font-size: 1.8rem;
+        }
+
+        .btn-primary {
+            background-color: #FD441E;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background-color: #e03c1a;
+        }
+        .btn-primary svg {
+             width: 1em;
+             height: 1em;
+             fill: currentColor;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+        
+        /* Estilos de Filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .filters input, .filters select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Estilos de Tabla */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        thead {
+            background-color: #f9f9f9;
+        }
+        th, td {
+            padding: 0.9rem 0.75rem;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+        }
+        .btn-icon svg {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+        }
+        .btn-view-details { color: #0d6efd; } /* Azul para ver detalles */
+
+        /* Estilos para la vista de Reportes */
+        .report-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 600px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .form-group-inline {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .form-group-inline .form-group {
+            flex-grow: 1;
+            flex-basis: 45%;
+        }
+
+
+    </style>
 </head>
 <body>
-    <main class="content">
-        <h1>Módulo de Supervisión</h1>
-        [cite_start]<p class="nota-importante">Todas las acciones son de solo lectura y los logs son inalterables. [cite: 197]</p>
 
-        <section id="consulta-calificaciones">
-            <h2>Consulta de Calificaciones Registradas</h2>
-            <div class="calificaciones-grilla">
+    <div class="app-container">
+        
+        <!-- 1. Barra Superior -->
+        <header class="top-bar">
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
+            nuam
+        </header>
+
+        <!-- 2. Cuerpo del Dashboard -->
+        <div class="dashboard-body">
+            
+            <!-- 2A. Barra Lateral (Sidenav) -->
+            <nav class="sidenav">
+                
+                <div class="sidenav-profile">
+                    <div class="sidenav-profile-pic">S</div>
+                    <span class="username">Ana Supervisor</span>
+                    <span class="role">Supervisor</span>
                 </div>
-        </section>
-
-        <section id="historial-operaciones">
-            <h2>Historial Completo de Operaciones</h2>
-            [cite_start]<p>Verificación de cargas masivas y acceso a registros completos. [cite: 195]</p>
-            <div class="logs-grid">
+                
+                <div class="sidenav-nav">
+                    <!-- Vista por defecto -->
+                    <button class="active" onclick="showView('view-consulta', this)">
+                        <!-- SVG Icono Lupa/Consulta -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                        Consulta de Calificaciones
+                    </button>
+                    <button onclick="showView('view-historial', this)">
+                        <!-- SVG Icono Historial/Log -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
+                        Historial de Operaciones
+                    </button>
+                    <button onclick="showView('view-reportes', this)">
+                        <!-- SVG Icono Reporte/Gráfico -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 80c0-26.5 21.5-48 48-48h32c26.5 0 48 21.5 48 48V432c0 26.5-21.5 48-48 48H208c-26.5 0-48-21.5-48-48V80zM0 224c0-26.5 21.5-48 48-48H80c26.5 0 48 21.5 48 48V432c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V224zM432 160c0-26.5 21.5-48 48-48h32c26.5 0 48 21.5 48 48V432c0 26.5-21.5 48-48 48H480c-26.5 0-48-21.5-48-48V160z"/></svg>
+                        Reportes
+                    </button>
                 </div>
-        </section>
+                
+                <div class="sidenav-logout">
+                    <button onclick="logout()">
+                        <!-- SVG Icono Salir -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </nav>
 
-        <section id="reportes">
-            <h2>Generación de Reportes Consolidados</h2>
-            [cite_start]<p>Genera reportes consolidados para análisis. [cite: 196]</p>
-            <button onclick="generarReporte('anual')">Generar Reporte Anual</button>
-            </section>
-    </main>
-    <script src="app.js"></script>
+            <!-- 2B. Contenido Principal -->
+            <main class="main-content">
+
+                <!-- 
+                  VISTA 1: CONSULTA DE CALIFICACIONES (Default)
+                  (Basado en mockup image_058b25.png)
+                -->
+                <div id="view-consulta" class="content-view active">
+                    <div class="content-header">
+                        <h2>Consulta de Calificaciones</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <!-- Filtros (iguales al Corredor) -->
+                        <div class="filters">
+                            <input type="text" id="filter-consulta-id" placeholder="ID Calificación...">
+                            <select id="filter-consulta-mercado">
+                                <option value="">Todo Mercado</option>
+                                <option value="local">Local</option>
+                                <option value="internacional">Internacional</option>
+                            </select>
+                            <select id="filter-consulta-origen">
+                                <option value="">Todo Origen</option>
+                                <option value="chile">Chile</option>
+                                <option value="peru">Perú</option>
+                            </select>
+                            <input type="number" id="filter-consulta-anio" placeholder="Año Comercial (AAAA)">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Monto Factor</th>
+                                        <th>F. Emisión</th>
+                                        <th>F. Pago</th>
+                                        <th>Instrumento</th>
+                                        <th>Mercado</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1024</td>
+                                        <td>1.25000000</td>
+                                        <td>2025-11-06</td>
+                                        <td>2026-01-01</td>
+                                        <td>BONO-S-123</td>
+                                        <td>Local</td>
+                                        <td>Validado</td>
+                                        <td class="action-buttons">
+                                            <!-- REQUERIMIENTO: SOLO LECTURA. No hay botones de Editar/Eliminar -->
+                                            <button class="btn-icon btn-view-details" title="Ver Detalles">
+                                                <!-- SVG Icono Ojo -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 0 256C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6C527.4 356 558.7 304 576 256c-17.3-48-48.6-100-95.4-143.4C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64s-64-28.7-64-64s28.7-64 64-64s64 28.7 64 64z"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>1023</td>
+                                        <td>0.89000000</td>
+                                        <td>2025-11-05</td>
+                                        <td>2025-12-01</td>
+                                        <td>ACCION-X-456</td>
+                                        <td>Internacional</td>
+                                        <td>Pendiente</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-view-details" title="Ver Detalles">
+                                                <!-- SVG Icono Ojo -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 0 256C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6C527.4 356 558.7 304 576 256c-17.3-48-48.6-100-95.4-143.4C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64s-64-28.7-64-64s28.7-64 64-64s64 28.7 64 64z"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 
+                  VISTA 2: HISTORIAL DE OPERACIONES
+                  (Basado en mockup image_058b2d.png)
+                -->
+                <div id="view-historial" class="content-view">
+                    <div class="content-header">
+                        <h2>Historial de Operaciones</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <!-- Filtros (copiados de Admin) -->
+                        <div class="filters">
+                            <input type="date" id="filter-log-fecha">
+                            <select id="filter-log-accion">
+                                <option value="">Todas las Acciones</option>
+                                <option value="login">Inicio Sesión</option>
+                                <option value="create">Creación</option>
+                                <option value="update">Actualización</option>
+                                <option value="delete">Eliminación</option>
+                                <option value="carga">Carga Masiva</option>
+                            </select>
+                            <input type="text" id="filter-log-usuario" placeholder="Filtrar por usuario...">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Acción</th>
+                                        <th>Usuario</th>
+                                        <th>Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2025-11-06 14:30:01</td>
+                                        <td>Creación</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>Se creó la Calificación ID: 1024</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-11-06 14:25:10</td>
+                                        <td>Actualización</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>Se actualizó la Calificación ID: 988</td>
+                                    </tr>
+                                     <tr>
+                                        <td>2025-11-06 10:00:00</td>
+                                        <td>Carga Masiva</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>Carga 'carga_nov_2025.csv' (1500 registros)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-11-06 09:00:15</td>
+                                        <td>Login</td>
+                                        <td>admin@nuam.com</td>
+                                        <td>Inicio de sesión exitoso</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 
+                  VISTA 3: REPORTES
+                  (Basado en mockup image_058b4b.png)
+                -->
+                <div id="view-reportes" class="content-view">
+                    <div class="content-header">
+                        <h2>Generación de Reportes</h2>
+                    </div>
+                    <div class="card">
+                        <form class="report-form" onsubmit="handleGenerarReporte(event)">
+                            <div class="form-group">
+                                <label for="report-tipo">Tipo de Reporte</label>
+                                <select id="report-tipo" required>
+                                    <option value="">Seleccione un tipo...</option>
+                                    <option value="calificaciones">Consolidado de Calificaciones</option>
+                                    <option value="cargas">Historial de Cargas Masivas</option>
+                                    <option value="auditoria">Reporte de Auditoría (Logs)</option>
+                                    <option value="usuarios">Listado de Usuarios</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group-inline">
+                                <div class="form-group">
+                                    <label for="report-fecha-inicio">Fecha Inicio</label>
+                                    <input type="date" id="report-fecha-inicio" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="report-fecha-fin">Fecha Fin</label>
+                                    <input type="date" id="report-fecha-fin" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="report-formato">Formato de Salida</label>
+                                <select id="report-formato" required>
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel (.xlsx)</option>
+                                    <option value="csv">CSV</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-top: 1rem;">
+                                <button type="submit" class="btn-primary">
+                                    <!-- SVG Icono Descarga -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg>
+                                    Generar Reporte
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        /**
+         * Muestra la vista de contenido principal solicitada.
+         */
+        function showView(viewId, clickedButton) {
+            document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.sidenav-nav button').forEach(button => button.classList.remove('active'));
+            
+            const activeView = document.getElementById(viewId);
+            if (activeView) activeView.classList.add('active');
+            if (clickedButton) clickedButton.classList.add('active');
+        }
+
+        /**
+         * Simulación de la generación de reporte.
+         */
+        function handleGenerarReporte(event) {
+            event.preventDefault();
+            const tipo = document.getElementById('report-tipo').value;
+            const formato = document.getElementById('report-formato').value;
+            alert(`Simulando generación de reporte:\nTipo: ${tipo}\nFormato: ${formato}`);
+            // Aquí iría la llamada al API para descargar el archivo
+        }
+
+        /**
+         * Cierre de sesión.
+         */
+        function logout() {
+            alert("Cerrando sesión...");
+            window.location.href = 'index.html'; 
+        }
+
+    </script>
 </body>
 </html>

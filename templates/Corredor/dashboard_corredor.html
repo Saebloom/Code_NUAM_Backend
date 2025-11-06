@@ -2,46 +2,1013 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Corredor - Mantenedor de Calificaciones</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Corredor - NUAM</title>
+    
+    <!-- 
+      FIX: CSS y JS son internos. Se eliminó la dependencia externa de Font Awesome.
+      Los iconos se han reemplazado por SVG inline.
+    -->
+    
+    <style>
+        /* --- Configuración Global --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: #f4f4f4;
+        }
+
+        /* --- Estructura Principal de la App --- */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* 1. Barra Superior */
+        .top-bar {
+            background-color: white;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #FD441E;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .top-bar-logo {
+            height: 32px;
+            width: auto;
+        }
+
+        /* --- Cuerpo del Dashboard --- */
+        .dashboard-body {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100% - 60px); 
+        }
+
+        /* 2. Barra Lateral (Sidenav) */
+        .sidenav {
+            flex-basis: 260px;
+            flex-shrink: 0;
+            background-color: #2c2c2c;
+            color: white;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidenav-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #555;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sidenav-profile-pic {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #FD441E;
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+        
+        .sidenav-profile .username {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .sidenav-profile .role {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .sidenav-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        
+        .sidenav-nav button {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            padding: 0.9rem 1.25rem;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .sidenav-nav button svg {
+            width: 1.1em;
+            height: 1.1em;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+        
+        .sidenav-nav button:hover {
+            background-color: #444;
+        }
+        
+        .sidenav-nav button.active {
+            background-color: #FD441E;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .sidenav-logout {
+            padding-top: 1rem;
+            border-top: 1px solid #555;
+        }
+        
+        .sidenav-logout button {
+             width: 100%;
+        }
+
+        /* 3. Contenido Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+            background-color: #f4f4f4;
+        }
+
+        .content-view {
+            display: none;
+        }
+        .content-view.active {
+            display: block;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-header h2 {
+            color: #FD441E;
+            font-size: 1.8rem;
+        }
+
+        .btn-primary {
+            background-color: #FD441E;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background-color: #e03c1a;
+        }
+        .btn-primary svg {
+             width: 1em;
+             height: 1em;
+             fill: currentColor;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+        
+        /* Estilos de Filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .filters input, .filters select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Estilos de Tabla */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        thead {
+            background-color: #f9f9f9;
+        }
+        th, td {
+            padding: 0.9rem 0.75rem;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+        }
+        .btn-icon svg {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+        }
+        .btn-edit { color: #007bff; }
+        .btn-delete { color: #dc3545; }
+
+        /* --- Estilos del Modal --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px; /* Más ancho para estos formularios */
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Modal Anidado (Factor) */
+        .modal-nested {
+            z-index: 1001; /* Encima del primer modal */
+            background-color: rgba(0, 0, 0, 0.2); /* Fondo más claro */
+        }
+        .modal-nested .modal-content {
+             max-width: 600px; /* Más pequeño */
+             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h2 {
+            color: #FD441E;
+        }
+        .modal-close {
+            color: #aaa;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: black;
+        }
+        
+        .modal-body form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-height: 80px;
+        }
+        
+        .form-group-inline {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .form-group-inline .form-group {
+            flex-grow: 1;
+            flex-basis: 45%; /* Dos columnas */
+        }
+
+        .modal-footer {
+            border-top: 1px solid #ddd;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Contenedor para sub-tablas (Tributarias, Factores) */
+        .sub-table-container {
+             margin-top: 1.5rem;
+             padding: 1rem;
+             background: #f9f9f9;
+             border-radius: 8px;
+        }
+        .sub-table-header {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             margin-bottom: 1rem;
+        }
+         .sub-table-header h4 {
+             color: #333;
+         }
+         
+        .btn-add-nested {
+            background-color: #28a745; /* Verde */
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-add-nested svg {
+             width: 1em;
+             height: 1em;
+             fill: currentColor;
+        }
+
+    </style>
 </head>
 <body>
-    <main class="content">
-        <h1>Mantenedor de Calificaciones Tributarias</h1>
 
-        <section id="calificaciones-listado">
-            <h2>Consulta y Filtrado de Calificaciones</h2>
-            <div class="filtros">
+    <div class="app-container">
+        
+        <!-- 1. Barra Superior -->
+        <header class="top-bar">
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
+            nuam
+        </header>
+
+        <!-- 2. Cuerpo del Dashboard -->
+        <div class="dashboard-body">
+            
+            <!-- 2A. Barra Lateral (Sidenav) -->
+            <nav class="sidenav">
+                
+                <div class="sidenav-profile">
+                    <div class="sidenav-profile-pic">C</div>
+                    <span class="username">Juan Corredor</span>
+                    <span class="role">Corredor</span>
                 </div>
-            <div class="calificaciones-grilla">
+                
+                <div class="sidenav-nav">
+                    <!-- Vista por defecto -->
+                    <button class="active" onclick="showView('view-mantenedor', this)">
+                        <!-- SVG Icono Mantenedor/Tabla -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zM64 160H192V416H64V160zm224 0H448V416H288V160z"/></svg>
+                        Mantenedor
+                    </button>
+                    <button onclick="showView('view-registro-manual', this)">
+                        <!-- SVG Icono Lápiz/Registro -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg>
+                        Registro Manual
+                    </button>
+                    <button onclick="showView('view-carga-masiva', this)">
+                        <!-- SVG Icono Carga Masiva/Upload -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
+                        Carga Masiva (CSV)
+                    </button>
+                    <button onclick="showView('view-historial', this)">
+                        <!-- SVG Icono Historial/Reloj -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
+                        Historial
+                    </button>
                 </div>
-        </section>
+                
+                <div class="sidenav-logout">
+                    <button onclick="logout()">
+                        <!-- SVG Icono Salir -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </nav>
 
-        <section id="registro-opciones">
-            <h2>Registro de Calificaciones</h2>
-            <button onclick="showRegistroManual()">Registro Manual</button>
-            <button onclick="showCargaMasiva()">Carga Masiva (CSV)</button>
-        </section>
+            <!-- 2B. Contenido Principal -->
+            <main class="main-content">
 
-        <section id="form-registro-manual" style="display: none;">
-            <h3>Ingreso de Calificaciones</h3>
-            <form action="/api/calificaciones" method="POST">
+                <!-- 
+                  VISTA 1: MANTENEDOR DE CALIFICACIONES (Default)
+                -->
+                <div id="view-mantenedor" class="content-view active">
+                    <div class="content-header">
+                        <h2>Mantenedor de Calificaciones</h2>
+                        <button class="btn-primary" onclick="showView('view-registro-manual', document.querySelector('.sidenav-nav button:nth-child(2)'))">
+                            <!-- SVG Icono Plus -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                            Nuevo Registro
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="filters">
+                            <input type="text" id="filter-mantenedor-id" placeholder="ID Calificación...">
+                            <select id="filter-mantenedor-mercado">
+                                <option value="">Todo Mercado</option>
+                                <option value="local">Local</option>
+                                <option value="internacional">Internacional</option>
+                            </select>
+                            <select id="filter-mantenedor-origen">
+                                <option value="">Todo Origen</option>
+                                <option value="chile">Chile</option>
+                                <option value="peru">Perú</option>
+                            </select>
+                            <input type="number" id="filter-mantenedor-anio" placeholder="Año Comercial (AAAA)">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Monto Factor</th>
+                                        <th>F. Emisión</th>
+                                        <th>F. Pago</th>
+                                        <th>Instrumento</th>
+                                        <th>Mercado</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1024</td>
+                                        <td>1.25000000</td>
+                                        <td>2025-11-06</td>
+                                        <td>2026-01-01</td>
+                                        <td>BONO-S-123</td>
+                                        <td>Local</td>
+                                        <td>Validado</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-edit" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
+                                            <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 
+                  VISTA 2: REGISTRO MANUAL
+                -->
+                <div id="view-registro-manual" class="content-view">
+                    <div class="content-header">
+                        <h2>Registro Manual de Calificación</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <form onsubmit="handleCrearCalificacion(event)">
+                            <div class="form-group-inline">
+                                <div class="form-group">
+                                    <label for="reg-instrumento">Instrumento</label>
+                                    <input type="text" id="reg-instrumento" placeholder="ID Instrumento (ej. BONO-S-123)" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-mercado">Mercado</label>
+                                    <select id="reg-mercado" required>
+                                        <option value="">Seleccione Mercado...</option>
+                                        <option value="1">Local</option>
+                                        <option value="2">Internacional</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-estado">Estado</label>
+                                    <select id="reg-estado" required>
+                                        <option value="1">Validado</option>
+                                        <option value="2">Pendiente</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-inline">
+                                <div class="form-group">
+                                    <label for="reg-monto-factor">Monto Factor</label>
+                                    <input type="number" step="0.00000001" id="reg-monto-factor" placeholder="Ej. 1.25000000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-fecha-emision">Fecha Emisión</label>
+                                    <input type="date" id="reg-fecha-emision" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-fecha-pago">Fecha Pago</label>
+                                    <input type="date" id="reg-fecha-pago" required>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor para la tabla de Calificaciones Tributarias (Paso 2) -->
+                            <div class="sub-table-container">
+                                <div class="sub-table-header">
+                                    <h4>Calificaciones Tributarias (Paso 2)</h4>
+                                    <button type="button" class="btn-add-nested" onclick="showModal('modal-calif-tributaria')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                                        Agregar Tributaria
+                                    </button>
+                                </div>
+                                <div class="table-container">
+                                    <table id="tabla-tributarias-temp">
+                                        <thead>
+                                            <tr>
+                                                <th>Sec. Evento</th>
+                                                <th>Evento Capital</th>
+                                                <th>Año</th>
+                                                <th>Valor Histórico</th>
+                                                <th>Factores</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Los datos se añadirán aquí con JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón de guardado principal -->
+                            <div class="modal-footer" style="border:none; padding: 1.5rem 0 0 0;">
+                                <button type="submit" class="btn-primary">Guardar Calificación Completa</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 
+                  VISTA 3: CARGA MASIVA (CSV)
+                -->
+                <div id="view-carga-masiva" class="content-view">
+                    <div class="content-header">
+                        <h2>Carga Masiva (CSV)</h2>
+                    </div>
+                    <div class="card">
+                        <form onsubmit="handleCargaMasiva(event)" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="csv-file">Archivo de Calificaciones (.csv)</label>
+                                <input type="file" id="csv-file" accept=".csv" required>
+                                <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">Asegúrese de que el archivo cumpla con el formato y las validaciones de datos.</p>
+                            </div>
+                            <div class="modal-footer" style="border:none; padding: 1.5rem 0 0 0;">
+                                <button type="submit" class="btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
+                                    Procesar Carga
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 
+                  VISTA 4: HISTORIAL DEL CORREDOR
+                -->
+                <div id="view-historial" class="content-view">
+                    <div class="content-header">
+                        <h2>Historial de Mis Operaciones</h2>
+                    </div>
+                    <div class="card">
+                        <p>Aquí se mostrará un log filtrado solo para las acciones realizadas por el Corredor.</p>
+                        <div class="table-container" style="margin-top: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Acción</th>
+                                        <th>ID Calificación</th>
+                                        <th>Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2025-11-06 14:30:01</td>
+                                        <td>Creación</td>
+                                        <td>1024</td>
+                                        <td>Se creó la Calificación ID: 1024</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+    
+    <!-- 
+      MODAL 1: (PASO 2) AGREGAR CALIFICACIÓN TRIBUTARIA
+    -->
+    <div id="modal-calif-tributaria" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Calificación Tributaria</h2>
+                <span class="modal-close" onclick="closeModal('modal-calif-tributaria')">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <form onsubmit="handleAgregarTributaria(event)">
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="trib-secuencia">Secuencia Evento</label>
+                            <input type="number" id="trib-secuencia" placeholder="Ej. 1" required>
+                        </div>
+                         <div class="form-group">
+                            <label for="trib-evento">Evento Capital</label>
+                            <input type="text" id="trib-evento" placeholder="Ej. Pago de cupón" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="trib-anio">Año Comercial</label>
+                            <input type="number" id="trib-anio" placeholder="AAAA" required>
+                        </div>
+                         <div class="form-group">
+                            <label for="trib-valor">Valor Histórico</label>
+                            <input type="number" step="0.01" id="trib-valor" placeholder="Ej. 10000.00" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="trib-desc">Descripción</label>
+                        <textarea id="trib-desc" placeholder="Descripción del evento..."></textarea>
+                    </div>
+
+                    <!-- Contenedor para la tabla de Factores (Paso 3) -->
+                    <div class="sub-table-container">
+                        <div class="sub-table-header">
+                            <h4>Factores Tributarios (Paso 3)</h4>
+                            <button type="button" class="btn-add-nested" onclick="showModal('modal-factor-tributario', true)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                                Agregar Factor
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table id="tabla-factores-temp">
+                                <thead>
+                                    <tr>
+                                        <th>Código Factor</th>
+                                        <th>Descripción</th>
+                                        <th>Valor</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Los datos se añadirán aquí con JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-calif-tributaria')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Tributaria</button>
+                    </div>
                 </form>
-        </section>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 
+      MODAL 2: (PASO 3) AGREGAR FACTOR TRIBUTARIO (Anidado)
+    -->
+    <div id="modal-factor-tributario" class="modal modal-nested">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Factor Tributario</h2>
+                <span class="modal-close" onclick="closeModal('modal-factor-tributario')">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <form onsubmit="handleAgregarFactor(event)">
+                    <div class="form-group">
+                        <label for="fact-codigo">Código Factor</label>
+                        <input type="text" id="fact-codigo" placeholder="Ej. C101" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fact-desc">Descripción Factor</label>
+                        <input type="text" id="fact-desc" placeholder="Descripción..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fact-valor">Valor Factor</label>
+                        <input type="number" step="0.00000001" id="fact-valor" placeholder="Ej. 0.19000000" required>
+                    </div>
 
-        <section id="form-carga-masiva" style="display: none;">
-            <h3>Carga Masiva de Calificaciones</h3>
-            <p>Se requiere subir un archivo CSV. [cite_start]Debe incluir validaciones de formato. [cite: 183]</p>
-            <form action="/api/cargas-masivas" method="POST" enctype="multipart/form-data">
-                <input type="file" name="csv_file" accept=".csv" required>
-                <button type="submit">Cargar Archivo</button>
-            </form>
-        </section>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-factor-tributario')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Factor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Almacenamiento Temporal de Formularios Anidados ---
+        // (En una app real, esto sería manejado por un framework de JS como React/Vue)
+        let tempTributarias = [];
+        let tempFactores = [];
+        let editIndexTributaria = -1;
+        let editIndexFactor = -1;
+
+        /**
+         * Muestra la vista de contenido principal solicitada.
+         */
+        function showView(viewId, clickedButton) {
+            document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.sidenav-nav button').forEach(button => button.classList.remove('active'));
+            
+            const activeView = document.getElementById(viewId);
+            if (activeView) activeView.classList.add('active');
+            if (clickedButton) clickedButton.classList.add('active');
+        }
+
+        /**
+         * Muestra un modal.
+         * @param {string} modalId
+         * @param {boolean} isNested - Si es un modal anidado.
+         */
+        function showModal(modalId, isNested = false) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                // Si es anidado, no limpiamos los factores temporales
+                if (modalId === 'modal-calif-tributaria' && !isNested) {
+                    tempFactores = []; // Limpia factores al abrir el modal de Tributaria
+                    renderTempFactores();
+                }
+                modal.classList.add('active');
+            }
+        }
+
+        /**
+         * Cierra un modal.
+         */
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('active');
+            }
+        }
         
-        <section id="historial">
-            <h2>Historial de Operaciones Personales</h2>
-            </section>
+        // --- Lógica de Simulación de Formularios Anidados ---
         
-    </main>
-    <script src="app.js"></script>
+        /**
+         * PASO 3: Agrega un Factor a la lista temporal (tempFactores)
+         */
+        function handleAgregarFactor(event) {
+            event.preventDefault();
+            const factor = {
+                codigo: document.getElementById('fact-codigo').value,
+                desc: document.getElementById('fact-desc').value,
+                valor: document.getElementById('fact-valor').value
+            };
+            tempFactores.push(factor);
+            
+            renderTempFactores();
+            closeModal('modal-factor-tributario');
+            
+            // Limpiar formulario de Factor
+            event.target.reset();
+        }
+        
+        /**
+         * Dibuja la tabla de factores temporales en el Modal 1
+         */
+        function renderTempFactores() {
+            const tablaBody = document.getElementById('tabla-factores-temp').querySelector('tbody');
+            tablaBody.innerHTML = tempFactores.map((f, index) => {
+                return `
+                    <tr>
+                        <td>${f.codigo}</td>
+                        <td>${f.desc}</td>
+                        <td>${f.valor}</td>
+                        <td class="action-buttons">
+                            <button type="button" class="btn-icon btn-delete" onclick="removeTempFactor(${index})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        /**
+         * Elimina un factor de la lista temporal.
+         */
+        function removeTempFactor(index) {
+            tempFactores.splice(index, 1);
+            renderTempFactores();
+        }
+
+        /**
+         * PASO 2: Agrega una Calificación Tributaria (con sus factores) a la lista temporal.
+         */
+        function handleAgregarTributaria(event) {
+            event.preventDefault();
+            if (tempFactores.length === 0) {
+                alert("Debe agregar al menos un Factor Tributario (Paso 3) a esta Calificación Tributaria.");
+                return;
+            }
+            
+            const tributaria = {
+                secuencia: document.getElementById('trib-secuencia').value,
+                evento: document.getElementById('trib-evento').value,
+                anio: document.getElementById('trib-anio').value,
+                valor: document.getElementById('trib-valor').value,
+                desc: document.getElementById('trib-desc').value,
+                factores: [...tempFactores] // Copia los factores temporales
+            };
+            
+            tempTributarias.push(tributaria);
+            
+            renderTempTributarias();
+            closeModal('modal-calif-tributaria');
+            
+            // Limpiar formulario y factores temporales
+            event.target.reset();
+            tempFactores = [];
+            renderTempFactores(); // Limpia la tabla de factores
+        }
+
+        /**
+         * Dibuja la tabla de Calificaciones Tributarias en el Formulario Principal
+         */
+        function renderTempTributarias() {
+            const tablaBody = document.getElementById('tabla-tributarias-temp').querySelector('tbody');
+            tablaBody.innerHTML = tempTributarias.map((t, index) => {
+                return `
+                    <tr>
+                        <td>${t.secuencia}</td>
+                        <td>${t.evento}</td>
+                        <td>${t.anio}</td>
+                        <td>${t.valor}</td>
+                        <td>${t.factores.length} Factores</td>
+                        <td class="action-buttons">
+                            <button type="button" class="btn-icon btn-delete" onclick="removeTempTributaria(${index})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        /**
+         * Elimina una tributaria de la lista temporal.
+         */
+        function removeTempTributaria(index) {
+            tempTributarias.splice(index, 1);
+            renderTempTributarias();
+        }
+
+        /**
+         * PASO 1: Simulación del guardado de la Calificación completa.
+         */
+        function handleCrearCalificacion(event) {
+            event.preventDefault();
+            if (tempTributarias.length === 0) {
+                alert("Debe agregar al menos una Calificación Tributaria (Paso 2) para guardar el registro.");
+                return;
+            }
+            
+            const calificacionCompleta = {
+                instrumento: document.getElementById('reg-instrumento').value,
+                mercado: document.getElementById('reg-mercado').value,
+                estado: document.getElementById('reg-estado').value,
+                monto_factor: document.getElementById('reg-monto-factor').value,
+                fecha_emision: document.getElementById('reg-fecha-emision').value,
+                fecha_pago: document.getElementById('reg-fecha-pago').value,
+                tributarias: tempTributarias
+            };
+            
+            console.log("Enviando al API (Simulado):", calificacionCompleta);
+            alert("Calificación Completa guardada (Simulado).");
+            
+            // Limpiar todo
+            event.target.reset();
+            tempTributarias = [];
+            renderTempTributarias();
+            
+            // Volver al mantenedor
+            showView('view-mantenedor', document.querySelector('.sidenav-nav button:first-child'));
+        }
+
+        /**
+         * Simulación de la carga masiva.
+         */
+        function handleCargaMasiva(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('csv-file');
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name;
+                alert(`Simulando carga del archivo: ${fileName}`);
+                // Aquí iría la llamada al API
+                
+                event.target.reset();
+                showView('view-historial', document.querySelector('.sidenav-nav button:nth-child(4)'));
+            } else {
+                alert("Por favor, seleccione un archivo CSV.");
+            }
+        }
+
+        /**
+         * Cierre de sesión.
+         */
+        function logout() {
+            alert("Cerrando sesión...");
+            window.location.href = 'index.html'; 
+        }
+
+    </script>
 </body>
 </html>
