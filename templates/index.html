@@ -1,506 +1,452 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NUAM - Sistema</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --nuam-red: #FF3E1D;
-      --nuam-text: #333333;
-      --nuam-background: #F5F5F5;
-    }
-    
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-image: url('/static/img/imagen_nuam.webp');
-      background-size: cover;
-      background-position: center center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-      position: relative;
-    }
-    
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.1);
-      z-index: -1;
-      margin: 0;
-      padding: 20px;
-      color: var(--nuam-text);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NUAM - Sistema de Acceso</title>
+    <style>
+        /* --- Configuración Global --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    .nuam-logo {
-      width: 120px;
-      margin-bottom: 2rem;
-    }
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Evita el scroll */
+            background-color: #f4f4f4; /* Color de fondo base */
+        }
 
-    /* Place auth card fixed on the left side so credentials are always visible over the background */
-    .auth-container {
-      position: absolute;
-      left: 48px;
-      top: 80px;
-      width: 420px;
-      max-width: 90vw;
-      background: rgba(255,255,255,0.98);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
+        /* --- Estructura Principal de la App --- */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-    .form-control {
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      border: 1px solid #E0E0E0;
-      margin-bottom: 1rem;
-    }
+        .top-bar {
+            background-color: white;
+            padding: 1rem 2rem;
+            font-size: 1.5rem; /* "mediana" */
+            font-weight: 600;
+            color: #FD441E; /* <-- CAMBIADO */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
 
-    .form-control:focus {
-      border-color: var(--nuam-red);
-      box-shadow: 0 0 0 0.2rem rgba(255, 62, 29, 0.25);
-    }
+            /* --- AÑADIDO para alinear logo y texto --- */
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* Espacio entre logo y texto */
+        }
 
-    .form-label {
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 0.5rem;
-    }
+        .main-content {
+            display: flex;
+            flex-grow: 1; /* Ocupa el resto del espacio */
+            height: calc(100% - 60px); /* Resta la altura de la barra superior */
+        }
 
-    .btn-nuam {
-      background-color: var(--nuam-red);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0.8rem;
-      width: 100%;
-      font-weight: 500;
-      margin-top: 1rem;
-    }
+        /* --- Panel Izquierdo (Formulario) --- */
+        .form-panel {
+            flex-basis: 500px; /* Ancho fijo para el panel de login */
+            flex-shrink: 0;
+            background-color: white;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto; /* Scroll si el formulario es largo */
+        }
 
-    .btn-nuam:hover {
-      background-color: #e63517;
-      color: white;
-    }
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            color: #ff6600; /* Naranja */
+            display: grid;
+            place-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
 
-    .auth-links {
-      text-align: center;
-      margin-top: 1.5rem;
-      font-size: 0.9rem;
-    }
+        .form-wrapper {
+            width: 100%;
+            max-width: 400px;
+        }
 
-    .auth-links a {
-      color: var(--nuam-red);
-      text-decoration: none;
-    }
+        /* --- Vistas de Formulario (Login, Recover, Register) --- */
+        .form-view {
+            display: none; /* Ocultos por defecto */
+        }
 
-    .auth-links a:hover {
-      text-decoration: underline;
-    }
+        .form-view.active {
+            display: block; /* Muestra la vista activa */
+        }
 
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
+        .form-view h2 {
+            text-align: center;
+            color: #FD441E; /* <-- CAMBIADO */
+            margin-bottom: 1rem;
+        }
+        
+        .form-view .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+        }
 
-    .info-box {
-      background: #F8F9FA;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #666;
-    }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem; /* Espacio entre campos */
+        }
 
-    .hidden { 
-      display: none !important;
-    }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
 
-    .loading {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255,255,255,0.9);
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-  </style>
+        .form-group input,
+        .form-group select {
+            padding: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        /* Grupo de campos en línea (País y RUT) */
+        .form-group-inline {
+            display: flex;
+            gap: 1rem;
+        }
+        .form-group-inline .form-group {
+            flex-grow: 1;
+        }
+        .form-group-inline .form-group:first-child {
+            flex-basis: 30%; /* Espacio para el país */
+        }
+
+        /* Grupo de campo con botón (Dirección) */
+        .input-with-button {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .input-with-button input {
+            flex-grow: 1;
+        }
+        .input-with-button button {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #ccc;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background-color: #FD441E; /* <-- CAMBIADO */
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #e03c1a; /* <-- CAMBIADO (Tono más oscuro del nuevo color) */
+        }
+
+        .form-links {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center; /* <-- CAMBIADO: Centra los enlaces */
+            gap: 2rem; /* <-- AÑADIDO: Añade separación */
+        }
+
+        .form-links a {
+            color: #FD441E; /* <-- CAMBIADO */
+            text-decoration: underline; /* <-- CAMBIADO */
+            cursor: pointer;
+        }
+        .form-links a:hover {
+            text-decoration: underline;
+        }
+        
+        /* --- AÑADIDO --- */
+        .top-bar-logo {
+            height: 32px; /* Ajusta esta altura según el tamaño deseado */
+            width: auto;
+        }
+
+        .form-links .back-link {
+            text-align: center;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* --- Panel Derecho (Decorativo) --- */
+        .decorative-panel {
+            flex-grow: 1;
+            background-color: #333;
+            /* Usando la ruta de imagen de tu proyecto anterior.
+              Asegúrate de que esta ruta sea correcta para tu servidor Django.
+              En un entorno de desarrollo estático, podría ser 'imagen_nuam.webp'.
+            */
+            background-image: url("/static/img/imagen_nuam.webp");
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
 </head>
 <body>
 
-<!-- Loading Spinner -->
-<div id="loading" class="loading hidden">
-  <div class="spinner-border text-danger" role="status">
-    <span class="visually-hidden">Cargando...</span>
-  </div>
-</div>
+    <div class="app-container">
+        
+        <!-- 1. Barra Superior -->
+        <header class="top-bar">
+            <!-- Asumiendo que el logo es un PNG. Ajusta la extensión (.png, .svg, .jpg) si es necesario -->
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
+            nuam
+        </header>
 
-<!-- Login Form -->
-<div class="auth-container" id="loginCard">
-  <div class="text-center">
-    <img src="/static/img/nuam-logo.svg" alt="NUAM" class="nuam-logo">
-  </div>
-  
-  <div class="form-group">
-    <label for="username" class="form-label">Email</label>
-    <input id="username" class="form-control" type="email" placeholder="Ingrese su correo corporativo">
-  </div>
-  
-  <div class="form-group">
-    <label for="password" class="form-label">Contraseña</label>
-    <input id="password" type="password" class="form-control" placeholder="Introduzca la contraseña">
-  </div>
-  
-  <button onclick="login()" class="btn btn-nuam">
-    Iniciar sesión
-  </button>
-  
-  <div class="auth-links">
-    <a href="#" onclick="showForgotPassword()">¿Contraseña Olvidada?</a><br>
-    <a href="#" onclick="showRegister()">¿Eres nuevo? Regístrese aquí</a>
-  </div>
-  
-  <p id="loginMsg" class="text-danger mt-3 text-center"></p>
-</div>
+        <!-- 2. Contenido Principal (Split) -->
+        <main class="main-content">
+            
+            <!-- 2A. Panel Izquierdo (Formularios) -->
+            <div class="form-panel">
+                <div class="logo-circle">N</div>
 
-<!-- Register Form -->
-<div class="auth-container hidden" id="registerCard">
-  <div class="text-center">
-    <img src="/static/img/nuam-logo.svg" alt="NUAM" class="nuam-logo">
-  </div>
-  
-  <h4 class="text-center mb-4">Registro de Nuevo Usuario</h4>
-  <p class="text-muted mb-4">Complete todos los campos para solicitar su cuenta</p>
-  
-  <div class="row">
-    <div class="col-md-6">
-      <div class="form-group">
-        <label class="form-label">Nombres</label>
-        <input type="text" id="reg_nombres" class="form-control" placeholder="Ej: Roberto Eugenio">
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="form-group">
-        <label class="form-label">Apellidos</label>
-        <input type="text" id="reg_apellidos" class="form-control" placeholder="Ej: Pérez González">
-      </div>
-    </div>
-  </div>
+                <div class="form-wrapper">
 
-  <div class="form-group">
-    <label class="form-label">RUT</label>
-    <input type="text" id="reg_rut" class="form-control" placeholder="Ej: 12.345.678-0">
-  </div>
+                    <!-- VISTA 1: INICIO DE SESIÓN (Activa por defecto) -->
+                    <div id="login-view" class="form-view active">
+                        <h2>Inicio Sesión</h2>
+                        <form onsubmit="handleLogin(event)">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" placeholder="ingrese email corporativo" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-pass">Contraseña</label>
+                                <input type="password" id="login-pass" placeholder="Contraseña" required>
+                            </div>
+                            <button type="submit" class="btn-primary">inicio sesión</button>
+                        </form>
+                        <div class="form-links">
+                            <a onclick="showView('recover-view')">contraseña olvidada?</a>
+                            <a onclick="showView('register-view')">registrese aqui</a>
+                        </div>
+                    </div>
 
-  <div class="form-group">
-    <label class="form-label">Email corporativo</label>
-    <input type="email" id="reg_email" class="form-control" placeholder="correo@nuam.cl">
-  </div>
+                    <!-- VISTA 2: RECUPERAR CONTRASEÑA -->
+                    <div id="recover-view" class="form-view">
+                        <h2>Recuperación de Contraseña</h2>
+                        <form onsubmit="handleRecover(event)">
+                            <div class="form-group">
+                                <label for="recover-pass">Última contraseña recordada</label>
+                                <input type="password" id="recover-pass" placeholder="Última contraseña">
+                            </div>
+                            <div class="form-group">
+                                <label for="recover-email">Email Corporativo</label>
+                                <input type="email" id="recover-email" placeholder="ingrese email corporativo" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recover-rut">RUT</label>
+                                <input type="text" id="recover-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)" required>
+                            </div>
+                            <button type="submit" class="btn-primary">enviar</button>
+                        </form>
+                        <div class="form-links">
+                            <a class="back-link" onclick="showView('login-view')">volver al inicio sesión</a>
+                        </div>
+                    </div>
 
-  <div class="form-group">
-    <label class="form-label">Género</label>
-    <select id="reg_genero" class="form-control">
-      <option value="">Seleccione</option>
-      <option value="M">Masculino</option>
-      <option value="F">Femenino</option>
-      <option value="O">Otro</option>
-    </select>
-  </div>
+                    <!-- VISTA 3: REGISTRO DE NUEVO USUARIO -->
+                    <div id="register-view" class="form-view">
+                        <h2>Registro de Nuevo Usuario</h2>
+                        <p class="subtitle">Complete todos los campos para solicitar su cuenta.</p>
+                        <form onsubmit="handleRegister(event)">
+                            <div class="form-group">
+                                <label for="reg-nombres">Nombres</label>
+                                <input type="text" id="reg-nombres" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-apellidos">Apellidos</label>
+                                <input type="text" id="reg-apellidos" required>
+                            </div>
+                            <div class="form-group-inline">
+                                <div class="form-group">
+                                    <label for="reg-pais">País</label>
+                                    <select id="reg-pais">
+                                        <option value="CL">Chile</option>
+                                        <option value="PE">Perú</option>
+                                        <option value="CO">Colombia</option>
+                                        <!-- Agregar más países según sea necesario -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-rut">RUT / Documento</label>
+                                    <input type="text" id="reg-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-email">Email Corporativo</label>
+                                <input type="email" id="reg-email" placeholder="ingrese email corporativo" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-genero">Género</label>
+                                <select id="reg-genero" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="mujer">Mujer</option>
+                                    <option value="hombre">Hombre</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-contacto">Número de Contacto</label>
+                                <input type="tel" id="reg-contacto" placeholder="Contacto (sólo números)" onkeydown="validateNumericInput(event)" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-direccion">Dirección de Hogar</label>
+                                <div class="input-with-button">
+                                    <input type="text" id="reg-direccion" placeholder="Dirección" required>
+                                    <button type="button" onclick="getGeolocation()">
+                                        <!-- Icono simple de ubicación -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Solicitar Cuenta</button>
+                        </form>
+                        <div class="form-links">
+                            <a class="back-link" onclick="showView('login-view')">volver al inicio sesión</a>
+                        </div>
+                    </div>
 
-  <div class="form-group">
-    <label class="form-label">Número de contacto</label>
-    <input type="tel" id="reg_telefono" class="form-control" placeholder="+56 9 XXXXXXXX">
-  </div>
-
-  <div class="form-group">
-    <label class="form-label">Dirección de hogar</label>
-    <input type="text" id="reg_direccion" class="form-control" placeholder="Calle, número, depto, comuna/ciudad">
-  </div>
-
-  <button onclick="register()" class="btn btn-nuam">
-    Enviar
-  </button>
-
-  <div class="auth-links">
-    <a href="#" onclick="showLogin()">Ya tengo una cuenta. Volver al inicio Sesión</a>
-  </div>
-
-  <div class="info-box">
-    <p class="mb-0">Se notificará los datos para habilitar su cuenta. Recibirá un correo de confirmación</p>
-  </div>
-</div>
-
-<!-- Forgot Password Form -->
-<div class="auth-container hidden" id="forgotCard">
-  <div class="text-center">
-    <img src="/static/img/nuam-logo.svg" alt="NUAM" class="nuam-logo">
-  </div>
-  
-  <h4 class="text-center mb-4">Recuperar contraseña olvidada</h4>
-  
-  <div class="form-group">
-    <label class="form-label">Última contraseña recordada</label>
-    <input type="password" id="forgot_lastpass" class="form-control" placeholder="Última contraseña recordada">
-  </div>
-
-  <div class="form-group">
-    <label class="form-label">Ingrese email corporativo</label>
-    <input type="email" id="forgot_email" class="form-control" placeholder="tu.correo@nuam.cl">
-  </div>
-
-  <div class="form-group">
-    <label class="form-label">RUT</label>
-    <input type="text" id="forgot_rut" class="form-control" placeholder="Ej: 12.345.678-9">
-  </div>
-
-  <button onclick="recoverPassword()" class="btn btn-nuam">
-    Enviar
-  </button>
-
-  <div class="auth-links">
-    <a href="#" onclick="showLogin()">Volver al inicio sesión</a>
-  </div>
-
-  <div class="info-box">
-    <p class="mb-0">Se enviará una notificación a soporte respecto a este cambio para mayor seguridad y respaldo</p>
-  </div>
-</div>
-
-<!-- Main App -->
-<div id="appCard" class="hidden">
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <i class="fas fa-chart-line me-2"></i>NUAM
-      </a>
-      <div class="d-flex">
-        <span class="navbar-text me-3" id="userInfo"></span>
-        <button onclick="logout()" class="btn btn-outline-danger">
-          <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Main Content -->
-  <div class="container">
-    <!-- Role specific panels (hidden by default, shown by JS according to role) -->
-    <div id="adminPanel" class="card mb-4 hidden">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <img src="/static/img/nuam-logo.svg" style="width:100px" alt="NUAM">
-          </div>
-          <div>
-            <button class="btn btn-outline-secondary me-2" onclick="location.href='/admin/'">Ir al Admin</button>
-            <button class="btn btn-dark" onclick="logout()">Salir</button>
-          </div>
-        </div>
-
-        <h2 class="text-center text-danger mb-4">Panel de gestión</h2>
-        <p class="text-center text-muted">Gestión de usuarios y roles</p>
-
-        <!-- Tabs -->
-        <ul class="nav nav-tabs mt-4" id="adminTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="tab-usuarios" data-bs-toggle="tab" data-bs-target="#pane-usuarios" type="button" role="tab">Usuarios</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-auditoria" data-bs-toggle="tab" data-bs-target="#pane-auditoria" type="button" role="tab">Auditoría</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-respaldos" data-bs-toggle="tab" data-bs-target="#pane-respaldos" type="button" role="tab">Respaldos</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-historial" data-bs-toggle="tab" data-bs-target="#pane-historial" type="button" role="tab">Historial de cargas masivas</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-bolsa" data-bs-toggle="tab" data-bs-target="#pane-bolsa" type="button" role="tab">Bolsa de valores</button>
-          </li>
-        </ul>
-
-        <div class="tab-content p-3 border rounded-bottom" id="adminTabsContent">
-          <!-- Usuarios -->
-          <div class="tab-pane fade show active" id="pane-usuarios" role="tabpanel">
-            <div class="mb-3">
-              <div class="p-3 border rounded">
-                <div class="row g-3">
-                  <div class="col-md-4">
-                    <input id="filter_user" class="form-control" placeholder="Inserte nombre de usuario">
-                  </div>
-                  <div class="col-md-2">
-                    <select id="filter_role" class="form-select"><option value="">Todos</option></select>
-                  </div>
-                  <div class="col-md-3">
-                    <input id="filter_email" class="form-control" placeholder="Inserte email">
-                  </div>
-                  <div class="col-md-3 text-end">
-                    <button class="btn btn-outline-secondary" onclick="limpiarFiltrosUsuarios()">Limpiar</button>
-                    <button class="btn btn-danger" onclick="buscarUsuarios()">Filtrar Usuario</button>
-                  </div>
                 </div>
-              </div>
             </div>
 
-            <div class="table-responsive">
-              <table class="table table-bordered" id="adminUsersTable">
-                <thead>
-                  <tr>
-                    <th>USUARIO</th>
-                    <th>ROL</th>
-                    <th>EMAIL</th>
-                    <th>ESTADO</th>
-                    <th>ACCIONES</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+            <!-- 2B. Panel Derecho (Imagen) -->
+            <div class="decorative-panel">
+                <!-- El fondo se aplica con CSS -->
             </div>
-          </div>
 
-          <!-- Auditoría -->
-          <div class="tab-pane fade" id="pane-auditoria" role="tabpanel">
-            <div class="p-3 border rounded mb-3">
-              <div class="row g-3">
-                <div class="col-md-4"><input id="aud_user" class="form-control" placeholder="Inserte nombre de usuario"></div>
-                <div class="col-md-3"><select id="aud_action" class="form-select"><option value="">Todos</option></select></div>
-                <div class="col-md-3"><input id="aud_from" type="date" class="form-control"></div>
-                <div class="col-md-2 text-end"><button class="btn btn-danger" onclick="filtrarAuditoria()">Filtrar logs</button></div>
-              </div>
-            </div>
-            <div class="table-responsive">
-              <table class="table table-bordered" id="auditoriaTable"><thead><tr><th>FECHA/HORA</th><th>ROL</th><th>USUARIO</th><th>ACCIÓN</th><th>REGISTRO AFECTADO</th></tr></thead><tbody></tbody></table>
-            </div>
-          </div>
-
-          <!-- Respaldos -->
-          <div class="tab-pane fade" id="pane-respaldos" role="tabpanel">
-            <div class="mb-3"><button class="btn btn-danger" onclick="crearRespaldo()">CREAR RESPALDO</button></div>
-            <div class="table-responsive"><table class="table table-bordered" id="respaldosTable"><thead><tr><th>ID RESPALDO</th><th>FECHA CREACIÓN</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody></tbody></table></div>
-          </div>
-
-          <!-- Historial de cargas -->
-          <div class="tab-pane fade" id="pane-historial" role="tabpanel">
-            <div class="table-responsive"><table class="table table-bordered" id="historialTable"><thead><tr><th>ARCHIVO</th><th>ROL</th><th>USUARIO</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody></tbody></table></div>
-          </div>
-
-          <!-- Bolsa de valores (placeholder) -->
-          <div class="tab-pane fade" id="pane-bolsa" role="tabpanel">
-            <p>Sección Bolsa de valores - pendiente de integración.</p>
-          </div>
-        </div>
-      </div>
+        </main>
     </div>
 
-    <div id="corredorPanel" class="card mb-4 hidden">
-      <div class="card-body">
-        <h3 class="mb-3 text-primary"><i class="fas fa-briefcase me-2"></i>Panel Corredor</h3>
-        <p>Herramientas de corredor: creación y seguimiento de calificaciones.</p>
-      </div>
-    </div>
+    <script>
+        /**
+         * Muestra la vista de formulario solicitada y oculta las demás.
+         * @param {string} viewId - El ID de la vista (ej. 'login-view', 'recover-view').
+         */
+        function showView(viewId) {
+            // Ocultar todas las vistas
+            const views = document.querySelectorAll('.form-view');
+            views.forEach(view => {
+                view.classList.remove('active');
+            });
 
-    <div id="supervisorPanel" class="card mb-4 hidden">
-      <div class="card-body">
-        <h3 class="mb-3 text-warning"><i class="fas fa-user-tie me-2"></i>Panel Supervisor</h3>
-        <p>Herramientas de supervisión: revisión y aprobación.</p>
-      </div>
-    </div>
-    <div class="card">
-      <h3 class="mb-4">
-        <i class="fas fa-plus-circle me-2"></i>Nueva Calificación
-      </h3>
-      
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label class="form-label">Monto Factor</label>
-            <input id="c_monto" type="number" step="0.0001" class="form-control" placeholder="Ej: 100.0000">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Fecha Emisión</label>
-            <input id="c_emision" type="date" class="form-control">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Fecha Pago</label>
-            <input id="c_pago" type="date" class="form-control">
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label class="form-label">Instrumento</label>
-            <select id="c_instrumento" class="form-select"></select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Mercado</label>
-            <select id="c_mercado" class="form-select"></select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Estado</label>
-            <select id="c_estado" class="form-select"></select>
-          </div>
-        </div>
-      </div>
+            // Mostrar la vista solicitada
+            const activeView = document.getElementById(viewId);
+            if (activeView) {
+                activeView.classList.add('active');
+            }
+        }
 
-      <div class="text-end mt-3">
-        <button onclick="crearCalificacion()" class="btn btn-primary">
-          <i class="fas fa-save me-2"></i>Crear Calificación
-        </button>
-      </div>
-      
-      <div id="createMsg" class="mt-3"></div>
-    </div>
+        /**
+         * Validador para permitir solo números en campos de input.
+         * @param {KeyboardEvent} event - El evento del teclado.
+         */
+        function validateNumericInput(event) {
+            // Permitir teclas de control: Backspace, Tab, Flechas, etc.
+            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {
+                return;
+            }
+            // Bloquear si no es un número
+            if (event.key < '0' || event.key > '9') {
+                event.preventDefault();
+            }
+        }
 
-    <div class="card mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0">
-          <i class="fas fa-list me-2"></i>Calificaciones Registradas
-        </h3>
-        <div class="d-flex gap-2">
-          <button onclick="listarCalificaciones()" class="btn btn-outline-primary">
-            <i class="fas fa-sync-alt me-2"></i>Actualizar
-          </button>
-          <button onclick="exportarExcel()" class="btn btn-success">
-            <i class="fas fa-file-excel me-2"></i>Exportar
-          </button>
-        </div>
-      </div>
+        /**
+         * Intenta obtener la geolocalización y rellenar la dirección.
+         */
+        function getGeolocation() {
+            const direccionInput = document.getElementById('reg-direccion');
+            if (navigator.geolocation) {
+                direccionInput.value = "Detectando ubicación...";
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // En una app real, usarías esto para un API de geocodificación
+                        // Por ahora, solo mostramos las coordenadas
+                        direccionInput.value = `Coords: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+                    },
+                    (error) => {
+                        // Manejo de errores
+                        let errorMsg = "Error al detectar ubicación. ";
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg += "Permiso denegado.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg += "Posición no disponible.";
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg += "Tiempo de espera agotado.";
+                                break;
+                        }
+                        direccionInput.value = ""; // Limpia el campo
+                        alert(errorMsg);
+                    }
+                );
+            } else {
+                alert("La geolocalización no es soportada por este navegador.");
+            }
+        }
 
-      <div class="table-responsive">
-        <table class="table table-hover" id="tablaCalificaciones">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Monto Factor</th>
-              <th>F. Emisión</th>
-              <th>F. Pago</th>
-              <th>Instrumento</th>
-              <th>Mercado</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+        // --- Controladores de Formularios (Simulados) ---
+        // Aquí es donde conectarías con tu API (en app.js)
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-<script src="/static/app.js"></script>
+        function handleLogin(event) {
+            event.preventDefault(); // Evita que la página se recargue
+            const email = document.getElementById('login-email').value;
+            console.log(`Intentando iniciar sesión con: ${email}`);
+            // Lógica de API aquí...
+            // Si tiene éxito: window.location.href = '/dashboard';
+        }
+
+        function handleRecover(event) {
+            event.preventDefault();
+            const email = document.getElementById('recover-email').value;
+            console.log(`Solicitando recuperación para: ${email}`);
+            // Lógica de API aquí...
+            alert('Solicitud de recuperación enviada (simulado).');
+            showView('login-view'); // Volver al login
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const email = document.getElementById('reg-email').value;
+            console.log(`Solicitando registro para: ${email}`);
+            // Lógica de API aquí...
+            alert('Solicitud de registro enviada (simulado).');
+            showView('login-view'); // Volver al login
+        }
+
+    </script>
 </body>
 </html>

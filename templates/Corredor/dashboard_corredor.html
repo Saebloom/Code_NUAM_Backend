@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Corredor - Mantenedor de Calificaciones</title>
+</head>
+<body>
+    <main class="content">
+        <h1>Mantenedor de Calificaciones Tributarias</h1>
+
+        <section id="calificaciones-listado">
+            <h2>Consulta y Filtrado de Calificaciones</h2>
+            <div class="filtros">
+                </div>
+            <div class="calificaciones-grilla">
+                </div>
+        </section>
+
+        <section id="registro-opciones">
+            <h2>Registro de Calificaciones</h2>
+            <button onclick="showRegistroManual()">Registro Manual</button>
+            <button onclick="showCargaMasiva()">Carga Masiva (CSV)</button>
+        </section>
+
+        <section id="form-registro-manual" style="display: none;">
+            <h3>Ingreso de Calificaciones</h3>
+            <form action="/api/calificaciones" method="POST">
+                </form>
+        </section>
+
+        <section id="form-carga-masiva" style="display: none;">
+            <h3>Carga Masiva de Calificaciones</h3>
+            <p>Se requiere subir un archivo CSV. [cite_start]Debe incluir validaciones de formato. [cite: 183]</p>
+            <form action="/api/cargas-masivas" method="POST" enctype="multipart/form-data">
+                <input type="file" name="csv_file" accept=".csv" required>
+                <button type="submit">Cargar Archivo</button>
+            </form>
+        </section>
+        
+        <section id="historial">
+            <h2>Historial de Operaciones Personales</h2>
+            </section>
+        
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
