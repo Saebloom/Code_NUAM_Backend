@@ -69,12 +69,12 @@ python manage.py createsuperuser
 
 Completa los datos solicitados:
 
-Username: valeadmin
+Username: admin
 
-Email: vale@example.com
+Email: usuario@nuam.cl
 
 Password: ContraseñaSegura123!
-
+(el email tiene que terminar en "@nuam.cl")
 
 ### Método no interactivo (útil para scripts)
 
