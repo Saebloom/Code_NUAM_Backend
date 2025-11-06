@@ -41,16 +41,6 @@
             padding: 0.9rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;
         }
 
-        .form-group-inline { display: flex; gap: 1rem; }
-        .form-group-inline .form-group:first-child { flex-basis: 30%; }
-
-        .input-with-button { display: flex; gap: 0.5rem; }
-        .input-with-button input { flex-grow: 1; }
-        .input-with-button button {
-            padding: 0.5rem 0.8rem; border: 1px solid #ccc; background: #f0f0f0;
-            cursor: pointer; border-radius: 8px; font-size: 0.9rem;
-        }
-
         .btn-primary {
             background-color: #FD441E; color: white; border: none; padding: 1rem;
             border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer;
@@ -60,6 +50,7 @@
 
         .form-links { margin-top: 1.5rem; display: flex; justify-content: center; gap: 2rem; }
         .form-links a { color: #FD441E; text-decoration: underline; cursor: pointer; }
+
         .decorative-panel { flex-grow: 1; background-color: #333; background-image: url("/static/img/imagen_nuam.webp"); background-size: cover; background-position: center; }
     </style>
 </head>
@@ -146,19 +137,42 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById("login-email").value;
+            const email = document.getElementById("login-email").value.trim().toLowerCase();
             const password = document.getElementById("login-pass").value;
+
+            if (!email.endsWith("@nuam.cl")) {
+                alert("Solo se permiten correos corporativos que terminen en @nuam.cl ❌");
+                return;
+            }
+
             try {
                 const res = await fetch(`${API_BASE}/auth/token/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username: email, password })
                 });
-                if (!res.ok) throw new Error("Credenciales incorrectas");
+
+                if (!res.ok) throw new Error("Credenciales incorrectas ❌");
                 const data = await res.json();
                 localStorage.setItem("access", data.access);
-                alert("Inicio de sesión exitoso ✅");
-                window.location.href = "/dashboard"; // cambia según tu template
+
+                // Obtener datos del usuario actual
+                const userRes = await fetch(`${API_BASE}/users/me/`, {
+                    headers: { "Authorization": `Bearer ${data.access}` }
+                });
+                const user = await userRes.json();
+
+                // Redirección según rol
+                if (user.rol === "admin") {
+                    window.location.href = "/dashboard/admin/";
+                } else if (user.rol === "corredor") {
+                    window.location.href = "/dashboard/corredor/";
+                } else if (user.rol === "supervisor") {
+                    window.location.href = "/dashboard/supervisor/";
+                } else {
+                    alert("Rol desconocido, contacta al administrador ❗");
+                }
+
             } catch (err) {
                 alert(err.message);
             }
@@ -166,9 +180,16 @@
 
         async function handleRegister(e) {
             e.preventDefault();
+            const email = document.getElementById("reg-email").value.trim().toLowerCase();
+
+            if (!email.endsWith("@nuam.cl")) {
+                alert("Solo se permiten correos corporativos que terminen en @nuam.cl ❌");
+                return;
+            }
+
             const payload = {
-                username: document.getElementById("reg-email").value,
-                email: document.getElementById("reg-email").value,
+                username: email,
+                email: email,
                 password: document.getElementById("reg-pass").value,
                 first_name: document.getElementById("reg-nombres").value
             };
@@ -178,7 +199,7 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error("Error al registrar usuario");
+                if (!res.ok) throw new Error("Error al registrar usuario ❌");
                 alert("Registro enviado con éxito. Espera aprobación ✅");
                 showView('login-view');
             } catch (err) {
@@ -188,7 +209,7 @@
 
         function handleRecover(e) {
             e.preventDefault();
-            const email = document.getElementById("recover-email").value;
+            const email = document.getElementById("recover-email").value.trim().toLowerCase();
             alert(`Simulando recuperación de contraseña para ${email}`);
             showView("login-view");
         }

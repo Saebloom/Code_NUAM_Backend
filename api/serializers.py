@@ -1,33 +1,32 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from .models import (
     Rol, Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
     Log, Auditoria
 )
-from django.contrib.auth.models import User
-from django.contrib.auth.models import Group
 
+# ---------------------------
+# User Serializers
+# ---------------------------
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SerializerMethodField()
-    class Meta:
-        model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "groups"]
-
-    def get_groups(self, obj):
-        return [g.name for g in obj.groups.all()]
-
-
-class CurrentUserSerializer(UserSerializer):
     is_staff = serializers.BooleanField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
-    groups = serializers.SerializerMethodField()
 
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ["is_staff", "is_superuser", "groups"]
+    class Meta:
+        model = User
+        fields = [
+            "id", "username", "email", "first_name", "last_name",
+            "groups", "is_staff", "is_superuser"
+        ]
 
     def get_groups(self, obj):
         return [g.name for g in obj.groups.all()]
 
+# ---------------------------
+# Model Serializers
+# ---------------------------
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rol
@@ -68,7 +67,9 @@ class CalificacionTributariaSerializer(serializers.ModelSerializer):
 class CalificacionSerializer(serializers.ModelSerializer):
     tributarias = CalificacionTributariaSerializer(many=True, read_only=True)
     usuario = UserSerializer(read_only=True)
-    usuario_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=User.objects.all(), source="usuario")
+    usuario_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=User.objects.all(), source="usuario"
+    )
 
     class Meta:
         model = Calificacion
@@ -80,5 +81,4 @@ class CalificacionSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at", "usuario"]
 
     def create(self, validated_data):
-        # usuario ya fue seteado por usuario_id
         return super().create(validated_data)

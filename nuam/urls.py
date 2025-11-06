@@ -20,18 +20,18 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    # 🏠 Página de inicio (Login / Registro / Recuperar Contraseña)
+    # 🏠 Página de inicio (login, registro y recuperar)
     path("", TemplateView.as_view(template_name="index.html"), name="home"),
 
-    # 📊 Dashboards según el rol
+    # 📊 Dashboards según el rol (se sirven directo desde /templates/)
     path("dashboard/admin/", TemplateView.as_view(template_name="admin/dashboard.html"), name="dashboard_admin"),
     path("dashboard/corredor/", TemplateView.as_view(template_name="corredor/dashboard_corredor.html"), name="dashboard_corredor"),
     path("dashboard/supervisor/", TemplateView.as_view(template_name="supervisor/dashboard_supervisor.html"), name="dashboard_supervisor"),
 
-    # 🔌 API y administración
+    # ⚙️ Django Admin y API REST
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
 
-    # 🧭 Swagger / Documentación API
+    # 📚 Swagger / Redoc
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
