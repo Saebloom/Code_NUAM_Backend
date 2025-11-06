@@ -5,448 +5,193 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NUAM - Sistema de Acceso</title>
     <style>
-        /* --- Configuración Global --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", Roboto, sans-serif; }
+        html, body { height: 100%; overflow: hidden; background-color: #f4f4f4; }
 
-        html, body {
-            height: 100%;
-            overflow: hidden; /* Evita el scroll */
-            background-color: #f4f4f4; /* Color de fondo base */
-        }
-
-        /* --- Estructura Principal de la App --- */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
         .top-bar {
-            background-color: white;
-            padding: 1rem 2rem;
-            font-size: 1.5rem; /* "mediana" */
-            font-weight: 600;
-            color: #FD441E; /* <-- CAMBIADO */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            z-index: 10;
-
-            /* --- AÑADIDO para alinear logo y texto --- */
-            display: flex;
-            align-items: center;
-            gap: 0.75rem; /* Espacio entre logo y texto */
+            background-color: white; padding: 1rem 2rem; font-size: 1.5rem; font-weight: 600;
+            color: #FD441E; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
+        .top-bar-logo { height: 32px; width: auto; }
 
-        .main-content {
-            display: flex;
-            flex-grow: 1; /* Ocupa el resto del espacio */
-            height: calc(100% - 60px); /* Resta la altura de la barra superior */
-        }
+        .main-content { display: flex; flex-grow: 1; height: calc(100% - 60px); }
 
-        /* --- Panel Izquierdo (Formulario) --- */
         .form-panel {
-            flex-basis: 500px; /* Ancho fijo para el panel de login */
-            flex-shrink: 0;
-            background-color: white;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto; /* Scroll si el formulario es largo */
+            flex-basis: 500px; flex-shrink: 0; background-color: white; padding: 2rem;
+            display: flex; flex-direction: column; align-items: center; overflow-y: auto;
         }
 
         .logo-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: #f0f0f0;
-            color: #ff6600; /* Naranja */
-            display: grid;
-            place-items: center;
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 2rem;
+            width: 80px; height: 80px; border-radius: 50%; background-color: #f0f0f0; color: #FD441E;
+            display: grid; place-items: center; font-size: 3rem; font-weight: bold; margin-bottom: 2rem;
         }
 
-        .form-wrapper {
-            width: 100%;
-            max-width: 400px;
+        .form-wrapper { width: 100%; max-width: 400px; }
+        .form-view { display: none; }
+        .form-view.active { display: block; }
+
+        .form-view h2 { text-align: center; color: #FD441E; margin-bottom: 1rem; }
+        .form-view .subtitle { text-align: center; color: #666; margin-bottom: 2rem; }
+
+        form { display: flex; flex-direction: column; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 0.5rem; color: #555; }
+        .form-group input, .form-group select {
+            padding: 0.9rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;
         }
 
-        /* --- Vistas de Formulario (Login, Recover, Register) --- */
-        .form-view {
-            display: none; /* Ocultos por defecto */
-        }
+        .form-group-inline { display: flex; gap: 1rem; }
+        .form-group-inline .form-group:first-child { flex-basis: 30%; }
 
-        .form-view.active {
-            display: block; /* Muestra la vista activa */
-        }
-
-        .form-view h2 {
-            text-align: center;
-            color: #FD441E; /* <-- CAMBIADO */
-            margin-bottom: 1rem;
-        }
-        
-        .form-view .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 2rem;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem; /* Espacio entre campos */
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #555;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 0.9rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        
-        /* Grupo de campos en línea (País y RUT) */
-        .form-group-inline {
-            display: flex;
-            gap: 1rem;
-        }
-        .form-group-inline .form-group {
-            flex-grow: 1;
-        }
-        .form-group-inline .form-group:first-child {
-            flex-basis: 30%; /* Espacio para el país */
-        }
-
-        /* Grupo de campo con botón (Dirección) */
-        .input-with-button {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .input-with-button input {
-            flex-grow: 1;
-        }
+        .input-with-button { display: flex; gap: 0.5rem; }
+        .input-with-button input { flex-grow: 1; }
         .input-with-button button {
-            padding: 0.5rem 0.8rem;
-            border: 1px solid #ccc;
-            background: #f0f0f0;
-            cursor: pointer;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 0.5rem 0.8rem; border: 1px solid #ccc; background: #f0f0f0;
+            cursor: pointer; border-radius: 8px; font-size: 0.9rem;
         }
 
         .btn-primary {
-            background-color: #FD441E; /* <-- CAMBIADO */
-            color: white;
-            border: none;
-            padding: 1rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
+            background-color: #FD441E; color: white; border: none; padding: 1rem;
+            border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer;
             transition: background-color 0.2s;
         }
+        .btn-primary:hover { background-color: #e03c1a; }
 
-        .btn-primary:hover {
-            background-color: #e03c1a; /* <-- CAMBIADO (Tono más oscuro del nuevo color) */
-        }
-
-        .form-links {
-            margin-top: 1.5rem;
-            display: flex;
-            justify-content: center; /* <-- CAMBIADO: Centra los enlaces */
-            gap: 2rem; /* <-- AÑADIDO: Añade separación */
-        }
-
-        .form-links a {
-            color: #FD441E; /* <-- CAMBIADO */
-            text-decoration: underline; /* <-- CAMBIADO */
-            cursor: pointer;
-        }
-        .form-links a:hover {
-            text-decoration: underline;
-        }
-        
-        /* --- AÑADIDO --- */
-        .top-bar-logo {
-            height: 32px; /* Ajusta esta altura según el tamaño deseado */
-            width: auto;
-        }
-
-        .form-links .back-link {
-            text-align: center;
-            width: 100%;
-            margin-top: 1rem;
-        }
-
-        /* --- Panel Derecho (Decorativo) --- */
-        .decorative-panel {
-            flex-grow: 1;
-            background-color: #333;
-            /* Usando la ruta de imagen de tu proyecto anterior.
-              Asegúrate de que esta ruta sea correcta para tu servidor Django.
-              En un entorno de desarrollo estático, podría ser 'imagen_nuam.webp'.
-            */
-            background-image: url("/static/img/imagen_nuam.webp");
-            background-size: cover;
-            background-position: center;
-        }
+        .form-links { margin-top: 1.5rem; display: flex; justify-content: center; gap: 2rem; }
+        .form-links a { color: #FD441E; text-decoration: underline; cursor: pointer; }
+        .decorative-panel { flex-grow: 1; background-color: #333; background-image: url("/static/img/imagen_nuam.webp"); background-size: cover; background-position: center; }
     </style>
 </head>
 <body>
-
     <div class="app-container">
-        
-        <!-- 1. Barra Superior -->
         <header class="top-bar">
-            <!-- Asumiendo que el logo es un PNG. Ajusta la extensión (.png, .svg, .jpg) si es necesario -->
-            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
-            nuam
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo"> nuam
         </header>
 
-        <!-- 2. Contenido Principal (Split) -->
         <main class="main-content">
-            
-            <!-- 2A. Panel Izquierdo (Formularios) -->
             <div class="form-panel">
                 <div class="logo-circle">N</div>
-
                 <div class="form-wrapper">
 
-                    <!-- VISTA 1: INICIO DE SESIÓN (Activa por defecto) -->
+                    <!-- LOGIN -->
                     <div id="login-view" class="form-view active">
                         <h2>Inicio Sesión</h2>
                         <form onsubmit="handleLogin(event)">
                             <div class="form-group">
                                 <label for="login-email">Email</label>
-                                <input type="email" id="login-email" placeholder="ingrese email corporativo" required>
+                                <input type="email" id="login-email" placeholder="Correo corporativo" required>
                             </div>
                             <div class="form-group">
                                 <label for="login-pass">Contraseña</label>
                                 <input type="password" id="login-pass" placeholder="Contraseña" required>
                             </div>
-                            <button type="submit" class="btn-primary">inicio sesión</button>
+                            <button type="submit" class="btn-primary">Iniciar sesión</button>
                         </form>
                         <div class="form-links">
-                            <a onclick="showView('recover-view')">contraseña olvidada?</a>
-                            <a onclick="showView('register-view')">registrese aqui</a>
+                            <a onclick="showView('recover-view')">¿Olvidaste tu contraseña?</a>
+                            <a onclick="showView('register-view')">Regístrate aquí</a>
                         </div>
                     </div>
 
-                    <!-- VISTA 2: RECUPERAR CONTRASEÑA -->
+                    <!-- RECUPERAR -->
                     <div id="recover-view" class="form-view">
-                        <h2>Recuperación de Contraseña</h2>
+                        <h2>Recuperar Contraseña</h2>
                         <form onsubmit="handleRecover(event)">
                             <div class="form-group">
-                                <label for="recover-pass">Última contraseña recordada</label>
-                                <input type="password" id="recover-pass" placeholder="Última contraseña">
-                            </div>
-                            <div class="form-group">
                                 <label for="recover-email">Email Corporativo</label>
-                                <input type="email" id="recover-email" placeholder="ingrese email corporativo" required>
+                                <input type="email" id="recover-email" required>
                             </div>
-                            <div class="form-group">
-                                <label for="recover-rut">RUT</label>
-                                <input type="text" id="recover-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)" required>
-                            </div>
-                            <button type="submit" class="btn-primary">enviar</button>
+                            <button type="submit" class="btn-primary">Enviar</button>
                         </form>
-                        <div class="form-links">
-                            <a class="back-link" onclick="showView('login-view')">volver al inicio sesión</a>
-                        </div>
+                        <div class="form-links"><a onclick="showView('login-view')">Volver</a></div>
                     </div>
 
-                    <!-- VISTA 3: REGISTRO DE NUEVO USUARIO -->
+                    <!-- REGISTRO -->
                     <div id="register-view" class="form-view">
-                        <h2>Registro de Nuevo Usuario</h2>
-                        <p class="subtitle">Complete todos los campos para solicitar su cuenta.</p>
+                        <h2>Registro</h2>
                         <form onsubmit="handleRegister(event)">
                             <div class="form-group">
                                 <label for="reg-nombres">Nombres</label>
                                 <input type="text" id="reg-nombres" required>
                             </div>
                             <div class="form-group">
-                                <label for="reg-apellidos">Apellidos</label>
-                                <input type="text" id="reg-apellidos" required>
-                            </div>
-                            <div class="form-group-inline">
-                                <div class="form-group">
-                                    <label for="reg-pais">País</label>
-                                    <select id="reg-pais">
-                                        <option value="CL">Chile</option>
-                                        <option value="PE">Perú</option>
-                                        <option value="CO">Colombia</option>
-                                        <!-- Agregar más países según sea necesario -->
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="reg-rut">RUT / Documento</label>
-                                    <input type="text" id="reg-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)" required>
-                                </div>
+                                <label for="reg-email">Email</label>
+                                <input type="email" id="reg-email" required>
                             </div>
                             <div class="form-group">
-                                <label for="reg-email">Email Corporativo</label>
-                                <input type="email" id="reg-email" placeholder="ingrese email corporativo" required>
+                                <label for="reg-pass">Contraseña</label>
+                                <input type="password" id="reg-pass" required>
                             </div>
-                            <div class="form-group">
-                                <label for="reg-genero">Género</label>
-                                <select id="reg-genero" required>
-                                    <option value="">Seleccione...</option>
-                                    <option value="mujer">Mujer</option>
-                                    <option value="hombre">Hombre</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="reg-contacto">Número de Contacto</label>
-                                <input type="tel" id="reg-contacto" placeholder="Contacto (sólo números)" onkeydown="validateNumericInput(event)" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="reg-direccion">Dirección de Hogar</label>
-                                <div class="input-with-button">
-                                    <input type="text" id="reg-direccion" placeholder="Dirección" required>
-                                    <button type="button" onclick="getGeolocation()">
-                                        <!-- Icono simple de ubicación -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-primary">Solicitar Cuenta</button>
+                            <button type="submit" class="btn-primary">Registrarse</button>
                         </form>
-                        <div class="form-links">
-                            <a class="back-link" onclick="showView('login-view')">volver al inicio sesión</a>
-                        </div>
+                        <div class="form-links"><a onclick="showView('login-view')">Volver</a></div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- 2B. Panel Derecho (Imagen) -->
-            <div class="decorative-panel">
-                <!-- El fondo se aplica con CSS -->
-            </div>
-
+            <div class="decorative-panel"></div>
         </main>
     </div>
 
+    <!-- 🔗 CONEXIÓN CON BACKEND -->
     <script>
-        /**
-         * Muestra la vista de formulario solicitada y oculta las demás.
-         * @param {string} viewId - El ID de la vista (ej. 'login-view', 'recover-view').
-         */
+        const API_BASE = "http://127.0.0.1:8000/api";
+
         function showView(viewId) {
-            // Ocultar todas las vistas
-            const views = document.querySelectorAll('.form-view');
-            views.forEach(view => {
-                view.classList.remove('active');
-            });
+            document.querySelectorAll('.form-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
 
-            // Mostrar la vista solicitada
-            const activeView = document.getElementById(viewId);
-            if (activeView) {
-                activeView.classList.add('active');
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-pass").value;
+            try {
+                const res = await fetch(`${API_BASE}/auth/token/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: email, password })
+                });
+                if (!res.ok) throw new Error("Credenciales incorrectas");
+                const data = await res.json();
+                localStorage.setItem("access", data.access);
+                alert("Inicio de sesión exitoso ✅");
+                window.location.href = "/dashboard"; // cambia según tu template
+            } catch (err) {
+                alert(err.message);
             }
         }
 
-        /**
-         * Validador para permitir solo números en campos de input.
-         * @param {KeyboardEvent} event - El evento del teclado.
-         */
-        function validateNumericInput(event) {
-            // Permitir teclas de control: Backspace, Tab, Flechas, etc.
-            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {
-                return;
-            }
-            // Bloquear si no es un número
-            if (event.key < '0' || event.key > '9') {
-                event.preventDefault();
-            }
-        }
-
-        /**
-         * Intenta obtener la geolocalización y rellenar la dirección.
-         */
-        function getGeolocation() {
-            const direccionInput = document.getElementById('reg-direccion');
-            if (navigator.geolocation) {
-                direccionInput.value = "Detectando ubicación...";
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        // En una app real, usarías esto para un API de geocodificación
-                        // Por ahora, solo mostramos las coordenadas
-                        direccionInput.value = `Coords: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
-                    },
-                    (error) => {
-                        // Manejo de errores
-                        let errorMsg = "Error al detectar ubicación. ";
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                errorMsg += "Permiso denegado.";
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                errorMsg += "Posición no disponible.";
-                                break;
-                            case error.TIMEOUT:
-                                errorMsg += "Tiempo de espera agotado.";
-                                break;
-                        }
-                        direccionInput.value = ""; // Limpia el campo
-                        alert(errorMsg);
-                    }
-                );
-            } else {
-                alert("La geolocalización no es soportada por este navegador.");
+        async function handleRegister(e) {
+            e.preventDefault();
+            const payload = {
+                username: document.getElementById("reg-email").value,
+                email: document.getElementById("reg-email").value,
+                password: document.getElementById("reg-pass").value,
+                first_name: document.getElementById("reg-nombres").value
+            };
+            try {
+                const res = await fetch(`${API_BASE}/users/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("Error al registrar usuario");
+                alert("Registro enviado con éxito. Espera aprobación ✅");
+                showView('login-view');
+            } catch (err) {
+                alert(err.message);
             }
         }
 
-        // --- Controladores de Formularios (Simulados) ---
-        // Aquí es donde conectarías con tu API (en app.js)
-
-        function handleLogin(event) {
-            event.preventDefault(); // Evita que la página se recargue
-            const email = document.getElementById('login-email').value;
-            console.log(`Intentando iniciar sesión con: ${email}`);
-            // Lógica de API aquí...
-            // Si tiene éxito: window.location.href = '/dashboard';
+        function handleRecover(e) {
+            e.preventDefault();
+            const email = document.getElementById("recover-email").value;
+            alert(`Simulando recuperación de contraseña para ${email}`);
+            showView("login-view");
         }
-
-        function handleRecover(event) {
-            event.preventDefault();
-            const email = document.getElementById('recover-email').value;
-            console.log(`Solicitando recuperación para: ${email}`);
-            // Lógica de API aquí...
-            alert('Solicitud de recuperación enviada (simulado).');
-            showView('login-view'); // Volver al login
-        }
-
-        function handleRegister(event) {
-            event.preventDefault();
-            const email = document.getElementById('reg-email').value;
-            console.log(`Solicitando registro para: ${email}`);
-            // Lógica de API aquí...
-            alert('Solicitud de registro enviada (simulado).');
-            showView('login-view'); // Volver al login
-        }
-
     </script>
 </body>
 </html>
