@@ -27,7 +27,13 @@
         .sidenav-profile .role { font-size: 0.9rem; color: #ccc; }
         .sidenav-nav { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
         .sidenav-nav button { background: none; border: none; color: #e0e0e0; padding: 0.9rem 1.25rem; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.75rem; transition: background-color 0.2s, color 0.2s; }
-        .sidenav-nav button svg { width: 1.1em; height: 1.1em; fill: currentColor; flex-shrink: 0; }
+        /* Estilo para los SVG de los iconos del Sidenav */
+        .sidenav-nav button svg, .sidenav-logout button svg {
+            width: 1.1em; /* Ancho fa-fw */
+            height: 1.1em;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
         .sidenav-nav button:hover { background-color: #444; }
         .sidenav-nav button.active { background-color: #FD441E; color: white; font-weight: 600; }
 
