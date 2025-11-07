@@ -11,6 +11,7 @@ from .models import (
 # ---------------------------
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SerializerMethodField()
+    rol = serializers.SerializerMethodField()
     is_staff = serializers.BooleanField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
 
@@ -18,11 +19,15 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "email", "first_name", "last_name",
-            "groups", "is_staff", "is_superuser"
+            "groups", "rol", "is_staff", "is_superuser"
         ]
 
     def get_groups(self, obj):
         return [g.name for g in obj.groups.all()]
+
+    def get_rol(self, obj):
+        # Retorna el primer grupo como rol principal, o None si no tiene
+        return obj.groups.first().name if obj.groups.exists() else None
 
 # ---------------------------
 # Model Serializers
@@ -82,3 +87,23 @@ class CalificacionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+# ---------------------------
+# Current User Serializer
+# ---------------------------
+class CurrentUserSerializer(serializers.ModelSerializer):
+    rol = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "first_name", "rol"]
+
+    def get_rol(self, obj):
+        if obj.is_superuser:
+            return "admin"
+        elif obj.groups.filter(name="Supervisor").exists():
+            return "supervisor"
+        elif obj.groups.filter(name="Corredor").exists():
+            return "corredor"
+        else:
+            return "desconocido"

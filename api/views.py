@@ -16,12 +16,78 @@ from .serializers import (
     UserSerializer, RolSerializer, EstadoSerializer, InstrumentoSerializer,
     MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
     CalificacionTributariaSerializer, FactorTributarioSerializer,
-    CurrentUserSerializer
+    CurrentUserSerializer  # <--- ¡Asegúrate de que esté aquí!
 )
+
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
+
+# C:\Users\vales\Downloads\Code_NUAM_Backend\api\views.py
+
+# ... (Código anterior)
+
+# --------------------------
+# 🎯 LOGIN CORPORATIVO (solo @nuam.cl)
+# --------------------------
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_nuam(request):
+    """
+    Login que solo permite usuarios con correos @nuam.cl.
+    Busca al usuario por email y autentica con su username real.
+    Retorna access y refresh token si las credenciales son válidas.
+    """
+    # 1. Obtener credenciales (El cliente envía el email en 'username')
+    email_input = request.data.get('username') 
+    password = request.data.get('password')
+
+    if not email_input or not password:
+        return Response(
+            {'detail': 'Debe proporcionar un usuario y una contraseña.'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 2. Validar dominio corporativo
+    if not email_input.lower().endswith('@nuam.cl'):
+        return Response(
+            {'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, 
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # 3. BUSCAR Y AUTENTICAR POR EMAIL (La lógica corregida)
+    user = None
+    try:
+        # A. Buscamos el objeto de usuario usando el email enviado (case insensitive)
+        user_obj = User.objects.get(email__iexact=email_input)
+        
+        # B. Autenticamos usando el campo 'username' REAL del objeto encontrado
+        user = authenticate(username=user_obj.username, password=password)
+        
+    except User.DoesNotExist:
+        # Si el email no se encuentra en la base de datos
+        pass # user permanece como None
+
+    # 4. Generar Respuesta
+    if user is not None:
+        # El usuario está autenticado, generamos tokens
+        refresh = RefreshToken.for_user(user)
+        
+        # Aquí usamos el Serializer, que ahora está importado al inicio
+        user_serializer = CurrentUserSerializer(user)
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': user_serializer.data,
+        }, status=status.HTTP_200_OK)
+    else:
+        # Fallo de autenticación (usuario no encontrado o contraseña incorrecta)
+        return Response(
+            {'detail': 'Credenciales inválidas.'}, 
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
 # --------------------------
 # 🔐 USUARIOS
@@ -62,6 +128,7 @@ def login_nuam(request):
     """
     Login que solo permite usuarios con correos @nuam.cl
     Retorna access y refresh token si las credenciales son válidas.
+    🔹 Modo prueba: usuario 'jose' con password 'Goldenapolo.2014'
     """
     username = request.data.get('username')
     password = request.data.get('password')
@@ -69,20 +136,47 @@ def login_nuam(request):
     if not username or not password:
         return Response({'detail': 'Faltan credenciales'}, status=400)
 
+    # --------------------------
+    # Modo prueba temporal
+    # --------------------------
+    if username == "jose" and password == "Goldenapolo.2014":
+        return Response({
+            'access': 'fake-access-token',
+            'refresh': 'fake-refresh-token',
+            'username': 'jose',
+            'email': 'isabelaguirre@nuam.cl',
+            'rol': 'admin',
+            'message': 'Login exitoso (modo prueba)'
+        })
+
     # Validar dominio corporativo
     if not username.endswith('@nuam.cl'):
         return Response({'detail': 'Solo se permiten correos corporativos @nuam.cl'}, status=403)
 
+    # Autenticación real
     user = authenticate(username=username, password=password)
     if user is None:
         return Response({'detail': 'Credenciales incorrectas'}, status=401)
 
     refresh = RefreshToken.for_user(user)
+
+    # Determinar rol según grupos
+    if user.is_superuser:
+        rol = 'admin'
+    elif user.groups.filter(name='Supervisor').exists():
+        rol = 'supervisor'
+    elif user.groups.filter(name='Corredor').exists():
+        rol = 'corredor'
+    else:
+        rol = 'desconocido'
+
     return Response({
         'access': str(refresh.access_token),
         'refresh': str(refresh),
         'username': user.username,
-        'email': user.email
+        'email': user.email,
+        'rol': rol,
+        'message': 'Login exitoso'
     })
 
 

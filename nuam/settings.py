@@ -11,7 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
-    "jazzmin",  # Debe estar antes de django.contrib.admin
+    # "jazzmin",  # Lo comentamos/eliminamos porque no hay soporte en Python 3.13
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -24,40 +24,8 @@ INSTALLED_APPS = [
     "api",
 ]
 
-# Configuración de Jazzmin, customiza el nivel de administrador
-#NOTA: Esto ayudara evitar los drop-downs y tendra modal windows, ui, componentes y mas
-JAZZMIN_SETTINGS = {
-    "site_title": "NUAM Admin",
-    "site_header": "NUAM",
-    "site_brand": "NUAM",
-    "welcome_sign": "Bienvenido al Panel de Administración NUAM",
-    "copyright": "NUAM",
-    "search_model": ["auth.User", "api.Calificacion"],
-    "topmenu_links": [
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Swagger", "url": "schema-swagger-ui", "permissions": ["auth.view_user"]},
-        {"model": "auth.User"},
-    ],
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "api.Calificacion": "fas fa-star",
-        "api.Instrumento": "fas fa-tools",
-        "api.Mercado": "fas fa-chart-line",
-        "api.Estado": "fas fa-toggle-on",
-    },
-    "default_icon_parents": "fas fa-chevron-circle-right",
-    "default_icon_children": "fas fa-circle",
-    "related_modal_active": True,
-    "custom_css": None,
-    "custom_js": None,
-    "show_ui_builder": True,
-    "changeform_format": "horizontal_tabs",
-    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
-}
+# JAZZMIN_SETTINGS eliminado
 
-# Swagger settings
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {
@@ -68,7 +36,6 @@ SWAGGER_SETTINGS = {
     }
 }
 
-#Mecanismo de seguridad para navegadores
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -107,14 +74,6 @@ DATABASES = {
     }
 }
 
-# Cache configuration
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -128,7 +87,6 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-# Serve both the templates folder (contains app.js in this project) and the project-level static/ directory
 STATICFILES_DIRS = [BASE_DIR / "templates", BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -153,21 +111,18 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
-from datetime import timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-# CORS (ajustar en producción)
 CORS_ALLOW_ALL_ORIGINS = True
 
-#Asegura que la carpeta "Logs" exista y evitar errores
+# Carpeta logs
 LOG_DIR = BASE_DIR / 'logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -208,3 +163,8 @@ LOGGING = {
     },
 }
 
+# Evita redirección a /accounts/login/ cuando @login_required es usado
+LOGIN_URL = "/"
+
+# Logout redirige al index
+LOGOUT_REDIRECT_URL = "/"

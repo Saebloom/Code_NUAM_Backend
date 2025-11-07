@@ -6,12 +6,7 @@ from .views import (
     UserViewSet, LogViewSet, AuditoriaViewSet,
     current_user, disable_user, login_nuam
 )
-
-from .views import current_user, disable_user
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .monitoring import health_check
 
 router = routers.DefaultRouter()
@@ -27,13 +22,20 @@ router.register(r'logs', LogViewSet, basename='logs')
 router.register(r'auditorias', AuditoriaViewSet, basename='auditorias')
 
 urlpatterns = [
-    # user 'me' endpoint should take precedence over the router's users/ detail routes
+    # Usuarios
     path('users/me/', current_user, name='current_user'),
     path('users/<int:pk>/disable/', disable_user, name='disable_user'),
+
+    # Router de los viewsets
     path('', include(router.urls)),
+
+    # JWT Auth
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('health/', health_check, name='health_check'),
+
+    # Login corporativo NUAM
     path("auth/login_nuam/", login_nuam, name="login_nuam"),
 
+    # Health check
+    path("health/", health_check, name="health_check"),
 ]
