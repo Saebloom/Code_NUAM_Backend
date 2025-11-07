@@ -918,12 +918,13 @@
             }
         }
         
-        function logout() {
-            // Redirige al usuario de vuelta al index.html
-            alert("Cerrando sesión...");
-            window.location.href = 'index.html'; // Ajusta esta ruta si es necesario
-        }
+// dashboard.html (al final del archivo)
 
+function logout() {
+    // Redirige al usuario de vuelta al index.html
+    alert("Cerrando sesión...");
+    window.location.href = '/'; // <-- ✅ CORRECCIÓN: Usar la ruta raíz
+}
         /**
          * Manejador para el formulario de crear usuario (simulado).
          */

@@ -1002,12 +1002,10 @@
             }
         }
 
-        /**
-         * Cierre de sesión.
-         */
+
         function logout() {
-            alert("Cerrando sesión...");
-            window.location.href = 'index.html'; 
+             alert("Cerrando sesión...");
+            window.location.href = '/'; // <-- ✅ CORRECIÓN: Usar la ruta raíz
         }
 
     </script>

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -69,7 +68,6 @@
             <div class="logo-circle">N</div>
             <div class="form-wrapper">
 
-                <!-- LOGIN -->
                 <div id="login-view" class="form-view active">
                     <h2>Inicio Sesión</h2>
                     <form onsubmit="handleLogin(event)">
@@ -89,7 +87,6 @@
                     </div>
                 </div>
 
-                <!-- RECUPERAR -->
                 <div id="recover-view" class="form-view">
                     <h2>Recuperar Contraseña</h2>
                     <form onsubmit="handleRecover(event)">
@@ -102,7 +99,6 @@
                     <div class="form-links"><a onclick="showView('login-view')">Volver</a></div>
                 </div>
 
-                <!-- REGISTRO -->
                 <div id="register-view" class="form-view">
                     <h2>Registro</h2>
                     <form onsubmit="handleRegister(event)">
@@ -130,7 +126,6 @@
     </main>
 </div>
 
-<!-- 🔗 CONEXIÓN CON BACKEND -->
 <script>
     const API_BASE = "http://127.0.0.1:8000/api";
 
@@ -168,18 +163,23 @@
             });
             const user = await userRes.json();
 
-            // Redirección según rol
+            // -----------------------------------------------------------------
+            // 🛠️ CORRECCIÓN: Redirección a las rutas de TEMPLATE
+            // -----------------------------------------------------------------
+            // (Estas rutas sirven los HTML directamente, que usarán el Token)
+            
             if (user.rol === "admin") {
-                window.location.href = "/dashboard/admin/";
+                window.location.href = "/template/dashboard/admin/";
             } else if (user.rol === "corredor") {
-                window.location.href = "/dashboard/corredor/";
+                window.location.href = "/template/dashboard/corredor/";
             } else if (user.rol === "supervisor") {
-                window.location.href = "/dashboard/supervisor/";
+                window.location.href = "/template/dashboard/supervisor/";
             } else {
+                // (Manejamos el 'else' que faltaba)
                 alert("Rol desconocido, contacta al administrador ❗");
             }
 
-        } catch (err) {
+        } catch (err) { // (Cierre correcto del 'try...catch')
             alert(err.message);
         }
     }
@@ -220,7 +220,6 @@
         showView("login-view");
     }
 </script>
-```
 
 </body>
 </html>

@@ -30,7 +30,7 @@ urlpatterns = [
     # Home/Login
     path("", login_view, name="home"),
     
-    # Dashboards
+    # Dashboards (Vistas de sesión de Django)
     path("dashboard/admin/", dashboard_admin, name="dashboard_admin"),
     path("dashboard/corredor/", dashboard_corredor, name="dashboard_corredor"),
     path("dashboard/supervisor/", dashboard_supervisor, name="dashboard_supervisor"),
@@ -45,9 +45,23 @@ urlpatterns = [
     # Logout
     path("logout/", logout_view, name="logout"),
 
-    # En caso de que quieras mantener TemplateViews de respaldo
+    # -----------------------------------------------------------------
+    # 🛠️ CORRECCIÓN: Rutas de TemplateView para la API (JWT/SPA)
+    # -----------------------------------------------------------------
+    # (Apunta a las subcarpetas correctas)
+    
     path('template/home/', TemplateView.as_view(template_name="index.html"), name='template_home'),
-    path('template/dashboard/admin/', TemplateView.as_view(template_name="dashboard_admin.html"), name='template_dashboard_admin'),
-    path('template/dashboard/corredor/', TemplateView.as_view(template_name="dashboard_corredor.html"), name='template_dashboard_corredor'),
-    path('template/dashboard/supervisor/', TemplateView.as_view(template_name="dashboard_supervisor.html"), name='template_dashboard_supervisor'),
+    
+    path('template/dashboard/admin/', 
+         TemplateView.as_view(template_name="Admin (superusuario)/dashboard.html"), 
+         name='template_dashboard_admin'),
+         
+    path('template/dashboard/corredor/', 
+         TemplateView.as_view(template_name="Corredor/dashboard_corredor.html"), 
+         name='template_dashboard_corredor'),
+         
+    path('template/dashboard/supervisor/', 
+         TemplateView.as_view(template_name="Supervisor/dashboard_supervisor.html"), 
+         name='template_dashboard_supervisor'),
+         
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
