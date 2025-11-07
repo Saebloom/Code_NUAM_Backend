@@ -16,17 +16,12 @@ from .serializers import (
     UserSerializer, RolSerializer, EstadoSerializer, InstrumentoSerializer,
     MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
     CalificacionTributariaSerializer, FactorTributarioSerializer,
-    CurrentUserSerializer  # <--- ¡Asegúrate de que esté aquí!
+    CurrentUserSerializer  # <--- Importación correcta
 )
 
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-
-
-# C:\Users\vales\Downloads\Code_NUAM_Backend\api\views.py
-
-# ... (Código anterior)
 
 # --------------------------
 # 🎯 LOGIN CORPORATIVO (solo @nuam.cl)
@@ -117,67 +112,6 @@ def disable_user(request, pk):
     user.is_active = False
     user.save()
     return Response({'detail': 'Usuario deshabilitado'})
-
-
-# --------------------------
-# 🎯 LOGIN CORPORATIVO (solo @nuam.cl)
-# --------------------------
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def login_nuam(request):
-    """
-    Login que solo permite usuarios con correos @nuam.cl
-    Retorna access y refresh token si las credenciales son válidas.
-    🔹 Modo prueba: usuario 'jose' con password 'Goldenapolo.2014'
-    """
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    if not username or not password:
-        return Response({'detail': 'Faltan credenciales'}, status=400)
-
-    # --------------------------
-    # Modo prueba temporal
-    # --------------------------
-    if username == "jose" and password == "Goldenapolo.2014":
-        return Response({
-            'access': 'fake-access-token',
-            'refresh': 'fake-refresh-token',
-            'username': 'jose',
-            'email': 'isabelaguirre@nuam.cl',
-            'rol': 'admin',
-            'message': 'Login exitoso (modo prueba)'
-        })
-
-    # Validar dominio corporativo
-    if not username.endswith('@nuam.cl'):
-        return Response({'detail': 'Solo se permiten correos corporativos @nuam.cl'}, status=403)
-
-    # Autenticación real
-    user = authenticate(username=username, password=password)
-    if user is None:
-        return Response({'detail': 'Credenciales incorrectas'}, status=401)
-
-    refresh = RefreshToken.for_user(user)
-
-    # Determinar rol según grupos
-    if user.is_superuser:
-        rol = 'admin'
-    elif user.groups.filter(name='Supervisor').exists():
-        rol = 'supervisor'
-    elif user.groups.filter(name='Corredor').exists():
-        rol = 'corredor'
-    else:
-        rol = 'desconocido'
-
-    return Response({
-        'access': str(refresh.access_token),
-        'refresh': str(refresh),
-        'username': user.username,
-        'email': user.email,
-        'rol': rol,
-        'message': 'Login exitoso'
-    })
 
 
 # --------------------------
