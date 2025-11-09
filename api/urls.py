@@ -4,7 +4,9 @@ from .views import (
     InstrumentoViewSet, MercadoViewSet, EstadoViewSet, ArchivoViewSet,
     CalificacionViewSet, CalificacionTributariaViewSet, FactorTributarioViewSet,
     UserViewSet, LogViewSet, AuditoriaViewSet,
-    current_user, disable_user, login_nuam
+    current_user, disable_user, login_nuam,
+    admin_create_user,  # <-- 1. IMPORTACIÓN AÑADIDA
+    get_users_by_role   # <-- 2. IMPORTACIÓN AÑADIDA
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .monitoring import health_check
@@ -25,6 +27,12 @@ urlpatterns = [
     # Usuarios
     path('users/me/', current_user, name='current_user'),
     path('users/<int:pk>/disable/', disable_user, name='disable_user'),
+    
+    # RUTA PARA CREAR USUARIO (usado por el modal Admin)
+    path('users/admin_create/', admin_create_user, name='admin_create_user'),
+    
+    # RUTA PARA OBTENER USUARIOS POR ROL (usado por la pestaña Roles)
+    path('users/by_role/', get_users_by_role, name='get_users_by_role'),
 
     # Router de los viewsets
     path('', include(router.urls)),

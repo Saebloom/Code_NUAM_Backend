@@ -14,19 +14,23 @@ class UserSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
     is_staff = serializers.BooleanField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True) # <-- CAMBIO AÑADIDO
 
     class Meta:
         model = User
         fields = [
             "id", "username", "email", "first_name", "last_name",
-            "groups", "rol", "is_staff", "is_superuser"
+            "groups", "rol", "is_staff", "is_superuser",
+            "is_active"  # <-- CAMBIO AÑADIDO
         ]
 
     def get_groups(self, obj):
         return [g.name for g in obj.groups.all()]
 
     def get_rol(self, obj):
-        # Retorna el primer grupo como rol principal, o None si no tiene
+        # Retorna el primer grupo como rol principal, o admin si es superusuario
+        if obj.is_superuser:
+            return "admin"
         return obj.groups.first().name if obj.groups.exists() else None
 
 # ---------------------------

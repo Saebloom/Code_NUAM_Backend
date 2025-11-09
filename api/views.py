@@ -2,8 +2,8 @@ from rest_framework import viewsets, status, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.contrib.auth.models import User
-from django.db import transaction
+from django.contrib.auth.models import User, Group # Importaciones cruciales
+from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.contrib.auth import authenticate
 
@@ -16,12 +16,13 @@ from .serializers import (
     UserSerializer, RolSerializer, EstadoSerializer, InstrumentoSerializer,
     MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
     CalificacionTributariaSerializer, FactorTributarioSerializer,
-    CurrentUserSerializer  # <--- Importación correcta
+    CurrentUserSerializer
 )
 
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 # --------------------------
 # 🎯 LOGIN CORPORATIVO (solo @nuam.cl)
@@ -34,7 +35,6 @@ def login_nuam(request):
     Busca al usuario por email y autentica con su username real.
     Retorna access y refresh token si las credenciales son válidas.
     """
-    # 1. Obtener credenciales (El cliente envía el email en 'username')
     email_input = request.data.get('username') 
     password = request.data.get('password')
 
@@ -44,7 +44,6 @@ def login_nuam(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # 2. Validar dominio corporativo
     if not email_input.lower().endswith('@nuam.cl'):
         return Response(
             {'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, 
@@ -54,22 +53,15 @@ def login_nuam(request):
     # 3. BUSCAR Y AUTENTICAR POR EMAIL (La lógica corregida)
     user = None
     try:
-        # A. Buscamos el objeto de usuario usando el email enviado (case insensitive)
         user_obj = User.objects.get(email__iexact=email_input)
-        
-        # B. Autenticamos usando el campo 'username' REAL del objeto encontrado
         user = authenticate(username=user_obj.username, password=password)
         
     except User.DoesNotExist:
-        # Si el email no se encuentra en la base de datos
-        pass # user permanece como None
+        pass 
 
     # 4. Generar Respuesta
     if user is not None:
-        # El usuario está autenticado, generamos tokens
         refresh = RefreshToken.for_user(user)
-        
-        # Aquí usamos el Serializer, que ahora está importado al inicio
         user_serializer = CurrentUserSerializer(user)
 
         return Response({
@@ -78,7 +70,6 @@ def login_nuam(request):
             'user': user_serializer.data,
         }, status=status.HTTP_200_OK)
     else:
-        # Fallo de autenticación (usuario no encontrado o contraseña incorrecta)
         return Response(
             {'detail': 'Credenciales inválidas.'}, 
             status=status.HTTP_401_UNAUTHORIZED
@@ -88,7 +79,8 @@ def login_nuam(request):
 # 🔐 USUARIOS
 # --------------------------
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
+    # CORRECCIÓN: Añadido order_by('id') para evitar el 'UnorderedObjectListWarning'
+    queryset = User.objects.all().order_by('id') 
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -112,6 +104,99 @@ def disable_user(request, pk):
     user.is_active = False
     user.save()
     return Response({'detail': 'Usuario deshabilitado'})
+
+# --------------------------
+# ➕ CREACIÓN DE USUARIOS (POR ADMIN)
+# --------------------------
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def admin_create_user(request):
+    """
+    Crea un nuevo usuario (Corredor, Supervisor, o Admin)
+    Añadido por el Administrador desde el dashboard.
+    """
+    data = request.data
+    email = data.get('email')
+    password = data.get('password')
+    first_name = data.get('first_name', '')
+    last_name = data.get('last_name', '')
+    rol = data.get('rol') 
+
+    if not email or not password or not rol:
+        return Response(
+            {'detail': 'Email, contraseña y rol son requeridos.'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    username = email
+
+    try:
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        # 3. Asignar Rol (Grupo)
+        if rol == 'admin':
+            user.is_staff = True 
+            user.is_superuser = True
+            user.save()
+
+        elif rol == 'supervisor':
+            supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
+            user.groups.add(supervisor_group)
+
+        elif rol == 'corredor':
+            corredor_group, _ = Group.objects.get_or_create(name='Corredor')
+            user.groups.add(corredor_group)
+
+        serializer = CurrentUserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except IntegrityError:
+        return Response(
+            {'detail': 'Un usuario con este email ya existe.'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {'detail': f'Ocurrió un error: {str(e)}'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+# --------------------------
+# 📈 REPORTE DE ROLES (NUEVO)
+# --------------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def get_users_by_role(request):
+    """
+    Devuelve listas de usuarios agrupados por sus roles 
+    para la pestaña "Roles" del dashboard de admin.
+    """
+    try:
+        admins = User.objects.filter(is_superuser=True, is_active=True)
+        
+        supervisor_group = Group.objects.get(name='Supervisor')
+        supervisores = supervisor_group.user_set.filter(is_active=True)
+        
+        corredor_group = Group.objects.get(name='Corredor')
+        corredores = corredor_group.user_set.filter(is_active=True)
+        
+        data = {
+            'administradores': UserSerializer(admins, many=True).data,
+            'supervisores': UserSerializer(supervisores, many=True).data,
+            'corredores': UserSerializer(corredores, many=True).data,
+        }
+        return Response(data, status=status.HTTP_200_OK)
+        
+    except Group.DoesNotExist as e:
+        return Response({'detail': f'Error de configuración: El grupo {e} no existe. (Ve a /admin para crearlo)'}, status=500)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=500)
 
 
 # --------------------------

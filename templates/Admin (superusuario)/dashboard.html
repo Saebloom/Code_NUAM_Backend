@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Administrador - NUAM</title>
     
-    <!-- 
-      FIX: CSS y JS son internos. Se eliminó la dependencia externa de Font Awesome.
-      Los iconos se han reemplazado por SVG inline.
-    -->
-    
     <style>
         /* --- Configuración Global --- */
         * {
@@ -124,13 +119,14 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
-/* Estilo para los SVG de los iconos del Sidenav */
+        /* Estilo para los SVG de los iconos del Sidenav */
         .sidenav-nav button svg, .sidenav-logout button svg {
             width: 1.1em; /* Ancho fa-fw */
             height: 1.1em;
             fill: currentColor;
             flex-shrink: 0;
         }
+        
         .sidenav-nav button:hover {
             background-color: #444;
         }
@@ -437,17 +433,13 @@
 
     <div class="app-container">
         
-        <!-- 1. Barra Superior -->
         <header class="top-bar">
-            <!-- Asumiendo que esta ruta es correcta para tu servidor Django -->
             <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
             nuam
         </header>
 
-        <!-- 2. Cuerpo del Dashboard -->
         <div class="dashboard-body">
             
-            <!-- 2A. Barra Lateral (Sidenav) -->
             <nav class="sidenav">
                 
                 <div class="sidenav-profile">
@@ -457,24 +449,19 @@
                 </div>
                 
                 <div class="sidenav-nav">
-                    <!-- Vista por defecto al cargar -->
                     <button class="active" onclick="showView('view-usuarios', this)">
-                        <!-- FIX: Icono SVG (Usuarios) -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192h7.5c8.9 0 17.1 2.2 24.7 6.2C156.4 210.8 171.7 224 192 224s35.6-13.2 53.1-25.8c7.6-4 15.8-6.2 24.7-6.2h7.5C336.2 192 384 239.8 384 298.7V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V298.7zM464 224c20.3 0 35.6 13.2 53.1 25.8 7.6 4 15.8 6.2 24.7 6.2h7.5C624.2 256 672 303.8 672 362.7V464c0 26.5-21.5 48-48 48H480c-26.5 0-48-21.5-48-48V362.7c0-58.9 47.8-106.7 106.7-106.7h7.5c8.9 0 17.1 2.2 24.7 6.2C428.4 210.8 443.7 224 464 224z"/></svg>
                         Usuarios
                     </button>
                     <button onclick="showView('view-logs', this)">
-                        <!-- FIX: Icono SVG (Archivo/Log) -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M0 64C0 28.7 28.7 0 64 0H224V128c0 17.7 14.3 32 32 32H384V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384 64H256V0L384 128z"/></svg>
                         Logs / Auditoría
                     </button>
                     <button onclick="showView('view-respaldos', this)">
-                        <!-- FIX: Icono SVG (Base de datos) -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM448 368c0 44.2-100.3 80-224 80S0 412.2 0 368V265.1c14.9 11.8 34 21.2 54.8 28.6C99.7 309.7 159.5 320 224 320s124.3-10.3 169.2-26.3c20.8-7.4 39.9-16.9 54.8-28.6V368zM0 432v32c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V432c-14.9 11.8-34 21.2-54.8 28.6C348.3 476.7 288.5 480 224 480s-124.3-3.3-169.2-19.4C34 453.2 14.9 443.8 0 432z"/></svg>
                         Respaldos
                     </button>
                     <button onclick="showView('view-cargas', this)">
-                        <!-- FIX: Icono SVG (Carga) -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
                         Historial Cargas
                     </button>
@@ -482,37 +469,28 @@
                 
                 <div class="sidenav-logout">
                     <button onclick="logout()">
-                        <!-- FIX: Icono SVG (Salir) -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
                         Cerrar Sesión
                     </button>
                 </div>
             </nav>
 
-            <!-- 2B. Contenido Principal -->
             <main class="main-content">
 
-                <!-- 
-                  VISTA 1: GESTIÓN DE USUARIOS
-                  (Corrección de tablas y modal)
-                -->
                 <div id="view-usuarios" class="content-view active">
                     <div class="content-header">
                         <h2>Gestión de Usuarios</h2>
                         <button class="btn-primary" onclick="showModal('modal-crear-usuario')">
-                            <!-- FIX: Icono SVG (Plus) -->
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
                             Crear Usuario
                         </button>
                     </div>
 
-                    <!-- Pestañas internas para Usuarios y Roles -->
                     <div class="inner-tabs">
                         <button class="inner-tab-button active" onclick="showInnerTab('tab-users', this)">Usuarios</button>
                         <button class="inner-tab-button" onclick="showInnerTab('tab-roles', this)">Roles</button>
                     </div>
 
-                    <!-- Contenido Pestaña Usuarios (CORREGIDO) -->
                     <div id="tab-users" class="inner-tab-content active">
                         <div class="card">
                             <div class="table-container">
@@ -522,61 +500,73 @@
                                             <th>Email</th>
                                             <th>Nombres</th>
                                             <th>Apellidos</th>
-                                            <th>País</th>
-                                            <th>RUT</th>
                                             <th>Rol</th>
                                             <th>Estado</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
-                                    <!-- FIX: TBODY CORREGIDO -->
                                     <tbody>
-                                        <!-- Fila de Ejemplo 1 -->
-                                        <tr>
-                                            <td>admin@nuam.com</td>
-                                            <td>Admin</td>
-                                            <td>Principal</td>
-                                            <td>CL</td>
-                                            <td>11111111-1</td>
-                                            <td>Administrador</td>
-                                            <td>Activo</td>
-                                            <td class="action-buttons">
-                                                <button class="btn-icon btn-edit" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
-                                                <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
-                                            </td>
-                                        </tr>
-                                        <!-- Fila de Ejemplo 2 -->
-                                        <tr>
-                                            <td>corredor@nuam.com</td>
-                                            <td>Juan</td>
-                                            <td>Pérez</td>
-                                            <td>CL</td>
-                                            <td>22222222-2</td>
-                                            <td>Corredor</td>
-                                            <td>Activo</td>
-                                            <td class="action-buttons">
-                                                <button class="btn-icon btn-edit" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
-                                                <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Contenido Pestaña Roles -->
                     <div id="tab-roles" class="inner-tab-content">
-                         <div class="card">
-                            <h3>Gestión de Roles</h3>
-                            <p>Aquí iría la interfaz para definir los permisos de los roles (Administrador, Corredor, Supervisor).</p>
-                         </div>
-                    </div>
-                </div>
+                        
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <h3 style="color: #FD441E; margin-bottom: 1rem;">Administradores</h3>
+                            <div class="table-container">
+                                <table id="role-table-admins">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Nombre</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
 
-                <!-- 
-                  VISTA 2: LOGS / AUDITORÍA (CORREGIDO)
-                -->
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <h3 style="color: #FD441E; margin-bottom: 1rem;">Supervisores</h3>
+                            <div class="table-container">
+                                <table id="role-table-supervisors">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Nombre</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 style="color: #FD441E; margin-bottom: 1rem;">Corredores</h3>
+                            <div class="table-container">
+                                <table id="role-table-corredors">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Nombre</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
                 <div id="view-logs" class="content-view">
                     <div class="content-header">
                         <h2>Logs / Auditoría</h2>
@@ -624,9 +614,6 @@
                     </div>
                 </div>
 
-                <!-- 
-                  VISTA 3: GESTIÓN DE RESPALDOS (CORREGIDO)
-                -->
                 <div id="view-respaldos" class="content-view">
                     <div class="content-header">
                         <h2>Gestión de Respaldos</h2>
@@ -648,7 +635,6 @@
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
-                                <!-- FIX: TBODY CORREGIDO -->
                                 <tbody>
                                     <tr>
                                         <td>2025-11-05 03:00:00</td>
@@ -667,9 +653,6 @@
                     </div>
                 </div>
                 
-                <!-- 
-                  VISTA 4: HISTORIAL DE CARGAS MASIVAS (CORREGIDO)
-                -->
                 <div id="view-cargas" class="content-view">
                     <div class="content-header">
                         <h2>Historial de Cargas Masivas</h2>
@@ -688,7 +671,6 @@
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
-                                <!-- FIX: TBODY CORREGIDO -->
                                 <tbody>
                                      <tr>
                                         <td>2025-11-06 10:00:00</td>
@@ -720,10 +702,6 @@
         </div>
     </div>
     
-    <!-- 
-      MODAL PARA CREAR USUARIO 
-      (Añadido según solicitud)
-    -->
     <div id="modal-crear-usuario" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -785,7 +763,6 @@
                         <div class="input-with-button">
                             <input type="text" id="reg-direccion" placeholder="Dirección" required>
                             <button type="button" onclick="getGeolocation()">
-                                <!-- Icono SVG Ubicación -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
                                 </svg>
@@ -822,29 +799,40 @@
 
 
     <script>
+        // -----------------------------------------------------------------
+        // 🛠️ CONFIGURACIÓN Y FUNCIONES DINÁMICAS
+        // -----------------------------------------------------------------
+        
+        const API_BASE = "http://127.0.0.1:8000/api";
+        const token = localStorage.getItem('access'); // Obtiene el token del Admin
+
+        /**
+         * Carga inicial de datos cuando el DOM está listo.
+         */
+        window.onload = function() {
+            if (!token) {
+                alert("Sesión no válida. Redirigiendo al login.");
+                window.location.href = '/'; 
+                return;
+            }
+            loadProfile();  // Carga el perfil del Admin en el Sidenav
+            fetchUsers();   // Carga la lista de usuarios en la tabla
+        };
+
         /**
          * Muestra la vista de contenido principal solicitada (ej. Usuarios, Logs).
-         * @param {string} viewId - El ID de la vista (ej. 'view-usuarios').
-         * @param {HTMLElement} clickedButton - El botón del sidenav que se presionó.
          */
         function showView(viewId, clickedButton) {
-            // Ocultar todas las vistas de contenido
             document.querySelectorAll('.content-view').forEach(view => {
                 view.classList.remove('active');
             });
-            
-            // Desactivar todos los botones del sidenav
             document.querySelectorAll('.sidenav-nav button').forEach(button => {
                 button.classList.remove('active');
             });
-
-            // Mostrar la vista solicitada
             const activeView = document.getElementById(viewId);
             if (activeView) {
                 activeView.classList.add('active');
             }
-            
-            // Activar el botón presionado
             if (clickedButton) {
                 clickedButton.classList.add('active');
             }
@@ -852,49 +840,39 @@
 
         /**
          * Muestra la pestaña interna solicitada (ej. Usuarios, Roles).
-         * @param {string} tabId - El ID del contenido de la pestaña.
-         * @param {HTMLElement} clickedTab - El botón de la pestaña que se presionó.
          */
         function showInnerTab(tabId, clickedTab) {
             const parent = clickedTab.closest('.content-view');
             
-            // Ocultar todo el contenido de pestañas internas en esta vista
             parent.querySelectorAll('.inner-tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            
-            // Desactivar todos los botones de pestañas internas
             parent.querySelectorAll('.inner-tab-button').forEach(button => {
                 button.classList.remove('active');
             });
 
-            // Mostrar el contenido solicitado
             const activeTabContent = document.getElementById(tabId);
             if (activeTabContent) {
                 activeTabContent.classList.add('active');
             }
-            
-            // Activar la pestaña presionada
             clickedTab.classList.add('active');
+
+            // ---------------------------------------------------
+            // 🛠️ LÓGICA AÑADIDA: Carga los datos al hacer clic
+            // ---------------------------------------------------
+            if (tabId === 'tab-roles') {
+                fetchUsersByRole(); // Llama a la nueva función de API
+            }
+            // (No es necesario volver a llamar a fetchUsers() aquí, ya se carga al inicio)
         }
 
         // --- Funciones de Modales ---
-        
-        /**
-         * Muestra un modal por su ID.
-         * @param {string} modalId
-         */
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
             if(modal) {
                 modal.classList.add('active');
             }
         }
-
-        /**
-         * Cierra un modal por su ID.
-         * @param {string} modalId
-         */
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if(modal) {
@@ -903,45 +881,241 @@
         }
         
         // --- Funciones de Botones (Simuladas) ---
-        
         function generarRespaldo() {
             alert("Acción: Iniciar generación de nuevo respaldo.");
         }
         
         function confirmarRestauracion(nombreArchivo) {
             const confirmacion = confirm(`¿Estás ABSOLUTAMENTE SEGURO que deseas restaurar el sistema usando el respaldo:\n${nombreArchivo}\n\nEsta acción es IRREVERSIBLE y sobreescribirá todos los datos actuales.`);
-            
             if (confirmacion) {
                 alert(`Iniciando restauración con ${nombreArchivo}... (Simulado)`);
-                // Aquí iría la llamada al API de restauración
             }
         }
         
-// dashboard.html (al final del archivo)
+        function logout() {
+            alert("Cerrando sesión...");
+            localStorage.removeItem('access'); // Limpia el token
+            localStorage.removeItem('refresh');
+            window.location.href = '/'; 
+        }
 
-function logout() {
-    // Redirige al usuario de vuelta al index.html
-    alert("Cerrando sesión...");
-    window.location.href = '/'; // <-- ✅ CORRECCIÓN: Usar la ruta raíz
-}
+        // -----------------------------------------------------------------
+        // 🛠️ FUNCIONES DE API (USUARIOS)
+        // -----------------------------------------------------------------
+
         /**
-         * Manejador para el formulario de crear usuario (simulado).
+         * Carga el perfil del admin en el Sidenav
          */
-        function handleCrearUsuario(event) {
-            event.preventDefault(); // Evita que el formulario recargue la página
-            const email = document.getElementById('reg-email').value;
-            const rol = document.getElementById('reg-rol').value;
-            alert(`Simulando creación de usuario:\nEmail: ${email}\nRol: ${rol}`);
-            closeModal('modal-crear-usuario');
-            // Aquí iría la llamada al API para crear el usuario
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/users/me/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Sesión inválida. Por favor, inicie sesión de nuevo.');
+                const user = await res.json();
+                
+                document.querySelector('.sidenav-profile .username').textContent = user.first_name || user.username;
+                document.querySelector('.sidenav-profile .role').textContent = user.rol;
+                const inicial = (user.first_name || user.username).charAt(0).toUpperCase();
+                document.querySelector('.sidenav-profile .sidenav-profile-pic').textContent = inicial;
+
+            } catch (err) {
+                alert(err.message);
+                window.location.href = '/'; 
+            }
+        }
+
+        /**
+         * Obtiene la lista de TODOS los usuarios desde la API
+         */
+        async function fetchUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/users/`, { 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('No se pudo cargar la lista de usuarios.');
+                
+                const data = await res.json();
+                // Usamos data.results si la API está paginada (como en tu UserViewSet)
+                // Si no está paginada, usa solo 'data'
+                if (data.results) {
+                    renderUserTable(data.results); 
+                } else {
+                    renderUserTable(data); // Para el caso en que no esté paginado
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        /**
+         * Dibuja la tabla de usuarios con los datos de la API
+         */
+        function renderUserTable(users) {
+            const tbody = document.querySelector("#tab-users table tbody");
+            tbody.innerHTML = ""; // Limpia la tabla
+
+            users.forEach(user => {
+                // Determina el ROL
+                let rol = 'N/A';
+                if (user.is_superuser) {
+                    rol = 'admin';
+                } else if (user.rol) { // 'rol' viene de get_rol en el Serializer
+                    rol = user.rol;
+                }
+                
+                const estado = user.is_active ? 'Activo' : 'Inactivo';
+                
+                const row = `
+                    <tr>
+                        <td>${user.email}</td>
+                        <td>${user.first_name}</td>
+                        <td>${user.last_name}</td>
+                        <td>${rol}</td>
+                        <td>${estado}</td>
+                        <td class="action-buttons">
+                            <button class="btn-icon btn-edit" title="Editar (No implementado)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg>
+                            </button>
+                            <button class="btn-icon btn-delete" title="Deshabilitar Usuario" onclick="handleDeleteUser(${user.id})">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        /**
+         * Llama a la API para deshabilitar un usuario
+         */
+        async function handleDeleteUser(userId) {
+            if (!confirm('¿Está seguro de que desea deshabilitar a este usuario?')) {
+                return;
+            }
+            
+            try {
+                // Usamos el endpoint 'disable_user' (POST /api/users/<id>/disable/)
+                const res = await fetch(`${API_BASE}/users/${userId}/disable/`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    }
+                });
+                
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'No se pudo deshabilitar el usuario.');
+                }
+                
+                alert('Usuario deshabilitado con éxito.');
+                fetchUsers(); // Recarga la tabla para mostrar el estado "Inactivo"
+
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+        
+        // ---------------------------------------------------
+        // 🛠️ NUEVO: CÓDIGO PARA LA PESTAÑA "ROLES"
+        // ---------------------------------------------------
+
+        /**
+         * Llama a la API para obtener usuarios agrupados por rol
+         */
+        async function fetchUsersByRole() {
+            try {
+                const res = await fetch(`${API_BASE}/users/by_role/`, { 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                     const err = await res.json();
+                    throw new Error(err.detail || 'No se pudo cargar la lista de roles.');
+                }
+                
+                const data = await res.json();
+                renderRoleLists(data);
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        /**
+         * Dibuja las 3 tablas de roles
+         */
+        function renderRoleLists(data) {
+            // Función auxiliar para rellenar una tabla
+            const populateTable = (tableId, users) => {
+                const tbody = document.querySelector(tableId).querySelector('tbody');
+                tbody.innerHTML = ""; // Limpia
+                users.forEach(user => {
+                    const estado = user.is_active ? 'Activo' : 'Inactivo';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.email}</td>
+                            <td>${user.first_name} ${user.last_name}</td>
+                            <td>${estado}</td>
+                        </tr>
+                    `;
+                });
+            };
+
+            populateTable("#role-table-admins", data.administradores);
+            populateTable("#role-table-supervisors", data.supervisores);
+            populateTable("#role-table-corredors", data.corredores);
+        }
+
+        /**
+         * Manejador para el formulario de crear usuario (REAL, CONECTADO A API).
+         */
+        async function handleCrearUsuario(event) {
+            event.preventDefault(); 
+            
+            const payload = {
+                first_name: document.getElementById('reg-nombres').value,
+                last_name: document.getElementById('reg-apellidos').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-pass').value,
+                rol: document.getElementById('reg-rol').value
+            };
+
+            if (!payload.rol) {
+                alert("Por favor, seleccione un rol para el usuario.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/users/admin_create/`, { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.detail || 'Error al crear el usuario.');
+                }
+
+                const nuevoUsuario = await res.json();
+                
+                alert(`¡Usuario creado exitosamente!\nEmail: ${nuevoUsuario.email}\nRol: ${nuevoUsuario.rol}`);
+                
+                closeModal('modal-crear-usuario');
+                event.target.reset(); // Limpia el formulario
+                fetchUsers(); // Recarga la tabla dinámicamente
+
+            } catch (err) {
+                alert(err.message);
+            }
         }
 
         // --- Funciones de Validación (Copiadas de index.html) ---
 
-        /**
-         * Validador para permitir solo números en campos de input.
-         * @param {KeyboardEvent} event - El evento del teclado.
-         */
         function validateNumericInput(event) {
             if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {
                 return;
@@ -951,9 +1125,6 @@ function logout() {
             }
         }
 
-        /**
-         * Intenta obtener la geolocalización y rellenar la dirección.
-         */
         function getGeolocation() {
             const direccionInput = document.getElementById('reg-direccion');
             if (navigator.geolocation) {
@@ -970,7 +1141,7 @@ function logout() {
                             case error.TIMEOUT: errorMsg += "Tiempo de espera agotado."; break;
                         }
                         direccionInput.value = "";
-                        alert(errorMsg);
+                        alert(err.message);
                     }
                 );
             } else {
