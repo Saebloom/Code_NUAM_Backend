@@ -6,13 +6,13 @@ from .views import (
     UserViewSet, LogViewSet, AuditoriaViewSet,
     current_user, disable_user, login_nuam,
     admin_create_user, get_users_by_role, 
-    enable_user, delete_user # <-- TODAS LAS FUNCIONES IMPORTADAS
+    enable_user, delete_user # <--- Importaciones del CRUD completo
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .monitoring import health_check
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet, basename="users")
+router.register(r'users', UserViewSet, basename="user") # Cambié a 'user' para que el router sepa cómo manejar ModelViewSet
 router.register(r'instrumentos', InstrumentoViewSet)
 router.register(r'mercados', MercadoViewSet)
 router.register(r'estados', EstadoViewSet)
@@ -28,13 +28,13 @@ urlpatterns = [
     path('users/me/', current_user, name='current_user'),
     path('users/<int:pk>/disable/', disable_user, name='disable_user'),
     
-    # 🛠️ NUEVAS RUTAS CRUD
+    # 🛠️ RUTAS CRUD PERSONALIZADAS
     path('users/<int:pk>/enable/', enable_user, name='enable_user'),        # HABILITAR
     path('users/<int:pk>/delete/', delete_user, name='delete_user_perm'),  # BORRAR PERMANENTEMENTE
     path('users/admin_create/', admin_create_user, name='admin_create_user'), # CREAR
     path('users/by_role/', get_users_by_role, name='get_users_by_role'),   # ROLES
     
-    # Router de los viewsets
+    # Router de los viewsets (Maneja GET /api/users/ y PUT/PATCH/DELETE /api/users/<pk>/)
     path('', include(router.urls)),
 
     # JWT Auth

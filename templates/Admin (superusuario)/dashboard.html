@@ -119,7 +119,7 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
-        /* 🛠️ CORRECCIÓN: Tamaño de ícono de Logout */
+        /* Estilo para los SVG de los iconos del Sidenav */
         .sidenav-nav button svg, .sidenav-logout button svg {
             width: 1.1em; /* Ancho fa-fw */
             height: 1.1em;
@@ -200,7 +200,7 @@
         .card {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             padding: 1.5rem;
         }
 
@@ -427,6 +427,35 @@
             cursor: pointer;
         }
 
+        /* 🛠️ TUS NUEVOS ESTILOS DE BOTONES CRUD 🛠️ */
+        .btn-action {
+            border: none;
+            padding: .45rem .9rem;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: .85rem;
+            transition: all .2s;
+        }
+        .btn-modify { background-color: #007bff; }
+        .btn-modify:hover { background-color: #0056b3; }
+
+        .btn-enable { background-color: #28a745; }
+        .btn-enable:hover { background-color: #1f7a35; }
+
+        .btn-disable { background-color: #ffc107; color: #333; }
+        .btn-disable:hover { background-color: #e0a800; }
+
+        .btn-delete { background-color: #dc3545; }
+        .btn-delete:hover { background-color: #b02a37; }
+
+        .btn-action:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        /* ⬆️ FIN DE TUS NUEVOS ESTILOS ⬆️ */
+
     </style>
 </head>
 <body>
@@ -444,6 +473,7 @@
                 
                 <div class="sidenav-profile">
                     <div class="sidenav-profile-pic">A</div>
+                    <!-- 🛠️ IDs añadidos para carga dinámica -->
                     <span class="username" id="profile-name">Admin</span>
                     <span class="role" id="profile-role">Superusuario</span>
                 </div>
@@ -491,10 +521,6 @@
                         <button class="inner-tab-button" onclick="showInnerTab('tab-roles', this)">Roles</button>
                     </div>
 
-                    <!-- 
-                      🛠️ CAMBIO 1: TABLA DE USUARIOS 
-                      (Se eliminaron las filas estáticas y se ajustó el thead)
-                    -->
                     <div id="tab-users" class="inner-tab-content active">
                         <div class="card">
                             <div class="table-container">
@@ -510,17 +536,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Las filas se cargarán aquí por JavaScript -->
+                                        <!-- Las filas se cargarán aquí por JavaScript (fetchUsers) -->
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 
-                      🛠️ CAMBIO 2: PESTAÑA DE ROLES 
-                      (HTML listo para ser llenado por JS)
-                    -->
                     <div id="tab-roles" class="inner-tab-content">
                         
                         <!-- Lista de Administradores -->
@@ -611,19 +633,9 @@
                                         <th>Detalle</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>2025-11-06 14:30:01</td>
-                                        <td>Creación</td>
-                                        <td>corredor@nuam.com</td>
-                                        <td>Se creó la Calificación ID: 1024</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025-11-06 14:25:10</td>
-                                        <td>Actualización</td>
-                                        <td>corredor@nuam.com</td>
-                                        <td>Se actualizó la Calificación ID: 988</td>
-                                    </tr>
+                                <tbody id="logs-tbody">
+                                    <!-- Se rellena con JS (Aún no implementado) -->
+                                    <tr><td colspan="4" style="text-align: center;">Cargando logs...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -688,26 +700,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                     <tr>
-                                        <td>2025-11-06 10:00:00</td>
-                                        <td>corredor@nuam.com</td>
-                                        <td>carga_nov_2025.csv</td>
-                                        <td>Completado</td>
-                                        <td>1500</td>
-                                        <td class="action-buttons">
-                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025-11-05 09:30:00</td>
-                                        <td>corredor@nuam.com</td>
-                                        <td>carga_erronea.csv</td>
-                                        <td>Fallido (Error Fila 10)</td>
-                                        <td>9</td>
-                                        <td class="action-buttons">
-                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
-                                        </td>
-                                    </tr>
+                                     <!-- 🛠️ TABLA LIMPIA (Los datos estáticos se fueron) -->
                                 </tbody>
                             </table>
                         </div>
@@ -718,6 +711,7 @@
         </div>
     </div>
     
+    <!-- Modal Crear Usuario -->
     <div id="modal-crear-usuario" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -743,6 +737,7 @@
                             <input type="email" id="reg-email" placeholder="ingrese email corporativo" required>
                     </div>
 
+                    <!-- Campos no utilizados por el backend User, pero se mantienen por si se implementa un Perfil -->
                     <div class="form-group-inline">
                         <div class="form-group col-pais">
                             <label for="reg-pais">País</label>
@@ -754,14 +749,13 @@
                         </div>
                         <div class="form-group col-rut">
                             <label for="reg-rut">RUT / Documento</label>
-                            <input type="text" id="reg-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)" required>
+                            <input type="text" id="reg-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)">
                         </div>
                     </div>
-                    
                     <div class="form-group-inline">
                         <div class="form-group" style="flex-basis: 50%;">
                             <label for="reg-genero">Género</label>
-                            <select id="reg-genero" required>
+                            <select id="reg-genero">
                                 <option value="">Seleccione...</option>
                                 <option value="mujer">Mujer</option>
                                 <option value="hombre">Hombre</option>
@@ -770,14 +764,13 @@
                         </div>
                         <div class="form-group" style="flex-basis: 50%;">
                              <label for="reg-contacto">Número de Contacto</label>
-                             <input type="tel" id="reg-contacto" placeholder="Contacto (sólo números)" onkeydown="validateNumericInput(event)" required>
+                             <input type="tel" id="reg-contacto" placeholder="Contacto (sólo números)" onkeydown="validateNumericInput(event)">
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label for="reg-direccion">Dirección de Hogar</label>
                         <div class="input-with-button">
-                            <input type="text" id="reg-direccion" placeholder="Dirección" required>
+                            <input type="text" id="reg-direccion" placeholder="Dirección">
                             <button type="button" onclick="getGeolocation()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
@@ -812,6 +805,72 @@
             </div>
         </div>
     </div>
+    
+    <!-- 🛠️ Modal para Editar Usuario (Nuevo) -->
+    <div id="modal-editar-usuario" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Modificar Usuario</h2>
+          <span class="modal-close" onclick="closeModal('modal-editar-usuario')">&times;</span>
+        </div>
+        
+        <!-- 🛠️ FORMULARIO DE EDICIÓN COMPLETO (Tu versión) -->
+        <form id="edit-user-form" onsubmit="event.preventDefault(); saveEditUser();">
+            <div class="form-group">
+              <label>Nombres</label>
+              <input type="text" id="edit-nombres" placeholder="Ej: Ana María" required>
+            </div>
+
+            <div class="form-group">
+              <label>Apellidos</label>
+              <input type="text" id="edit-apellidos" placeholder="Ej: Pérez Soto" required>
+            </div>
+            
+            <!-- Campos adicionales del frontend (Género, Contacto, Dirección) -->
+            <div class="form-group">
+              <label>Género</label>
+              <select id="edit-genero">
+                <option value="">Seleccione...</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Número de Contacto</label>
+              <input type="tel" id="edit-contacto" pattern="[0-9]+" maxlength="15" placeholder="Sólo números">
+            </div>
+
+            <div class="form-group">
+              <label>Dirección de Hogar</label>
+              <input type="text" id="edit-direccion" placeholder="Ej: Calle 123, Santiago">
+            </div>
+            <!-- Fin Campos adicionales -->
+
+
+            <div class="form-group">
+              <label>Rol del Usuario</label>
+              <select id="edit-rol" required>
+                <option value="">Seleccione rol...</option>
+                <option value="admin">Administrador</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="corredor">Corredor</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Nueva Contraseña (Opcional)</label>
+              <input type="password" id="edit-password" placeholder="Dejar en blanco para no cambiar">
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" onclick="closeModal('modal-editar-usuario')">Cancelar</button>
+              <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+      </div>
+    </div>
 
 
     <!-- ⬇️ ⬇️ ⬇️ SECCIÓN DE SCRIPT ACTUALIZADA ⬇️ ⬇️ ⬇️ -->
@@ -822,6 +881,7 @@
         
         const API_BASE = "http://127.0.0.1:8000/api";
         const token = localStorage.getItem('access'); // Obtiene el token del Admin
+        let editUserId = null; // Variable global para saber qué usuario se edita
 
         /**
          * Carga inicial de datos cuando el DOM está listo.
@@ -874,13 +934,9 @@
             }
             clickedTab.classList.add('active');
 
-            // ---------------------------------------------------
-            // 🛠️ LÓGICA AÑADIDA: Carga los datos al hacer clic
-            // ---------------------------------------------------
             if (tabId === 'tab-roles') {
-                fetchUsersByRole(); // Llama a la nueva función de API
+                fetchUsersByRole();
             }
-            // (No es necesario volver a llamar a fetchUsers() aquí, ya se carga al inicio)
         }
 
         // --- Funciones de Modales ---
@@ -911,7 +967,7 @@
         
         function logout() {
             alert("Cerrando sesión...");
-            localStorage.removeItem('access'); // Limpia el token
+            localStorage.removeItem('access');
             localStorage.removeItem('refresh');
             window.location.href = '/'; 
         }
@@ -932,7 +988,6 @@
                 const user = await res.json();
                 
                 // 🛠️ CORRECCIÓN: Usar first_name y last_name para el perfil
-                // Si first_name está vacío, usa el username.
                 const displayName = user.first_name ? `${user.first_name} ${user.last_name || ''}` : user.username;
                 document.querySelector('#profile-name').textContent = displayName.trim();
                 document.querySelector('#profile-role').textContent = user.rol;
@@ -956,85 +1011,176 @@
                 if (!res.ok) throw new Error('No se pudo cargar la lista de usuarios.');
                 
                 const data = await res.json();
-                
                 const users = data.results || data; 
-
                 renderUserTable(users);
             } catch (err) {
                 alert(err.message);
             }
         }
 
-        /**
-         * Dibuja la tabla de usuarios con los datos de la API
-         */
+        // ---------------------------------------------------
+        // 🛠️ TU LÓGICA DE TABLA Y CRUD (CONECTADA)
+        // ---------------------------------------------------
+        
         function renderUserTable(users) {
             const tbody = document.querySelector("#tab-users table tbody");
-            tbody.innerHTML = ""; // Limpia la tabla
+            tbody.innerHTML = "";
+            
+            // Obtenemos el email del usuario actual para deshabilitar botones en su propia fila
+            const selfName = document.querySelector('#profile-name').textContent; 
 
             users.forEach(user => {
-                // Determina el ROL
-                let rol = 'N/A';
+                const rol = user.is_superuser
+                    ? "Administrador"
+                    : (user.rol ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1) : "N/A");
+                const estado = user.is_active ? "Activo" : "Inactivo";
+
+                // Estado visual
+                const enableDisabled = user.is_active ? 'disabled' : '';
+                const disableDisabled = user.is_active ? '' : 'disabled';
+                
+                // Deshabilitar acciones en el usuario actual (Superusuario)
+                let selfActionsDisabled = '';
+                // Se deshabilita si es el Superusuario (para evitar borrar la cuenta activa)
                 if (user.is_superuser) {
-                    rol = 'Administrador'; // Usar mayúscula inicial para la tabla
-                } else if (user.rol) { 
-                    rol = user.rol.charAt(0).toUpperCase() + user.rol.slice(1);
-                }
-                
-                const estado = user.is_active ? 'Activo' : 'Inactivo';
-                
-                // 🛠️ LÓGICA DE BOTONES (Habilitar/Deshabilitar/Eliminar)
-                let actionButtonHTML;
-                
-                if (user.is_active) {
-                     // Usuario ACTIVO: Botón Editar (Solo alerta) y Deshabilitar (Papelera)
-                     actionButtonHTML = `
-                        <button class="btn-icon btn-edit" title="Editar (Funcionalidad pendiente)" onclick="alert('Funcionalidad de Edición no implementada aún.')">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg>
-                        </button>
-                        <button class="btn-icon btn-delete" title="Deshabilitar Usuario" onclick="handleDisableUser(${user.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
-                        </button>
-                    `;
-                } else {
-                    // Usuario INACTIVO: Botón Habilitar (Azul/Verde) y Borrar Permanente (Rojo)
-                    actionButtonHTML = `
-                        <button class="btn-icon btn-edit" title="Habilitar Usuario" onclick="handleEnableUser(${user.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M142.9 142.9c62.2-62.2 162.7-62.2 224.9 0s62.2 162.7 0 224.9s-162.7 62.2-224.9 0s-62.2-162.7 0-224.9zM416 256c0-88.4-71.6-160-160-160S96 167.6 96 256s71.6 160 160 160s160-71.6 160-160zM256 48a208 208 0 1 0 0 416 208 208 0 1 0 0-416zm-48 112c0-13.3-10.7-24-24-24s-24 10.7-24 24v96c0 13.3 10.7 24 24 24h96c13.3 0 24-10.7 24-24s-10.7-24-24-24H208V160z"/></svg>
-                        </button>
-                        <button class="btn-icon btn-delete" title="Eliminar Permanentemente" onclick="handleDeletePermanent(${user.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
-                        </button>
-                    `;
+                    selfActionsDisabled = 'disabled';
                 }
 
-                
-                const row = `
-                    <tr>
-                        <td>${user.email}</td>
-                        <td>${user.first_name || 'N/A'}</td> 
-                        <td>${user.last_name || 'N/A'}</td> 
-                        <td>${rol}</td>
-                        <td>${estado}</td>
-                        <td class="action-buttons">
-                            ${actionButtonHTML}
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
+                // Extrae datos de campos que no existen en el modelo base de Django, 
+                // pero que el frontend necesita para la edición. Se asumen vacíos.
+                const genero = user.genero || '';
+                const telefono = user.telefono || '';
+                const direccion = user.direccion || '';
+
+                // Sanitiza los datos para pasarlos al onclick
+                const firstNameSafe = user.first_name ? user.first_name.replace(/'/g, "\\'") : '';
+                const lastNameSafe = user.last_name ? user.last_name.replace(/'/g, "\\'") : '';
+                const rolSafe = user.rol || 'corredor';
+                const generoSafe = genero.replace(/'/g, "\\'");
+                const telefonoSafe = telefono.replace(/'/g, "\\'");
+                const direccionSafe = direccion.replace(/'/g, "\\'");
+
+
+                tbody.innerHTML += `
+                <tr>
+                    <td>${user.email}</td>
+                    <td>${user.first_name || 'N/A'}</td>
+                    <td>${user.last_name || 'N/A'}</td>
+                    <td>${rol}</td>
+                    <td>${estado}</td>
+                    <td class="action-buttons">
+                        
+                        <!-- MODIFICAR (EDITAR) -->
+                        <button class="btn-action btn-modify" title="Modificar usuario" 
+                            onclick="handleEditUser(${user.id}, 
+                                '${firstNameSafe}', 
+                                '${lastNameSafe}', 
+                                '${rolSafe}',
+                                '${generoSafe}',
+                                '${telefonoSafe}',
+                                '${direccionSafe}')"
+                            ${selfActionsDisabled}>
+                            Modificar
+                        </button>
+
+                        <!-- HABILITAR -->
+                        <button class="btn-action btn-enable" title="Habilitar usuario" 
+                            onclick="handleEnableUser(${user.id})" ${enableDisabled} ${selfActionsDisabled}>
+                            Habilitar
+                        </button>
+
+                        <!-- DESHABILITAR -->
+                        <button class="btn-action btn-disable" title="Deshabilitar usuario" 
+                            onclick="handleDisableUser(${user.id})" ${disableDisabled} ${selfActionsDisabled}>
+                            Deshabilitar
+                        </button>
+
+                        <!-- ELIMINAR -->
+                        <button class="btn-action btn-delete" title="Eliminar permanentemente" 
+                            onclick="handleDeletePermanent(${user.id})" ${selfActionsDisabled}>
+                            Eliminar
+                        </button>
+
+                    </td>
+                </tr>`;
             });
         }
-        
+
+        /**
+         * 🛠️ Función que inicializa el modal de edición
+         */
+        function handleEditUser(id, nombre, apellido, rol, genero, contacto, direccion) {
+            editUserId = id;
+            
+            // Llenar el formulario del modal de edición
+            document.getElementById('edit-nombres').value = nombre;
+            document.getElementById('edit-apellidos').value = apellido;
+            document.getElementById('edit-rol').value = rol.toLowerCase();
+            
+            // Campos adicionales
+            document.getElementById('edit-genero').value = genero || "";
+            document.getElementById('edit-contacto').value = contacto || "";
+            document.getElementById('edit-direccion').value = direccion || "";
+            document.getElementById('edit-password').value = ""; // Limpia la contraseña
+            
+            showModal('modal-editar-usuario');
+        }
+
+        /**
+         * 🛠️ Lógica para GUARDAR la edición (Utiliza PATCH contra /api/users/<id>/)
+         */
+        async function saveEditUser() {
+            const payload = {
+                first_name: document.getElementById('edit-nombres').value,
+                last_name: document.getElementById('edit-apellidos').value,
+                rol: document.getElementById('edit-rol').value,
+                
+                // Campos adicionales (Se asume que el backend los ignorará si no existen)
+                genero: document.getElementById('edit-genero').value,
+                telefono: document.getElementById('edit-contacto').value,
+                direccion: document.getElementById('edit-direccion').value
+            };
+            
+            const password = document.getElementById('edit-password').value;
+            if (password) payload.password = password; // Añade la contraseña solo si se escribió una nueva
+
+            
+            try {
+                // El UserViewSet en DRF permite PATCH por defecto si no es ReadOnly, 
+                // pero solo actualiza los campos permitidos en el UserSerializer.
+                const res = await fetch(`${API_BASE}/users/${editUserId}/`, { 
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'No se pudo modificar el usuario.');
+                }
+                
+                alert('Usuario modificado con éxito.');
+                fetchUsers();
+                
+            } catch (err) {
+                alert(`Error al guardar: ${err.message}.`);
+            }
+            
+            closeModal('modal-editar-usuario');
+        }
+
         /**
          * Llama a la API para deshabilitar un usuario
          */
-        async function handleDeleteUser(userId) {
+        async function handleDisableUser(userId) {
             if (!confirm('¿Está seguro de que desea deshabilitar a este usuario?')) {
                 return;
             }
             
             try {
-                // Usamos el endpoint 'disable_user' (POST /api/users/<id>/disable/)
                 const res = await fetch(`${API_BASE}/users/${userId}/disable/`, {
                     method: 'POST',
                     headers: { 
@@ -1093,7 +1239,6 @@
             }
             
             try {
-                // Usamos el endpoint DELETE /api/users/<id>/delete/
                 const res = await fetch(`${API_BASE}/users/${userId}/delete/`, {
                     method: 'DELETE', // Método DELETE
                     headers: { 
@@ -1102,14 +1247,14 @@
                     }
                 });
                 
-                // 204 (No Content) es una respuesta exitosa para DELETE
                 if (res.status === 204) {
                     alert('Usuario eliminado permanentemente.');
-                    fetchUsers(); // Recarga la tabla 
                 } else if (!res.ok) {
                     const err = await res.json();
                     throw new Error(err.detail || 'No se pudo eliminar el usuario.');
                 }
+                
+                fetchUsers(); // Recarga la tabla 
 
             } catch (err) {
                 alert(err.message);

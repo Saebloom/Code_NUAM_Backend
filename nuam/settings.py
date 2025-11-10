@@ -168,3 +168,5 @@ LOGIN_URL = "/"
 
 # Logout redirige al index
 LOGOUT_REDIRECT_URL = "/"
+# Modelo de usuario personalizado
+AUTH_USER_MODEL = "api.Usuario"

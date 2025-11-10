@@ -1,21 +1,49 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser # <-- IMPORTANTE
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.conf import settings 
 
+
+# -----------------------------
+# 👤 MODELO DE USUARIO PERSONALIZADO (Hereda de AbstractUser)
+# -----------------------------
+class Usuario(AbstractUser):
+    GENERO_CHOICES = [
+        ("Masculino", "Masculino"),
+        ("Femenino", "Femenino"),
+        ("Otro", "Otro"),
+    ]
+
+    # 🛠️ CAMPOS AÑADIDOS
+    genero = models.CharField(max_length=20, choices=GENERO_CHOICES, blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        # Muestra Nombre y Apellido si existen, si no, usa el username
+        return f"{self.first_name} {self.last_name} ({self.username})" if self.first_name else self.username
+
+    # La clase Meta abstract=False permite que este sea el modelo AUTH_USER_MODEL
+
+
+# -----------------------------
+# 🕓 MODELOS BASE DE AUDITORÍA
+# (Se mantiene igual, solo se asegura que use settings.AUTH_USER_MODEL)
+# -----------------------------
 class TimeStampedModel(models.Model):
     """Modelo base abstracto que proporciona campos de auditoría"""
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
-        User, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name="%(class)s_created",
         verbose_name="Creado por"
     )
     updated_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name="%(class)s_updated",
@@ -26,11 +54,11 @@ class TimeStampedModel(models.Model):
         abstract = True
 
     def save(self, *args, **kwargs):
-        """Asegura que updated_at se actualice en cada save y created_at se establezca solo al crear."""
         if not self.pk and not self.created_at:
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
         super().save(*args, **kwargs)
+
 
 class AuditableModel(TimeStampedModel):
     """Modelo base abstracto que agrega campos de auditoría adicionales"""
@@ -41,11 +69,14 @@ class AuditableModel(TimeStampedModel):
         abstract = True
 
     def soft_delete(self, user):
-        """Realiza un borrado suave del registro"""
         self.is_active = False
         self.updated_by = user
         self.save()
 
+
+# -----------------------------
+# 📋 MODELOS DEL SISTEMA (Mantener la referencia a settings.AUTH_USER_MODEL)
+# -----------------------------
 class Rol(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
@@ -53,11 +84,13 @@ class Rol(models.Model):
     def __str__(self):
         return self.nombre
 
+
 class Estado(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.nombre
+
 
 class Instrumento(models.Model):
     nombre = models.CharField(max_length=200)
@@ -67,6 +100,7 @@ class Instrumento(models.Model):
     def __str__(self):
         return self.nombre
 
+
 class Mercado(models.Model):
     nombre = models.CharField(max_length=200)
     pais = models.CharField(max_length=100)
@@ -75,63 +109,61 @@ class Mercado(models.Model):
     def __str__(self):
         return self.nombre
 
+
 class Archivo(models.Model):
     nombre_archivo = models.CharField(max_length=255)
     fecha_carga = models.DateTimeField(auto_now_add=True)
     estado_validacion = models.CharField(max_length=100, default="pendiente")
     ruta = models.CharField(max_length=500, blank=True)
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
 
     def __str__(self):
         return self.nombre_archivo
 
+
+# -----------------------------
+# 🧮 CALIFICACIONES Y TRIBUTARIAS
+# -----------------------------
 class Calificacion(AuditableModel):
-    monto_factor = models.DecimalField(
-        max_digits=18, 
-        decimal_places=4, 
-        db_index=True,
-        verbose_name="Monto Factor"
-    )
-    fecha_emision = models.DateField(
-        db_index=True,
-        verbose_name="Fecha de Emisión"
-    )
-    fecha_pago = models.DateField(
-        db_index=True,
-        verbose_name="Fecha de Pago"
-    )
+    monto_factor = models.DecimalField(max_digits=18, decimal_places=4, db_index=True, verbose_name="Monto Factor")
+    fecha_emision = models.DateField(db_index=True, verbose_name="Fecha de Emisión")
+    fecha_pago = models.DateField(db_index=True, verbose_name="Fecha de Pago")
     usuario = models.ForeignKey(
-        User, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name="calificaciones",
         verbose_name="Usuario"
     )
     instrumento = models.ForeignKey(
-        Instrumento, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        'Instrumento',
+        on_delete=models.SET_NULL,
+        null=True,
         db_index=True,
         verbose_name="Instrumento"
     )
     mercado = models.ForeignKey(
-        Mercado, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        'Mercado',
+        on_delete=models.SET_NULL,
+        null=True,
         db_index=True,
         verbose_name="Mercado"
     )
     archivo = models.ForeignKey(
-        Archivo, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        'Archivo',
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         verbose_name="Archivo"
     )
     estado = models.ForeignKey(
-        Estado, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        'Estado',
+        on_delete=models.SET_NULL,
+        null=True,
         db_index=True,
         verbose_name="Estado"
     )
@@ -148,10 +180,8 @@ class Calificacion(AuditableModel):
 
     def clean(self):
         if self.fecha_pago < self.fecha_emision:
-            raise ValidationError({
-                'fecha_pago': 'La fecha de pago no puede ser anterior a la fecha de emisión'
-            })
-        
+            raise ValidationError({'fecha_pago': 'La fecha de pago no puede ser anterior a la fecha de emisión'})
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
@@ -159,41 +189,20 @@ class Calificacion(AuditableModel):
     def __str__(self):
         return f"Calificación {self.id} - {self.instrumento}"
 
+
 class CalificacionTributaria(AuditableModel):
     calificacion = models.ForeignKey(
-        Calificacion, 
-        on_delete=models.CASCADE, 
+        'Calificacion',
+        on_delete=models.CASCADE,
         related_name="tributarias",
         verbose_name="Calificación"
     )
-    secuencia_evento = models.IntegerField(
-        verbose_name="Secuencia del Evento",
-        help_text="Número que indica el orden del evento"
-    )
-    evento_capital = models.DecimalField(
-        max_digits=18, 
-        decimal_places=4,
-        verbose_name="Evento Capital"
-    )
-    anio = models.IntegerField(
-        verbose_name="Año",
-        db_index=True
-    )
-    valor_historico = models.DecimalField(
-        max_digits=18, 
-        decimal_places=4, 
-        null=True, 
-        blank=True,
-        verbose_name="Valor Histórico"
-    )
-    descripcion = models.TextField(
-        blank=True,
-        verbose_name="Descripción"
-    )
-    ingreso_por_montos = models.BooleanField(
-        default=False,
-        verbose_name="Ingreso por Montos"
-    )
+    secuencia_evento = models.IntegerField(verbose_name="Secuencia del Evento", help_text="Número que indica el orden del evento")
+    evento_capital = models.DecimalField(max_digits=18, decimal_places=4, verbose_name="Evento Capital")
+    anio = models.IntegerField(verbose_name="Año", db_index=True)
+    valor_historico = models.DecimalField(max_digits=18, decimal_places=4, null=True, blank=True, verbose_name="Valor Histórico")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    ingreso_por_montos = models.BooleanField(default=False, verbose_name="Ingreso por Montos")
 
     class Meta:
         ordering = ['calificacion', 'secuencia_evento']
@@ -206,15 +215,14 @@ class CalificacionTributaria(AuditableModel):
 
     def clean(self):
         if self.valor_historico and self.valor_historico > self.evento_capital:
-            raise ValidationError({
-                'valor_historico': 'El valor histórico no puede ser mayor al evento capital'
-            })
+            raise ValidationError({'valor_historico': 'El valor histórico no puede ser mayor al evento capital'})
 
     def __str__(self):
-        return f"Tributaria {self.id} para Calificacion {self.calificacion_id}"
+        return f"Tributaria {self.id} para Calificación {self.calificacion_id}"
+
 
 class FactorTributario(models.Model):
-    calificacion_tributaria = models.ForeignKey(CalificacionTributaria, on_delete=models.CASCADE, related_name="factores")
+    calificacion_tributaria = models.ForeignKey('CalificacionTributaria', on_delete=models.CASCADE, related_name="factores")
     codigo_factor = models.CharField(max_length=100)
     descripcion_factor = models.CharField(max_length=255)
     valor_factor = models.DecimalField(max_digits=18, decimal_places=8)
@@ -222,23 +230,25 @@ class FactorTributario(models.Model):
     def __str__(self):
         return f"{self.codigo_factor} ({self.valor_factor})"
 
+
 class Log(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     accion = models.CharField(max_length=200)
     detalle = models.TextField(blank=True)
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    calificacion = models.ForeignKey(Calificacion, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    calificacion = models.ForeignKey('Calificacion', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.fecha} - {self.accion}"
+
 
 class Auditoria(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     tipo = models.CharField(max_length=100)
     resultado = models.CharField(max_length=100)
     observaciones = models.TextField(blank=True)
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    calificacion = models.ForeignKey(Calificacion, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    calificacion = models.ForeignKey('Calificacion', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"Auditoria {self.id} - {self.tipo}"
+        return f"Auditoría {self.id} - {self.tipo}"

@@ -1,59 +1,49 @@
 from rest_framework import viewsets, status, serializers
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.contrib.auth.models import User, Group # Importaciones cruciales
+from django.contrib.auth.models import Group
 from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 
+# 🛠️ Importar el modelo Usuario personalizado (tu AUTH_USER_MODEL)
 from .models import (
+    Usuario as User, 
     Rol, Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
     Log, Auditoria
 )
+# 🛠️ Importación de Serializers (DEBE SER ESTA)
 from .serializers import (
-    UserSerializer, RolSerializer, EstadoSerializer, InstrumentoSerializer,
-    MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
-    CalificacionTributariaSerializer, FactorTributarioSerializer,
-    CurrentUserSerializer
+    UserSerializer, CurrentUserSerializer,
+    RolSerializer, EstadoSerializer, InstrumentoSerializer, MercadoSerializer,
+    ArchivoSerializer, CalificacionSerializer, CalificacionTributariaSerializer,
+    FactorTributarioSerializer
 )
-
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
-from rest_framework.permissions import IsAdminUser, AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # --------------------------
-# 🎯 LOGIN CORPORATIVO (solo @nuam.cl)
+# 🎯 LOGIN CORPORATIVO
 # --------------------------
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_nuam(request):
-    """
-    Login que solo permite usuarios con correos @nuam.cl.
-    Busca al usuario por email y autentica con su username real.
-    """
+    """Login corporativo con validación de dominio @nuam.cl."""
     email_input = request.data.get('username') 
     password = request.data.get('password')
 
     if not email_input or not password:
-        return Response(
-            {'detail': 'Debe proporcionar un usuario y una contraseña.'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
+        return Response({'detail': 'Debe proporcionar un usuario y una contraseña.'}, status=status.HTTP_400_BAD_REQUEST)
     if not email_input.lower().endswith('@nuam.cl'):
-        return Response(
-            {'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, status=status.HTTP_401_UNAUTHORIZED)
 
     user = None
     try:
         user_obj = User.objects.get(email__iexact=email_input)
         user = authenticate(username=user_obj.username, password=password)
-        
     except User.DoesNotExist:
         pass 
 
@@ -67,19 +57,54 @@ def login_nuam(request):
             'user': user_serializer.data,
         }, status=status.HTTP_200_OK)
     else:
-        return Response(
-            {'detail': 'Credenciales inválidas.'}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({'detail': 'Credenciales inválidas.'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 # --------------------------
-# 🔐 USUARIOS Y GESTIÓN
+# 🔐 USUARIOS Y GESTIÓN (CRUD COMPLETO)
 # --------------------------
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    # CORRECCIÓN: Añadido order_by('id') para evitar el 'UnorderedObjectListWarning'
+class UserViewSet(viewsets.ModelViewSet): # 🛠️ ModelViewSet permite GET, POST, PUT, PATCH, DELETE
     queryset = User.objects.all().order_by('id') 
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUser] # Solo admins pueden modificar o listar
+
+    def partial_update(self, request, *args, **kwargs):
+        """Permite actualizar parcialmente (PATCH) datos de usuario, rol y contraseña"""
+        instance = self.get_object()
+        data = request.data.copy()
+        
+        # 1. Manejar Contraseña
+        new_password = data.pop('password', None)
+        if new_password:
+            instance.set_password(new_password)
+            instance.save() 
+
+        # 2. Manejar Rol (Grupos)
+        if 'rol' in data:
+            new_rol = data.pop('rol')
+            instance.groups.clear() 
+            instance.is_superuser = False
+            instance.is_staff = False
+
+            if new_rol == 'admin':
+                instance.is_superuser = True
+                instance.is_staff = True
+            elif new_rol == 'supervisor':
+                supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
+                instance.groups.add(supervisor_group)
+                instance.is_staff = True
+            elif new_rol == 'corredor':
+                corredor_group, _ = Group.objects.get_or_create(name='Corredor')
+                instance.groups.add(corredor_group)
+            
+            instance.save() # Guarda los cambios de is_superuser/is_staff/groups
+
+        # 3. Serializer procesa el resto de los campos (first_name, last_name, genero, telefono, etc.)
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer) # Llama al update del Serializer
+        
+        return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -100,8 +125,9 @@ def disable_user(request, pk):
     except User.DoesNotExist:
         return Response({'detail': 'Usuario no encontrado'}, status=404)
     # Protege al Superusuario actual de ser deshabilitado
-    if user.is_superuser and user == request.user:
-        return Response({'detail': 'No puedes deshabilitarte a ti mismo.'}, status=status.HTTP_403_FORBIDDEN)
+    if user.is_superuser:
+        return Response({'detail': 'No se puede deshabilitar al Superusuario principal.'}, status=status.HTTP_403_FORBIDDEN)
+    
     user.is_active = False
     user.save()
     return Response({'detail': 'Usuario deshabilitado'}, status=200)
@@ -130,8 +156,8 @@ def delete_user(request, pk):
         user = User.objects.get(pk=pk)
     except User.DoesNotExist:
         return Response({'detail': 'Usuario no encontrado'}, status=404)
-    if user.is_superuser and user == request.user:
-        return Response({'detail': 'No te puedes eliminar a ti mismo.'}, status=status.HTTP_403_FORBIDDEN)
+    if user.is_superuser:
+        return Response({'detail': 'No se puede eliminar al Superusuario principal.'}, status=status.HTTP_403_FORBIDDEN)
     
     user.delete()
     return Response({'detail': 'Usuario eliminado permanentemente'}, status=204)
@@ -149,6 +175,12 @@ def admin_create_user(request):
     first_name = data.get('first_name', '')
     last_name = data.get('last_name', '')
     rol = data.get('rol') 
+    
+    # Campos personalizados
+    genero = data.get('genero', '')
+    telefono = data.get('telefono', '')
+    direccion = data.get('direccion', '')
+
 
     if not email or not password or not rol:
         return Response(
@@ -159,27 +191,30 @@ def admin_create_user(request):
     username = email
 
     try:
-        user = User.objects.create_user(
+        # 🛠️ Creación de usuario con campos personalizados
+        # NOTA: Usamos .create() en el modelo personalizado.
+        user = User.objects.create(
             username=username,
             email=email,
-            password=password,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            genero=genero, 
+            telefono=telefono,
+            direccion=direccion
         )
-
+        user.set_password(password) # Establecer la contraseña de forma segura
+        
         if rol == 'admin':
             user.is_staff = True 
             user.is_superuser = True
-            user.save()
-
         elif rol == 'supervisor':
             supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
             user.groups.add(supervisor_group)
-
         elif rol == 'corredor':
             corredor_group, _ = Group.objects.get_or_create(name='Corredor')
             user.groups.add(corredor_group)
 
+        user.save()
         serializer = CurrentUserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -204,10 +239,11 @@ def get_users_by_role(request):
     try:
         admins = User.objects.filter(is_superuser=True, is_active=True)
         
-        supervisor_group = Group.objects.get(name='Supervisor')
+        # 🛠️ CORRECCIÓN: Usar get_or_create para evitar el error si los grupos no existen
+        supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
         supervisores = supervisor_group.user_set.filter(is_active=True)
         
-        corredor_group = Group.objects.get(name='Corredor')
+        corredor_group, _ = Group.objects.get_or_create(name='Corredor')
         corredores = corredor_group.user_set.filter(is_active=True)
         
         data = {
@@ -217,10 +253,8 @@ def get_users_by_role(request):
         }
         return Response(data, status=status.HTTP_200_OK)
         
-    except Group.DoesNotExist as e:
-        return Response({'detail': f'Error de configuración: El grupo {e} no existe. (Ve a /admin para crearlo)'}, status=500)
     except Exception as e:
-        return Response({'detail': str(e)}, status=500)
+        return Response({'detail': f'Error al cargar roles. Asegúrate de haber ejecutado las migraciones y creado los grupos: {str(e)}'}, status=500)
 
 
 # --------------------------

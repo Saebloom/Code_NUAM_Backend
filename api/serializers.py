@@ -1,40 +1,75 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from .models import (
     Rol, Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
-    Log, Auditoria
+    Log, Auditoria, Usuario # Importar tu modelo Usuario personalizado
 )
+from django.contrib.auth.models import Group # Importar Group para roles
 
 # ---------------------------
-# User Serializers
+# 👤 SERIALIZER DE USUARIO (Lectura/Escritura para CRUD)
 # ---------------------------
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SerializerMethodField()
     rol = serializers.SerializerMethodField()
     is_staff = serializers.BooleanField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
-    is_active = serializers.BooleanField(read_only=True) # <-- CAMBIO AÑADIDO
+    is_active = serializers.BooleanField(read_only=True) 
+    
+    # 🛠️ Campos de perfil añadidos para lectura y escritura
+    genero = serializers.CharField(required=False, allow_blank=True)
+    telefono = serializers.CharField(required=False, allow_blank=True)
+    direccion = serializers.CharField(required=False, allow_blank=True)
+
 
     class Meta:
-        model = User
+        model = Usuario 
         fields = [
             "id", "username", "email", "first_name", "last_name",
-            "groups", "rol", "is_staff", "is_superuser",
-            "is_active"  # <-- CAMBIO AÑADIDO
+            "genero", "telefono", "direccion", # <--- CAMPOS PERSONALIZADOS
+            "groups", "rol", "is_staff", "is_superuser", "is_active",
         ]
+        extra_kwargs = {
+            'first_name': {'required': False, 'allow_blank': True},
+            'last_name': {'required': False, 'allow_blank': True},
+            'password': {'write_only': True, 'required': False} 
+        }
 
     def get_groups(self, obj):
         return [g.name for g in obj.groups.all()]
 
     def get_rol(self, obj):
-        # Retorna el primer grupo como rol principal, o admin si es superusuario
         if obj.is_superuser:
             return "admin"
-        return obj.groups.first().name if obj.groups.exists() else None
+        return obj.groups.first().name if obj.groups.exists() else "desconocido"
+
 
 # ---------------------------
-# Model Serializers
+# 🙋‍♀️ SERIALIZER USUARIO ACTUAL (ME)
+# ---------------------------
+class CurrentUserSerializer(serializers.ModelSerializer):
+    rol = serializers.SerializerMethodField()
+    # Incluir campos de perfil
+    genero = serializers.CharField(read_only=True)
+    telefono = serializers.CharField(read_only=True)
+    direccion = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Usuario
+        fields = ["id", "username", "email", "first_name", "last_name", "rol", "genero", "telefono", "direccion"] 
+
+    def get_rol(self, obj):
+        if obj.is_superuser:
+            return "admin"
+        elif obj.groups.filter(name="Supervisor").exists():
+            return "supervisor"
+        elif obj.groups.filter(name="Corredor").exists():
+            return "corredor"
+        return "desconocido"
+
+
+# ---------------------------
+# 📋 SERIALIZERS DE MODELOS GENERALES (RESTAURADOS Y SINCRONIZADOS)
 # ---------------------------
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -75,9 +110,10 @@ class CalificacionTributariaSerializer(serializers.ModelSerializer):
 
 class CalificacionSerializer(serializers.ModelSerializer):
     tributarias = CalificacionTributariaSerializer(many=True, read_only=True)
+    # 🛠️ Usar el modelo Usuario correcto
     usuario = UserSerializer(read_only=True)
     usuario_id = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=User.objects.all(), source="usuario"
+        write_only=True, queryset=Usuario.objects.all(), source="usuario"
     )
 
     class Meta:
@@ -88,26 +124,6 @@ class CalificacionSerializer(serializers.ModelSerializer):
             "archivo", "estado", "created_at", "tributarias"
         ]
         read_only_fields = ["created_at", "usuario"]
-
+        
     def create(self, validated_data):
         return super().create(validated_data)
-
-# ---------------------------
-# Current User Serializer
-# ---------------------------
-class CurrentUserSerializer(serializers.ModelSerializer):
-    rol = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ["id", "username", "email", "first_name", "rol"]
-
-    def get_rol(self, obj):
-        if obj.is_superuser:
-            return "admin"
-        elif obj.groups.filter(name="Supervisor").exists():
-            return "supervisor"
-        elif obj.groups.filter(name="Corredor").exists():
-            return "corredor"
-        else:
-            return "desconocido"
