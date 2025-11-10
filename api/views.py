@@ -33,7 +33,6 @@ def login_nuam(request):
     """
     Login que solo permite usuarios con correos @nuam.cl.
     Busca al usuario por email y autentica con su username real.
-    Retorna access y refresh token si las credenciales son válidas.
     """
     email_input = request.data.get('username') 
     password = request.data.get('password')
@@ -50,7 +49,6 @@ def login_nuam(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    # 3. BUSCAR Y AUTENTICAR POR EMAIL (La lógica corregida)
     user = None
     try:
         user_obj = User.objects.get(email__iexact=email_input)
@@ -59,7 +57,6 @@ def login_nuam(request):
     except User.DoesNotExist:
         pass 
 
-    # 4. Generar Respuesta
     if user is not None:
         refresh = RefreshToken.for_user(user)
         user_serializer = CurrentUserSerializer(user)
@@ -76,7 +73,7 @@ def login_nuam(request):
         )
 
 # --------------------------
-# 🔐 USUARIOS
+# 🔐 USUARIOS Y GESTIÓN
 # --------------------------
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     # CORRECCIÓN: Añadido order_by('id') para evitar el 'UnorderedObjectListWarning'
@@ -93,17 +90,51 @@ def current_user(request):
     return Response(serializer.data)
 
 
+# 🛠️ POST 1: Deshabilitar Usuario (Soft Delete/Poner Inactivo)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def disable_user(request, pk):
-    """Deshabilita un usuario (solo admin)"""
+    """Deshabilita un usuario (solo admin). Lo pone inactivo."""
     try:
         user = User.objects.get(pk=pk)
     except User.DoesNotExist:
         return Response({'detail': 'Usuario no encontrado'}, status=404)
+    # Protege al Superusuario actual de ser deshabilitado
+    if user.is_superuser and user == request.user:
+        return Response({'detail': 'No puedes deshabilitarte a ti mismo.'}, status=status.HTTP_403_FORBIDDEN)
     user.is_active = False
     user.save()
-    return Response({'detail': 'Usuario deshabilitado'})
+    return Response({'detail': 'Usuario deshabilitado'}, status=200)
+
+# 🛠️ POST 2: Habilitar Usuario (Reactivar)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def enable_user(request, pk):
+    """Habilita (activa) un usuario (solo admin)."""
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'detail': 'Usuario no encontrado'}, status=404)
+    if user.is_active:
+        return Response({'detail': 'El usuario ya está activo'}, status=status.HTTP_400_BAD_REQUEST)
+    user.is_active = True
+    user.save()
+    return Response({'detail': 'Usuario habilitado con éxito'}, status=200)
+
+# 🛠️ DELETE: Eliminar Usuario (Borrado Permanente)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def delete_user(request, pk):
+    """Elimina permanentemente un usuario de la base de datos (solo admin)."""
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'detail': 'Usuario no encontrado'}, status=404)
+    if user.is_superuser and user == request.user:
+        return Response({'detail': 'No te puedes eliminar a ti mismo.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    user.delete()
+    return Response({'detail': 'Usuario eliminado permanentemente'}, status=204)
 
 # --------------------------
 # ➕ CREACIÓN DE USUARIOS (POR ADMIN)
@@ -111,10 +142,7 @@ def disable_user(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def admin_create_user(request):
-    """
-    Crea un nuevo usuario (Corredor, Supervisor, o Admin)
-    Añadido por el Administrador desde el dashboard.
-    """
+    """Crea un nuevo usuario con rol asignado."""
     data = request.data
     email = data.get('email')
     password = data.get('password')
@@ -139,7 +167,6 @@ def admin_create_user(request):
             last_name=last_name
         )
 
-        # 3. Asignar Rol (Grupo)
         if rol == 'admin':
             user.is_staff = True 
             user.is_superuser = True
@@ -173,10 +200,7 @@ def admin_create_user(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def get_users_by_role(request):
-    """
-    Devuelve listas de usuarios agrupados por sus roles 
-    para la pestaña "Roles" del dashboard de admin.
-    """
+    """Devuelve listas de usuarios agrupados por sus roles."""
     try:
         admins = User.objects.filter(is_superuser=True, is_active=True)
         

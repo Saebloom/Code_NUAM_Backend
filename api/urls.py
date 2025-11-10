@@ -5,8 +5,8 @@ from .views import (
     CalificacionViewSet, CalificacionTributariaViewSet, FactorTributarioViewSet,
     UserViewSet, LogViewSet, AuditoriaViewSet,
     current_user, disable_user, login_nuam,
-    admin_create_user,  # <-- 1. IMPORTACIÓN AÑADIDA
-    get_users_by_role   # <-- 2. IMPORTACIÓN AÑADIDA
+    admin_create_user, get_users_by_role, 
+    enable_user, delete_user # <-- TODAS LAS FUNCIONES IMPORTADAS
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .monitoring import health_check
@@ -28,12 +28,12 @@ urlpatterns = [
     path('users/me/', current_user, name='current_user'),
     path('users/<int:pk>/disable/', disable_user, name='disable_user'),
     
-    # RUTA PARA CREAR USUARIO (usado por el modal Admin)
-    path('users/admin_create/', admin_create_user, name='admin_create_user'),
+    # 🛠️ NUEVAS RUTAS CRUD
+    path('users/<int:pk>/enable/', enable_user, name='enable_user'),        # HABILITAR
+    path('users/<int:pk>/delete/', delete_user, name='delete_user_perm'),  # BORRAR PERMANENTEMENTE
+    path('users/admin_create/', admin_create_user, name='admin_create_user'), # CREAR
+    path('users/by_role/', get_users_by_role, name='get_users_by_role'),   # ROLES
     
-    # RUTA PARA OBTENER USUARIOS POR ROL (usado por la pestaña Roles)
-    path('users/by_role/', get_users_by_role, name='get_users_by_role'),
-
     # Router de los viewsets
     path('', include(router.urls)),
 
