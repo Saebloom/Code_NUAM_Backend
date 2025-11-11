@@ -36,19 +36,21 @@ git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com
 cd Code_NUAM_Backend
 
 ### 2.Crear y activar entorno virtual
-Windows
+#### Windows
 
 python -m venv test
 
 test\Scripts\activate
 
 
-Linux / Mac
+#### Linux / Mac
+
 python3 -m venv test
 
 source test/bin/activate
 
 ### 3. Instalar dependencias
+
 pip install -r requirements.txt
 
 
@@ -90,9 +92,13 @@ $env:DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
 python manage.py createsuperuser --noinput
 
 ### Linux / Mac (bash)
+
 export DJANGO_SUPERUSER_USERNAME=admin
+
 export DJANGO_SUPERUSER_EMAIL="admin@example.com"
+
 export DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
+
 python manage.py createsuperuser --noinput
 
 
