@@ -27,54 +27,98 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ## ⚡ Instalación
 
-Tienes dos formas de instalar el proyecto. La automática es la recomendada.
+    Tienes dos formas de instalar el proyecto. La automática es la recomendada.
 
-### Opción A: Instalación Automática (Recomendada)
+    ### Opción A: Instalación Automática (Recomendada)
+    
+    abrir cmd
 
-Usa los scripts de instalación que preparan todo el entorno automáticamente.
-
-* **En Windows:**
-    1.  Haz doble clic en el archivo `install.bat`.
-    2.  Espera a que la terminal termine de instalar todo.
-
-* **En Linux / Mac:**
-    1.  Otorga permisos de ejecución al script: `chmod +x install.sh`
-    2.  Ejecuta el script: `./install.sh`
-
-Estos scripts crearán el entorno virtual `test/`, instalarán las dependencias y ejecutarán `migrate` para configurar la base de datos y crear los usuarios de prueba.
-
-### Opción B: Instalación Manual
-
-1.  **Clonar el repositorio**
+    Clona el repositorio y entra a la carpeta:
     ```bash
     git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com/Saebloom/Code_NUAM_Backend.git)
     cd Code_NUAM_Backend
     ```
 
-2.  **Crear y activar entorno virtual**
-    * **Windows**
-        ```bash
-        python -m venv test
-        test\Scripts\activate
-        ```
-    * **Linux / Mac**
-        ```bash
-        python3 -m venv test
-        source test/bin/activate
-        ```
+    Usa los scripts de instalación que preparan todo el entorno automáticamente.
 
-3.  **Instalar dependencias**
-    ```bash
-    pip install -r requirements.txt
-    ```
+    * **En Windows:**
+        1.  Haz doble clic en el archivo `install.bat`.
+        2.  Espera a que la terminal termine de instalar todo.
 
-4.  **Aplicar migraciones y crear datos**
-    Este es el paso más importante. **No** necesitas correr `makemigrations`.
-    ```bash
-    python manage.py migrate
-    ```
-    > ℹ️ **Nota:** Este comando creará la base de datos `db.sqlite3` y ejecutará automáticamente `api/signals.py`, creando los 3 usuarios de prueba y los datos de ejemplo (Instrumentos, Mercados, etc.).
+    * **En Linux / Mac:**
+        1.  Otorga permisos de ejecución al script: `chmod +x install.sh`
+        2.  Ejecuta el script: `./install.sh`
 
+    Estos scripts crearán el entorno virtual `test/`, instalarán las dependencias y ejecutarán `migrate` para configurar la base de datos y crear los usuarios de prueba.
+
+### Opción B: Forma manual
+
+abrir cmd
+
+Clona el repositorio y entra a la carpeta:
+
+git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com/Saebloom/Code_NUAM_Backend.git)
+cd Code_NUAM_Backend
+
+### 2.Crear y activar entorno virtual
+Windows
+
+python -m venv test
+
+test\Scripts\activate
+
+
+Linux / Mac
+python3 -m venv test
+
+source test/bin/activate
+
+### 3. Instalar dependencias
+pip install -r requirements.txt
+
+
+Nota: Este proyecto utiliza MySQL. Asegúrate de tener mysqlclient instalado y de configurar tu conexión local en settings.py o un archivo .env.
+
+
+### 4. Aplicar migraciones
+
+python manage.py makemigrations
+
+python manage.py migrate
+
+### 5. Ejecutar servidor de desarrollo
+
+python manage.py runserver
+
+## 👤 Crear superusuario (Admin)
+
+python manage.py createsuperuser
+
+Username: admin
+
+Email: admin@nuam.cl
+
+Password: Administrador.2025
+
+(El email debe ser válido según la configuración del proyecto).
+
+
+## Método no interactivo (útil para scripts)
+### Windows PowerShell
+
+$env:DJANGO_SUPERUSER_USERNAME="admin"
+
+$env:DJANGO_SUPERUSER_EMAIL="admin@example.com"
+
+$env:DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
+
+python manage.py createsuperuser --noinput
+
+### Linux / Mac (bash)
+export DJANGO_SUPERUSER_USERNAME=admin
+export DJANGO_SUPERUSER_EMAIL="admin@example.com"
+export DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
+python manage.py createsuperuser --noinput
 ---
 
 ## 👤 Cuentas de Prueba (Creadas Automáticamente)
