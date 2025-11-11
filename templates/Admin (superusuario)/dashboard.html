@@ -437,6 +437,7 @@
             cursor: pointer;
             font-size: .85rem;
             transition: all .2s;
+            margin: 0 2px; /* Espacio entre botones */
         }
         .btn-modify { background-color: #007bff; }
         .btn-modify:hover { background-color: #0056b3; }
@@ -530,6 +531,7 @@
                                             <th>Email</th>
                                             <th>Nombres</th>
                                             <th>Apellidos</th>
+                                            <th>RUT / Documento</th> <!-- 🛠️ NUEVA COLUMNA -->
                                             <th>Rol</th>
                                             <th>Estado</th>
                                             <th>Acciones</th>
@@ -634,7 +636,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="logs-tbody">
-                                    <!-- Se rellena con JS (Aún no implementado) -->
                                     <tr><td colspan="4" style="text-align: center;">Cargando logs...</td></tr>
                                 </tbody>
                             </table>
@@ -700,7 +701,26 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                     <!-- 🛠️ TABLA LIMPIA (Los datos estáticos se fueron) -->
+                                     <tr>
+                                        <td>2025-11-06 10:00:00</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>carga_nov_2025.csv</td>
+                                        <td>Completado</td>
+                                        <td>1500</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-11-05 09:30:00</td>
+                                        <td>corredor@nuam.com</td>
+                                        <td>carga_erronea.csv</td>
+                                        <td>Fallido (Error Fila 10)</td>
+                                        <td>9</td>
+                                        <td class="action-buttons">
+                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -737,11 +757,11 @@
                             <input type="email" id="reg-email" placeholder="ingrese email corporativo" required>
                     </div>
 
-                    <!-- Campos no utilizados por el backend User, pero se mantienen por si se implementa un Perfil -->
+                    <!-- Campos de perfil personalizados -->
                     <div class="form-group-inline">
                         <div class="form-group col-pais">
                             <label for="reg-pais">País</label>
-                            <select id="reg-pais">
+                            <select id="reg-pais" required>
                                 <option value="CL">Chile</option>
                                 <option value="PE">Perú</option>
                                 <option value="CO">Colombia</option>
@@ -749,7 +769,7 @@
                         </div>
                         <div class="form-group col-rut">
                             <label for="reg-rut">RUT / Documento</label>
-                            <input type="text" id="reg-rut" placeholder="RUT (sólo números)" onkeydown="validateNumericInput(event)">
+                            <input type="text" id="reg-rut" placeholder="RUT o NIT/RUC" required>
                         </div>
                     </div>
                     <div class="form-group-inline">
@@ -757,9 +777,9 @@
                             <label for="reg-genero">Género</label>
                             <select id="reg-genero">
                                 <option value="">Seleccione...</option>
-                                <option value="mujer">Mujer</option>
-                                <option value="hombre">Hombre</option>
-                                <option value="otro">Otro</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Otro">Otro</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex-basis: 50%;">
@@ -814,7 +834,6 @@
           <span class="modal-close" onclick="closeModal('modal-editar-usuario')">&times;</span>
         </div>
         
-        <!-- 🛠️ FORMULARIO DE EDICIÓN COMPLETO (Tu versión) -->
         <form id="edit-user-form" onsubmit="event.preventDefault(); saveEditUser();">
             <div class="form-group">
               <label>Nombres</label>
@@ -831,8 +850,8 @@
               <label>Género</label>
               <select id="edit-genero">
                 <option value="">Seleccione...</option>
-                <option value="Femenino">Femenino</option>
                 <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
                 <option value="Otro">Otro</option>
               </select>
             </div>
@@ -846,8 +865,6 @@
               <label>Dirección de Hogar</label>
               <input type="text" id="edit-direccion" placeholder="Ej: Calle 123, Santiago">
             </div>
-            <!-- Fin Campos adicionales -->
-
 
             <div class="form-group">
               <label>Rol del Usuario</label>
@@ -1041,13 +1058,13 @@
                 
                 // Deshabilitar acciones en el usuario actual (Superusuario)
                 let selfActionsDisabled = '';
-                // Se deshabilita si es el Superusuario (para evitar borrar la cuenta activa)
                 if (user.is_superuser) {
                     selfActionsDisabled = 'disabled';
                 }
 
-                // Extrae datos de campos que no existen en el modelo base de Django, 
-                // pero que el frontend necesita para la edición. Se asumen vacíos.
+                // Extracción de datos para la tabla y edición
+                // Asumiendo que UserSerializer expone: rut_documento, genero, telefono, direccion
+                const rut = user.rut_documento || 'N/A';
                 const genero = user.genero || '';
                 const telefono = user.telefono || '';
                 const direccion = user.direccion || '';
@@ -1066,6 +1083,7 @@
                     <td>${user.email}</td>
                     <td>${user.first_name || 'N/A'}</td>
                     <td>${user.last_name || 'N/A'}</td>
+                    <td>${rut}</td> 
                     <td>${rol}</td>
                     <td>${estado}</td>
                     <td class="action-buttons">
@@ -1112,7 +1130,6 @@
         function handleEditUser(id, nombre, apellido, rol, genero, contacto, direccion) {
             editUserId = id;
             
-            // Llenar el formulario del modal de edición
             document.getElementById('edit-nombres').value = nombre;
             document.getElementById('edit-apellidos').value = apellido;
             document.getElementById('edit-rol').value = rol.toLowerCase();
@@ -1135,19 +1152,17 @@
                 last_name: document.getElementById('edit-apellidos').value,
                 rol: document.getElementById('edit-rol').value,
                 
-                // Campos adicionales (Se asume que el backend los ignorará si no existen)
+                // Estos campos serán guardados si existen en el Serializer
                 genero: document.getElementById('edit-genero').value,
                 telefono: document.getElementById('edit-contacto').value,
                 direccion: document.getElementById('edit-direccion').value
             };
             
             const password = document.getElementById('edit-password').value;
-            if (password) payload.password = password; // Añade la contraseña solo si se escribió una nueva
+            if (password) payload.password = password;
 
             
             try {
-                // El UserViewSet en DRF permite PATCH por defecto si no es ReadOnly, 
-                // pero solo actualiza los campos permitidos en el UserSerializer.
                 const res = await fetch(`${API_BASE}/users/${editUserId}/`, { 
                     method: 'PATCH',
                     headers: { 
@@ -1317,12 +1332,29 @@
         async function handleCrearUsuario(event) {
             event.preventDefault(); 
             
+            // 🛠️ Obtención de datos del formulario de creación
+            const pais = document.getElementById('reg-pais').value;
+            const rut = document.getElementById('reg-rut').value;
+
+            // 1. VALIDACIÓN ESPECÍFICA POR PAÍS
+            if (!validateRutDocumento(pais, rut)) {
+                alert(`Error: El formato del RUT/Documento (${rut}) no es válido para ${pais}.`);
+                return;
+            }
+
             const payload = {
                 first_name: document.getElementById('reg-nombres').value,
                 last_name: document.getElementById('reg-apellidos').value,
                 email: document.getElementById('reg-email').value,
                 password: document.getElementById('reg-pass').value,
-                rol: document.getElementById('reg-rol').value
+                rol: document.getElementById('reg-rol').value,
+                
+                // CAMPOS DE PERFIL
+                rut_documento: rut,
+                pais: pais,
+                genero: document.getElementById('reg-genero').value,
+                telefono: document.getElementById('reg-contacto').value,
+                direccion: document.getElementById('reg-direccion').value
             };
 
             if (!payload.rol) {
@@ -1357,8 +1389,50 @@
                 alert(err.message);
             }
         }
+        
+        // ---------------------------------------------------
+        // 🛠️ FUNCIONES DE VALIDACIÓN POR PAÍS
+        // ---------------------------------------------------
 
-        // --- Funciones de Validación (Copiadas de index.html) ---
+        /**
+         * Realiza la validación del formato del RUT/DV según el país.
+         */
+        function validateRutDocumento(pais, rut) {
+            rut = rut.trim().toUpperCase().replace(/[\.\-]/g, ''); // Limpiar puntos y guiones
+
+            if (pais === 'CL') {
+                // Chile: RUT con DV (Módulo 11)
+                const regex = /^(\d{7,8})([0-9K])$/;
+                if (!regex.test(rut)) return false;
+                
+                let M = 0;
+                let S = 1;
+                const rutNum = rut.slice(0, -1);
+                const dv = rut.slice(-1);
+                
+                for (let i = rutNum.length - 1; i >= 0; i--) {
+                    S = (S + parseInt(rutNum[i]) * (9 - M++ % 6)) % 11;
+                }
+                const calculatedDv = S ? S - 1 : 'K';
+                
+                return dv == calculatedDv;
+
+            } else if (pais === 'CO') {
+                // Colombia: NIT/RUT (9-10 dígitos + DV)
+                // Se espera un formato similar a XXXXXXXXX-Y. Validación simple: 8 a 11 dígitos
+                const regex = /^\d{8,11}$/;
+                return regex.test(rut);
+                
+            } else if (pais === 'PE') {
+                // Perú: RUC (Registro Único de Contribuyentes - 11 dígitos numéricos)
+                const regex = /^\d{11}$/;
+                return regex.test(rut);
+            }
+            
+            return true;
+        }
+
+        // --- Funciones de Validación y Geolocalización (Mantenidas) ---
 
         function validateNumericInput(event) {
             if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {

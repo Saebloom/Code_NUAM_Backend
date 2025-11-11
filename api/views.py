@@ -15,7 +15,7 @@ from .models import (
     Calificacion, CalificacionTributaria, FactorTributario,
     Log, Auditoria
 )
-# 🛠️ Importación de Serializers (DEBE SER ESTA)
+# 🛠️ Importación de Serializers
 from .serializers import (
     UserSerializer, CurrentUserSerializer,
     RolSerializer, EstadoSerializer, InstrumentoSerializer, MercadoSerializer,
@@ -99,7 +99,7 @@ class UserViewSet(viewsets.ModelViewSet): # 🛠️ ModelViewSet permite GET, PO
             
             instance.save() # Guarda los cambios de is_superuser/is_staff/groups
 
-        # 3. Serializer procesa el resto de los campos (first_name, last_name, genero, telefono, etc.)
+        # 3. Serializer procesa el resto de los campos (first_name, last_name, genero, telefono, rut_documento, pais, etc.)
         serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer) # Llama al update del Serializer
@@ -180,6 +180,8 @@ def admin_create_user(request):
     genero = data.get('genero', '')
     telefono = data.get('telefono', '')
     direccion = data.get('direccion', '')
+    rut_documento = data.get('rut_documento', '') 
+    pais = data.get('pais', '') 
 
 
     if not email or not password or not rol:
@@ -192,7 +194,6 @@ def admin_create_user(request):
 
     try:
         # 🛠️ Creación de usuario con campos personalizados
-        # NOTA: Usamos .create() en el modelo personalizado.
         user = User.objects.create(
             username=username,
             email=email,
@@ -200,7 +201,9 @@ def admin_create_user(request):
             last_name=last_name,
             genero=genero, 
             telefono=telefono,
-            direccion=direccion
+            direccion=direccion,
+            rut_documento=rut_documento, 
+            pais=pais 
         )
         user.set_password(password) # Establecer la contraseña de forma segura
         

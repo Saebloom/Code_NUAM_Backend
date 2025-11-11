@@ -20,13 +20,15 @@ class UserSerializer(serializers.ModelSerializer):
     genero = serializers.CharField(required=False, allow_blank=True)
     telefono = serializers.CharField(required=False, allow_blank=True)
     direccion = serializers.CharField(required=False, allow_blank=True)
+    rut_documento = serializers.CharField(required=False, allow_blank=True)
+    pais = serializers.CharField(required=False, allow_blank=True)
 
 
     class Meta:
         model = Usuario 
         fields = [
             "id", "username", "email", "first_name", "last_name",
-            "genero", "telefono", "direccion", # <--- CAMPOS PERSONALIZADOS
+            "genero", "telefono", "direccion", "rut_documento", "pais", # <--- CAMPOS PERSONALIZADOS
             "groups", "rol", "is_staff", "is_superuser", "is_active",
         ]
         extra_kwargs = {
@@ -53,10 +55,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     genero = serializers.CharField(read_only=True)
     telefono = serializers.CharField(read_only=True)
     direccion = serializers.CharField(read_only=True)
+    rut_documento = serializers.CharField(read_only=True)
+    pais = serializers.CharField(read_only=True)
+
 
     class Meta:
         model = Usuario
-        fields = ["id", "username", "email", "first_name", "last_name", "rol", "genero", "telefono", "direccion"] 
+        fields = ["id", "username", "email", "first_name", "last_name", "rol", "genero", "telefono", "direccion", "rut_documento", "pais"] 
 
     def get_rol(self, obj):
         if obj.is_superuser:
@@ -110,7 +115,6 @@ class CalificacionTributariaSerializer(serializers.ModelSerializer):
 
 class CalificacionSerializer(serializers.ModelSerializer):
     tributarias = CalificacionTributariaSerializer(many=True, read_only=True)
-    # 🛠️ Usar el modelo Usuario correcto
     usuario = UserSerializer(read_only=True)
     usuario_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Usuario.objects.all(), source="usuario"
