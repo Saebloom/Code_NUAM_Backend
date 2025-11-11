@@ -14,9 +14,9 @@ Aplicación web desarrollada con **Django** y **Django REST Framework**, que inc
 
 Antes de comenzar, asegúrate de tener instalado:
 
-- Python 3.12 o superior  
-- Git  
-- Navegador web (Chrome, Firefox, Edge)  
+- Python 3.12 o superior
+- Git
+- Navegador web (Chrome, Firefox, Edge)
 
 > ⚠️ Python debe instalarse manualmente. No se puede instalar automáticamente desde el proyecto.
 
@@ -32,7 +32,6 @@ git clone https://github.com/Saebloom/Code_NUAM_Backend.git
 
 cd Code_NUAM_Backend
 
-
 ### 2. Crear y activar entorno virtual
 
 - **Windows**
@@ -42,20 +41,22 @@ python -m venv test
 test\Scripts\activate
 
 - **Linux / Mac**
-python3 -m venv test
+  python3 -m venv test
 
 source test/bin/activate
 
-
 ### 3. Instalar dependencias
+
 pip install -r requirements.txt
 
 ### 4. Aplicar migraciones
+
 python manage.py makemigrations
 
 python manage.py migrate
 
 ### 4.Ejecutar servidor de desarrollo:
+
 python manage.py runserver
 
 Luego abre tu navegador en http://127.0.0.1:8000/
@@ -65,6 +66,7 @@ Luego abre tu navegador en http://127.0.0.1:8000/
 ## 👤 Crear superusuario (Admin)
 
 ### Método interactivo
+
 python manage.py createsuperuser
 
 Completa los datos solicitados:
@@ -79,7 +81,7 @@ Password: ContraseñaSegura123!
 ### Método no interactivo (útil para scripts)
 
 - **Windows PowerShell**
-  
+
 $env:DJANGO_SUPERUSER_USERNAME="valeadmin"
 
 $env:DJANGO_SUPERUSER_EMAIL="vale@example.com"
@@ -88,9 +90,8 @@ $env:DJANGO_SUPERUSER_PASSWORD="ContraseñaSegura123!"
 
 python manage.py createsuperuser --noinput
 
-
 - **Linux / Mac bash**
-  
+
 export DJANGO_SUPERUSER_USERNAME=valeadmin
 
 export DJANGO_SUPERUSER_EMAIL="vale@example.com"
@@ -98,7 +99,6 @@ export DJANGO_SUPERUSER_EMAIL="vale@example.com"
 export DJANGO_SUPERUSER_PASSWORD="ContraseñaSegura123!"
 
 python manage.py createsuperuser --noinput
-
 
 ### Verificar admin
 
@@ -109,18 +109,15 @@ Abre el navegador en [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/
 ##Uso
 
 - **Admin:** `/admin/` con superusuario
-  
 - **Registro y login:** usuarios pueden registrarse con nombre, email y contraseña
-  
 - **Publicación de retos:** solo superusuario o creador del reto puede publicar/eliminar
-  
 - **Responder retos:** usuarios acumulan puntos por respuestas correctas
-  
 - **Ranking:** top 10 usuarios por puntaje
 
 ---
 
-## 📂 Estructura del proyecto📂 
+## 📂 Estructura del proyecto📂
+
 Proyecto_NUAM_TIHI43_V/
 ├─ miapp/ # Aplicación principal (CRUD y API)
 │ ├─ migrations/ # Migraciones
@@ -138,9 +135,6 @@ Proyecto_NUAM_TIHI43_V/
 ├─ setup.bat # Script Windows para instalar automáticamente
 └─ README.md # Este archivo
 
-
-
-
 ---
 
 ##Dependencias
@@ -151,24 +145,20 @@ sqlparse==0.5.3
 tzdata==2025.2
 djangorestframework==3.15.2
 
-
 > Se instalan automáticamente con:
-pip install -r requirements.txt
-
-
+> pip install -r requirements.txt
 
 ---
 
 ## Notas importantes
 
-- Base de datos: **SQLite** por defecto  
-- Las migraciones deben generarse localmente (`makemigrations` + `migrate`)  
-- Entorno virtual recomendado: `test`  
-- Superusuario tiene permisos completos (`is_staff` e `is_superuser`)  
+- Base de datos: **SQLite** por defecto
+- Las migraciones deben generarse localmente (`makemigrations` + `migrate`)
+- Entorno virtual recomendado: `test`
+- Superusuario tiene permisos completos (`is_staff` e `is_superuser`)
 - Mantener `DEBUG=True` solo para desarrollo; en producción usar `DEBUG=False` y configurar `ALLOWED_HOSTS`
 
 ---
-
 
 ## Tips rápidos para editores
 
@@ -178,15 +168,12 @@ pip install <paquete>
 
 pip freeze > requirements.txt
 
-
-
 - Subir cambios a git:
-git add .
+  git add .
 
 git commit -m "Mensaje breve y claro"
 
 git push origin main
-
 
 - Levantar servidor:
 

@@ -439,7 +439,7 @@ class LogViewSet(viewsets.ReadOnlyModelViewSet):
             fields = "__all__"
 
     def get_serializer_class(self):
-        return self.SimpleLogSerializer
+        return self.SimpleAudSerializer
 
 
 # --------------------------
