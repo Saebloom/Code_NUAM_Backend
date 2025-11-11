@@ -107,7 +107,7 @@ El sistema opera bajo 3 roles principales. El acceso al login principal (/) redi
 
 ### Administrador:
 
--Gestión de Usuarios y Roles.
+-Gestión de Usuarios y Roles (CRUD).
 
 -Visualización de Logs/Auditoría completos.
 
