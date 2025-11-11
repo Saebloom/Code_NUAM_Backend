@@ -417,16 +417,13 @@
 
     <div class="app-container">
         
-        <!-- 1. Barra Superior -->
         <header class="top-bar">
             <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
             nuam
         </header>
 
-        <!-- 2. Cuerpo del Dashboard -->
         <div class="dashboard-body">
             
-            <!-- 2A. Barra Lateral (Sidenav) -->
             <nav class="sidenav">
                 
                 <div class="sidenav-profile">
@@ -436,24 +433,19 @@
                 </div>
                 
                 <div class="sidenav-nav">
-                    <!-- Vista por defecto -->
                     <button class="active" onclick="showView('view-mantenedor', this)">
-                        <!-- SVG Icono Mantenedor/Tabla -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zM64 160H192V416H64V160zm224 0H448V416H288V160z"/></svg>
                         Mantenedor
                     </button>
                     <button onclick="showView('view-registro-manual', this)">
-                        <!-- SVG Icono Lápiz/Registro -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg>
                         Registro Manual
                     </button>
                     <button onclick="showView('view-carga-masiva', this)">
-                        <!-- SVG Icono Carga Masiva/Upload -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
                         Carga Masiva (CSV)
                     </button>
                     <button onclick="showView('view-historial', this)">
-                        <!-- SVG Icono Historial/Reloj -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
                         Historial
                     </button>
@@ -461,24 +453,18 @@
                 
                 <div class="sidenav-logout">
                     <button onclick="logout()">
-                        <!-- SVG Icono Salir -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
                         Cerrar Sesión
                     </button>
                 </div>
             </nav>
 
-            <!-- 2B. Contenido Principal -->
             <main class="main-content">
 
-                <!-- 
-                  VISTA 1: MANTENEDOR DE CALIFICACIONES (Default)
-                -->
                 <div id="view-mantenedor" class="content-view active">
                     <div class="content-header">
                         <h2>Mantenedor de Calificaciones</h2>
                         <button class="btn-primary" onclick="showView('view-registro-manual', document.querySelector('.sidenav-nav button:nth-child(2)'))">
-                            <!-- SVG Icono Plus -->
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
                             Nuevo Registro
                         </button>
@@ -515,53 +501,37 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>1024</td>
-                                        <td>1.25000000</td>
-                                        <td>2025-11-06</td>
-                                        <td>2026-01-01</td>
-                                        <td>BONO-S-123</td>
-                                        <td>Local</td>
-                                        <td>Validado</td>
-                                        <td class="action-buttons">
-                                            <button class="btn-icon btn-edit" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
-                                            <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 
-                  VISTA 2: REGISTRO MANUAL
-                -->
                 <div id="view-registro-manual" class="content-view">
                     <div class="content-header">
                         <h2>Registro Manual de Calificación</h2>
                     </div>
                     
                     <div class="card">
-                        <form onsubmit="handleCrearCalificacion(event)">
+                        <form onsubmit="handleCrearCalificacion(event)" id="form-registro-manual">
                             <div class="form-group-inline">
                                 <div class="form-group">
-                                    <label for="reg-instrumento">Instrumento</label>
-                                    <input type="text" id="reg-instrumento" placeholder="ID Instrumento (ej. BONO-S-123)" required>
+                                    <label for="reg-instrumento">Instrumento (ID Numérico)</label>
+                                    <input type="number" id="reg-instrumento" placeholder="ID del Instrumento (ej. 1)" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="reg-mercado">Mercado</label>
+                                    <label for="reg-mercado">Mercado (ID Numérico)</label>
                                     <select id="reg-mercado" required>
                                         <option value="">Seleccione Mercado...</option>
-                                        <option value="1">Local</option>
-                                        <option value="2">Internacional</option>
+                                        <option value="1">1 (Local)</option>
+                                        <option value="2">2 (Internacional)</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="reg-estado">Estado</label>
+                                    <label for="reg-estado">Estado (ID Numérico)</label>
                                     <select id="reg-estado" required>
-                                        <option value="1">Validado</option>
-                                        <option value="2">Pendiente</option>
+                                        <option value="1">1 (Validado)</option>
+                                        <option value="2">2 (Pendiente)</option>
                                     </select>
                                 </div>
                             </div>
@@ -581,10 +551,9 @@
                                 </div>
                             </div>
 
-                            <!-- Contenedor para la tabla de Calificaciones Tributarias (Paso 2) -->
                             <div class="sub-table-container">
                                 <div class="sub-table-header">
-                                    <h4>Calificaciones Tributarias (Paso 2)</h4>
+                                    <h4>Calificaciones Tributarias (Paso 2 - Opcional)</h4>
                                     <button type="button" class="btn-add-nested" onclick="showModal('modal-calif-tributaria')">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
                                         Agregar Tributaria
@@ -603,13 +572,11 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Los datos se añadirán aquí con JS -->
-                                        </tbody>
+                                            </tbody>
                                     </table>
                                 </div>
                             </div>
                             
-                            <!-- Botón de guardado principal -->
                             <div class="modal-footer" style="border:none; padding: 1.5rem 0 0 0;">
                                 <button type="submit" class="btn-primary">Guardar Calificación Completa</button>
                             </div>
@@ -617,9 +584,6 @@
                     </div>
                 </div>
 
-                <!-- 
-                  VISTA 3: CARGA MASIVA (CSV)
-                -->
                 <div id="view-carga-masiva" class="content-view">
                     <div class="content-header">
                         <h2>Carga Masiva (CSV)</h2>
@@ -641,9 +605,6 @@
                     </div>
                 </div>
                 
-                <!-- 
-                  VISTA 4: HISTORIAL DEL CORREDOR
-                -->
                 <div id="view-historial" class="content-view">
                     <div class="content-header">
                         <h2>Historial de Mis Operaciones</h2>
@@ -660,14 +621,8 @@
                                         <th>Detalle</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>2025-11-06 14:30:01</td>
-                                        <td>Creación</td>
-                                        <td>1024</td>
-                                        <td>Se creó la Calificación ID: 1024</td>
-                                    </tr>
-                                </tbody>
+                                <tbody id="historial-tbody">
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -677,9 +632,6 @@
         </div>
     </div>
     
-    <!-- 
-      MODAL 1: (PASO 2) AGREGAR CALIFICACIÓN TRIBUTARIA
-    -->
     <div id="modal-calif-tributaria" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -688,7 +640,7 @@
             </div>
             
             <div class="modal-body">
-                <form onsubmit="handleAgregarTributaria(event)">
+                <form onsubmit="handleAgregarTributaria(event)" id="form-calif-tributaria">
                         
                     <div class="form-group-inline">
                         <div class="form-group">
@@ -696,8 +648,8 @@
                             <input type="number" id="trib-secuencia" placeholder="Ej. 1" required>
                         </div>
                          <div class="form-group">
-                            <label for="trib-evento">Evento Capital</label>
-                            <input type="text" id="trib-evento" placeholder="Ej. Pago de cupón" required>
+                            <label for="trib-evento-capital">Evento Capital</label>
+                            <input type="number" step="0.0001" id="trib-evento-capital" placeholder="Ej. 1000.0000" required>
                         </div>
                     </div>
                     
@@ -708,7 +660,7 @@
                         </div>
                          <div class="form-group">
                             <label for="trib-valor">Valor Histórico</label>
-                            <input type="number" step="0.01" id="trib-valor" placeholder="Ej. 10000.00" required>
+                            <input type="number" step="0.0001" id="trib-valor" placeholder="Ej. 10000.0000">
                         </div>
                     </div>
                     
@@ -717,10 +669,9 @@
                         <textarea id="trib-desc" placeholder="Descripción del evento..."></textarea>
                     </div>
 
-                    <!-- Contenedor para la tabla de Factores (Paso 3) -->
                     <div class="sub-table-container">
                         <div class="sub-table-header">
-                            <h4>Factores Tributarios (Paso 3)</h4>
+                            <h4>Factores Tributarios (Paso 3 - Opcional)</h4>
                             <button type="button" class="btn-add-nested" onclick="showModal('modal-factor-tributario', true)">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
                                 Agregar Factor
@@ -737,8 +688,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Los datos se añadirán aquí con JS -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -752,9 +702,6 @@
         </div>
     </div>
     
-    <!-- 
-      MODAL 2: (PASO 3) AGREGAR FACTOR TRIBUTARIO (Anidado)
-    -->
     <div id="modal-factor-tributario" class="modal modal-nested">
         <div class="modal-content">
             <div class="modal-header">
@@ -763,7 +710,7 @@
             </div>
             
             <div class="modal-body">
-                <form onsubmit="handleAgregarFactor(event)">
+                <form onsubmit="handleAgregarFactor(event)" id="form-factor-tributario">
                     <div class="form-group">
                         <label for="fact-codigo">Código Factor</label>
                         <input type="text" id="fact-codigo" placeholder="Ej. C101" required>
@@ -791,15 +738,62 @@
         // --- Almacenamiento Temporal de Formularios Anidados ---
         let tempTributarias = [];
         let tempFactores = [];
-        let editIndexTributaria = -1;
-        let editIndexFactor = -1;
         
         // 🛠️ CONFIGURACIÓN API (Se asume que el token está en localStorage por el login)
         const API_BASE = "http://127.0.0.1:8000/api";
         const token = localStorage.getItem('access'); 
+
         
         // ---------------------------------------------------
-        // 🛠️ FUNCIONES DE GESTIÓN (COPIADAS DEL ADMIN)
+        // ✅ 1. FUNCIONES DE NAVEGACIÓN Y MODALES (ARREGLADAS)
+        // ---------------------------------------------------
+        
+        /**
+         * Muestra la vista de contenido principal solicitada (ej. Mantenedor, Registro).
+         */
+        function showView(viewId, clickedButton) {
+            // Oculta todas las vistas principales
+            document.querySelectorAll('.content-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            // Resetea todos los botones del menú lateral
+            document.querySelectorAll('.sidenav-nav button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Muestra la vista seleccionada
+            const activeView = document.getElementById(viewId);
+            if (activeView) {
+                activeView.classList.add('active');
+            }
+            // Marca el botón del menú como activo
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+        }
+        
+        /**
+         * Muestra un modal
+         */
+        function showModal(modalId, isNested = false) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('active');
+            }
+        }
+        
+        /**
+         * Cierra un modal
+         */
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        // ---------------------------------------------------
+        // ✅ 2. FUNCIONES DE CARGA DE DATOS (API)
         // ---------------------------------------------------
 
         /**
@@ -814,7 +808,6 @@
                 if (!res.ok) throw new Error('Sesión inválida. Por favor, inicie sesión de nuevo.');
                 const user = await res.json();
                 
-                // 🛠️ ACTUALIZACIÓN: Usar first_name y last_name para el perfil
                 const fullName = `${user.first_name || user.username} ${user.last_name || ''}`;
                 document.querySelector('.sidenav-profile .username').textContent = fullName.trim();
                 document.querySelector('.sidenav-profile .role').textContent = user.rol;
@@ -860,22 +853,23 @@
             }
 
             calificaciones.forEach(cal => {
-                const estado = cal.estado_id === 1 ? 'Validado' : 'Pendiente';
-                
+                // Tu Serializer anida los objetos, así que podemos acceder a .nombre
+                const instrumentoNombre = cal.instrumento ? cal.instrumento.nombre : 'N/A';
+                const mercadoNombre = cal.mercado ? cal.mercado.nombre : 'N/A';
+                const estadoNombre = cal.estado ? cal.estado.nombre : 'Pendiente';
+
                 const row = `
                     <tr>
                         <td>${cal.id}</td>
                         <td>${cal.monto_factor}</td>
                         <td>${cal.fecha_emision}</td>
                         <td>${cal.fecha_pago}</td>
-                        <td>${cal.instrumento_id || 'N/A'}</td>
-                        <td>${cal.mercado_id || 'N/A'}</td>
-                        <td>${estado}</td>
+                        <td>${instrumentoNombre}</td>
+                        <td>${mercadoNombre}</td>
+                        <td>${estadoNombre}</td>
                         <td class="action-buttons">
-                            <!-- Botón de edición (PATCH) -->
                             <button class="btn-icon btn-edit" title="Editar Calificación" onclick="alert('Función de Edición no implementada aún.')">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
-                            <!-- Botón de eliminación (DELETE) -->
                             <button class="btn-icon btn-delete" title="Eliminar Calificación" onclick="alert('Función de Eliminación no implementada aún.')">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
                             </button>
@@ -888,17 +882,211 @@
 
 
         // ---------------------------------------------------
-        // 🛠️ FUNCIONES MODALES Y ANIDADAS (CORREDOR)
+        // ✅ 3. FUNCIONES DE REGISTRO MANUAL (ARREGLADAS)
         // ---------------------------------------------------
         
-        // --- El resto de tus funciones handleAgregarFactor, handleAgregarTributaria, 
-        // --- handleCrearCalificacion, handleCargaMasiva, y las funciones de Modales 
-        // --- deben estar aquí, ya que son la lógica específica del Corredor.
+        /**
+         * 1. AGREGA UN FACTOR (PASO 3)
+         * (Guarda en el array temporal 'tempFactores')
+         */
+        function handleAgregarFactor(event) {
+            event.preventDefault();
+            
+            const factorData = {
+                codigo_factor: document.getElementById('fact-codigo').value,
+                descripcion_factor: document.getElementById('fact-desc').value,
+                valor_factor: document.getElementById('fact-valor').value
+            };
+            
+            tempFactores.push(factorData);
+            
+            document.getElementById('form-factor-tributario').reset();
+            closeModal('modal-factor-tributario');
+            renderFactoresTable(); // Actualiza la tabla del Paso 3
+        }
         
-        // ... (Tu lógica de formularios anidados) ...
+        /**
+         * Dibuja la tabla de Factores (Paso 3)
+         */
+        function renderFactoresTable() {
+            const tbody = document.getElementById('tabla-factores-temp').querySelector('tbody');
+            tbody.innerHTML = ""; // Limpia
+
+            tempFactores.forEach((fact, index) => {
+                const row = `
+                    <tr>
+                        <td>${fact.codigo_factor}</td>
+                        <td>${fact.descripcion_factor}</td>
+                        <td>${fact.valor_factor}</td>
+                        <td class="action-buttons">
+                            <button type="button" class="btn-icon btn-delete" title="Eliminar" onclick="eliminarFactor(${index})">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        /**
+         * Elimina un factor del array temporal 'tempFactores'
+         */
+        function eliminarFactor(index) {
+            if (confirm('¿Eliminar este Factor?')) {
+                tempFactores.splice(index, 1);
+                renderFactoresTable();
+            }
+        }
+        
+        /**
+         * 2. AGREGA UNA TRIBUTARIA (PASO 2)
+         * (Guarda en el array 'tempTributarias')
+         */
+        function handleAgregarTributaria(event) {
+            event.preventDefault();
+            
+            // Aquí recolectamos los datos del Modal 1
+            const tributariaData = {
+                secuencia_evento: document.getElementById('trib-secuencia').value,
+                evento_capital: document.getElementById('trib-evento-capital').value,
+                anio: document.getElementById('trib-anio').value,
+                valor_historico: document.getElementById('trib-valor').value || null,
+                descripcion: document.getElementById('trib-desc').value,
+                factores: [...tempFactores] // Copia los factores temporales
+            };
+
+            // Agrega los datos al array principal
+            tempTributarias.push(tributariaData);
+            
+            // Limpia el formulario y el array de factores anidados
+            document.getElementById('form-calif-tributaria').reset();
+            tempFactores = [];
+            
+            // Cierra el modal y actualiza las tablas
+            closeModal('modal-calif-tributaria');
+            renderTributariasTable(); // Actualiza la tabla del Paso 2
+            renderFactoresTable(); // Limpia la tabla del Paso 3
+        }
 
         /**
-         * Cierre de sesión. (CORREGIDO PARA RUTA RAÍZ)
+         * Dibuja la tabla de Tributarias (Paso 2)
+         */
+        function renderTributariasTable() {
+            const tbody = document.getElementById('tabla-tributarias-temp').querySelector('tbody');
+            tbody.innerHTML = ""; // Limpia
+
+            tempTributarias.forEach((trib, index) => {
+                const row = `
+                    <tr>
+                        <td>${trib.secuencia_evento}</td>
+                        <td>${trib.evento_capital}</td>
+                        <td>${trib.anio}</td>
+                        <td>${trib.valor_historico || 'N/A'}</td>
+                        <td>${trib.factores.length}</td>
+                        <td class="action-buttons">
+                            <button type="button" class="btn-icon btn-delete" title="Eliminar" onclick="eliminarTributaria(${index})">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        /**
+         * Elimina una tributaria del array temporal 'tempTributarias'
+         */
+        function eliminarTributaria(index) {
+            if (confirm('¿Eliminar esta fila de Tributaria?')) {
+                tempTributarias.splice(index, 1);
+                renderTributariasTable();
+            }
+        }
+
+        /**
+         * 3. GUARDA LA CALIFICACIÓN COMPLETA (PASO FINAL)
+         * Llama a la API para crear la calificación y luego actualiza la tabla.
+         */
+        async function handleCrearCalificacion(event) {
+            event.preventDefault();
+            console.log("Iniciando guardado de calificación...");
+
+            if (!token) {
+                alert("Error: No se ha encontrado token de sesión. Por favor, inicie sesión de nuevo.");
+                return;
+            }
+
+            // Recolectar los datos del formulario principal
+            const payload = {
+                // El formulario pide IDs numéricos, lo cual es correcto para la API
+                instrumento: document.getElementById('reg-instrumento').value,
+                mercado: document.getElementById('reg-mercado').value,
+                estado: document.getElementById('reg-estado').value,
+                monto_factor: document.getElementById('reg-monto-factor').value,
+                fecha_emision: document.getElementById('reg-fecha-emision').value,
+                fecha_pago: document.getElementById('reg-fecha-pago').value
+                
+                // NOTA: El envío de 'tributarias' está pendiente.
+                // Tu backend (CalificacionSerializer) las tiene como 'read_only',
+                // por lo que no las aceptará en este POST.
+                // Para guardar las tributarias, se necesitaría un segundo 'fetch'
+                // para cada tributaria, enviándolas a /api/calificacion-tributaria/
+                // después de que esta llamada sea exitosa.
+            };
+
+            // Enviar a la API
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    let errorMsg = `Error (${res.status}): No se pudo guardar.\n\n`;
+                    for (const key in errorData) {
+                        errorMsg += `Campo '${key}': ${errorData[key].join(', ')}\n`;
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                const nuevaCalificacion = await res.json();
+                
+                alert(`¡Éxito! Se ha creado la Calificación con ID: ${nuevaCalificacion.id}`);
+
+                // Limpiar formulario y recargar la tabla
+                document.getElementById('form-registro-manual').reset();
+                tempTributarias = []; // Limpia el array temporal
+                renderTributariasTable(); // Limpia la tabla del Paso 2
+
+                // Recarga los datos de la tabla del Mantenedor desde la API
+                await fetchCorredorCalificaciones(); 
+                
+                // Y te lleva de vuelta a esa vista
+                showView('view-mantenedor', document.querySelector('.sidenav-nav button:first-child')); 
+
+            } catch (err) {
+                console.error("Error en handleCrearCalificacion:", err);
+                alert(err.message);
+            }
+        }
+        
+        /**
+         * Simulación de Carga Masiva
+         */
+        function handleCargaMasiva(event) {
+            event.preventDefault();
+            alert("Simulando: Procesando Carga Masiva...");
+        }
+
+        /**
+         * Cierre de sesión.
          */
         function logout() {
             alert("Cerrando sesión...");
@@ -908,7 +1096,7 @@
         }
 
         // ---------------------------------------------------
-        // 🛠️ INICIALIZACIÓN
+        // 🛠️ 4. INICIALIZACIÓN
         // ---------------------------------------------------
 
         window.onload = function() {
@@ -922,5 +1110,6 @@
         };
         
     </script>
+
 </body>
 </html>

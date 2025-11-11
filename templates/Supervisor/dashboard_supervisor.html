@@ -1,226 +1,119 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Supervisor - NUAM</title>
-    
+    <title>Supervisor - NUAM</title>
     <style>
-        /* --- Configuración Global --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        html, body { height: 100%; overflow: hidden; background-color: #f4f4f4; }
-        .app-container { display: flex; flex-direction: column; height: 100vh; }
-
-        /* Barra Superior */
-        .top-bar { background-color: white; padding: 1rem 2rem; font-size: 1.5rem; font-weight: 600; color: #FD441E; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 0.75rem; }
-        .top-bar-logo { height: 32px; width: auto; }
-
-        /* Dashboard Body */
-        .dashboard-body { display: flex; flex-grow: 1; height: calc(100% - 60px); }
-
-        /* Sidenav */
-        .sidenav { flex-basis: 260px; flex-shrink: 0; background-color: #2c2c2c; color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; overflow-y: auto; }
-        .sidenav-profile { display: flex; flex-direction: column; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid #555; margin-bottom: 1.5rem; }
-        .sidenav-profile-pic { width: 70px; height: 70px; border-radius: 50%; background-color: #FD441E; color: white; display: grid; place-items: center; font-size: 2rem; font-weight: bold; margin-bottom: 0.75rem; }
-        .sidenav-profile .username { font-weight: 600; font-size: 1.1rem; }
-        .sidenav-profile .role { font-size: 0.9rem; color: #ccc; }
-        .sidenav-nav { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
-        .sidenav-nav button { background: none; border: none; color: #e0e0e0; padding: 0.9rem 1.25rem; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.75rem; transition: background-color 0.2s, color 0.2s; }
-        /* Estilo para los SVG de los iconos del Sidenav */
-        .sidenav-nav button svg, .sidenav-logout button svg {
-            width: 1.1em; /* Ancho fa-fw */
-            height: 1.1em;
-            fill: currentColor;
-            flex-shrink: 0;
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
         }
-        .sidenav-nav button:hover { background-color: #444; }
-        .sidenav-nav button.active { background-color: #FD441E; color: white; font-weight: 600; }
 
-        /* Logout */
-        .sidenav-logout { padding-top: 1rem; border-top: 1px solid #555; }
-        .sidenav-logout a { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.9rem 1.25rem; color: #e0e0e0; background: none; text-decoration: none; border-radius: 8px; transition: background-color 0.2s, color 0.2s; }
-        .sidenav-logout a:hover { background-color: #FD441E; color: white; }
+        header {
+            background: #1e3c72;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+        }
 
-        /* Main Content */
-        .main-content { flex-grow: 1; padding: 2rem 2.5rem; overflow-y: auto; background-color: #f4f4f4; }
-        .content-view { display: none; }
-        .content-view.active { display: block; }
-        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .content-header h2 { color: #FD441E; font-size: 1.8rem; }
-        .btn-primary { background-color: #FD441E; color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-        .btn-primary:hover { background-color: #e03c1a; }
+        .menu {
+            display: flex;
+            background: #2a4b8d;
+            padding: 10px;
+            gap: 10px;
+        }
 
-        /* Cards y tablas */
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 1.5rem; }
-        .filters { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
-        .filters input, .filters select { padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; }
-        .table-container { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        thead { background-color: #f9f9f9; }
-        th, td { padding: 0.9rem 0.75rem; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; white-space: nowrap; }
-        th { font-weight: 600; color: #333; }
-        .action-buttons { display: flex; gap: 0.5rem; }
-        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0.25rem; }
-        .btn-icon svg { width: 1em; height: 1em; fill: currentColor; }
-        .btn-view-details { color: #0d6efd; }
+        .menu button {
+            padding: 10px 15px;
+            background: #fff;
+            color: #2a4b8d;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .menu button:hover {
+            background: #dcdcdc;
+        }
+
+        .view {
+            display: none;
+            padding: 20px;
+        }
+
+        .active {
+            display: block !important;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 1px 4px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <!-- Barra Superior -->
-    <header class="top-bar">
-        <img src="{% static 'img/Nuam.png' %}" alt="Nuam Logo" class="top-bar-logo">
-        nuam
-    </header>
 
-    <div class="dashboard-body">
-        <!-- Sidenav -->
-        <nav class="sidenav">
-            <div class="sidenav-profile">
-                <div class="sidenav-profile-pic">S</div>
-                <span class="username">{{ usuario.username }}</span>
-                <span class="role">Supervisor</span>
-            </div>
+<header>
+    PANEL DEL SUPERVISOR - NUAM
+</header>
 
-            <div class="sidenav-nav">
-                <button class="active" onclick="showView('view-consulta', this)">Consulta de Calificaciones</button>
-                <button onclick="showView('view-historial', this)">Historial de Operaciones</button>
-                <button onclick="showView('view-reportes', this)">Reportes</button>
-            </div>
+<div class="menu">
+    <button onclick="showView('usuarios')">Usuarios</button>
+    <button onclick="showView('logs')">Logs</button>
+    <button onclick="showView('auditorias')">Auditorías</button>
+    <button onclick="showView('perfil')">Mi Perfil</button>
+</div>
 
-            <div class="sidenav-logout">
-                <a href="{% url 'logout' %}">
-                    <!-- SVG Icono Salir -->
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
-                    Cerrar Sesión
-                </a>
-            </div>
-        </nav>
+<!-- ✅ Vista Usuarios -->
+<div id="usuarios" class="view active">
+    <h2>Gestión de Usuarios</h2>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- VISTA CONSULTA -->
-            <div id="view-consulta" class="content-view active">
-                <div class="content-header">
-                    <h2>Consulta de Calificaciones</h2>
-                </div>
-                <div class="card">
-                    <div class="filters">
-                        <input type="text" placeholder="ID Calificación...">
-                        <select>
-                            <option>Todo Mercado</option>
-                        </select>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Monto Factor</th>
-                                    <th>F. Emisión</th>
-                                    <th>F. Pago</th>
-                                    <th>Instrumento</th>
-                                    <th>Mercado</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cal in calificaciones %}
-                                <tr>
-                                    <td>{{ cal.id }}</td>
-                                    <td>{{ cal.monto_factor }}</td>
-                                    <td>{{ cal.fecha_emision }}</td>
-                                    <td>{{ cal.fecha_pago }}</td>
-                                    <td>{{ cal.instrumento }}</td>
-                                    <td>{{ cal.mercado }}</td>
-                                    <td>{{ cal.estado }}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn-icon btn-view-details" title="Ver Detalles">👁️</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <div class="card">Aquí aparecerá la lista de usuarios.</div>
+    <div class="card">Botones: activar, desactivar, eliminar, etc.</div>
+</div>
 
-            <!-- VISTA HISTORIAL -->
-            <div id="view-historial" class="content-view">
-                <div class="content-header">
-                    <h2>Historial de Operaciones</h2>
-                </div>
-                <div class="card">
-                    <div class="filters">
-                        <input type="date">
-                        <select>
-                            <option>Todas las Acciones</option>
-                        </select>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Acción</th>
-                                    <th>Usuario</th>
-                                    <th>Detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for log in logs %}
-                                <tr>
-                                    <td>{{ log.fecha }}</td>
-                                    <td>{{ log.accion }}</td>
-                                    <td>{{ log.usuario.username }}</td>
-                                    <td>{{ log.detalle }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<!-- ✅ Vista Logs -->
+<div id="logs" class="view">
+    <h2>Logs del Sistema</h2>
 
-            <!-- VISTA REPORTES -->
-            <div id="view-reportes" class="content-view">
-                <div class="content-header">
-                    <h2>Generación de Reportes</h2>
-                </div>
-                <div class="card">
-                    <form onsubmit="event.preventDefault(); alert('Simulación de reporte');">
-                        <label>Tipo de Reporte</label>
-                        <select required>
-                            <option value="">Seleccione...</option>
-                            <option value="calificaciones">Consolidado de Calificaciones</option>
-                        </select>
-                        <label>Fecha Inicio</label>
-                        <input type="date" required>
-                        <label>Fecha Fin</label>
-                        <input type="date" required>
-                        <label>Formato</label>
-                        <select required>
-                            <option value="pdf">PDF</option>
-                        </select>
-                        <button type="submit" class="btn-primary">Generar Reporte</button>
-                    </form>
-                </div>
-            </div>
+    <div class="card">Aquí se mostrarán los logs internos del sistema.</div>
+</div>
 
-        </main>
+<!-- ✅ Vista Auditorías -->
+<div id="auditorias" class="view">
+    <h2>Auditorías</h2>
+
+    <div class="card">Aquí verás los registros de auditoría.</div>
+</div>
+
+<!-- ✅ Vista Perfil -->
+<div id="perfil" class="view">
+    <h2>Mi Perfil</h2>
+
+    <div class="card">
+        Datos del supervisor (nombre, email, rol, etc.)
     </div>
 </div>
 
 <script>
-    function showView(viewId, clickedButton) {
-        document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
-        document.querySelectorAll('.sidenav-nav button').forEach(button => button.classList.remove('active'));
-        const activeView = document.getElementById(viewId);
-        if (activeView) activeView.classList.add('active');
-        if (clickedButton) clickedButton.classList.add('active');
+    function showView(viewId) {
+        // Ocultar todas las vistas
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+        // Mostrar la vista seleccionada
+        document.getElementById(viewId).classList.add('active');
     }
 </script>
+
 </body>
 </html>
