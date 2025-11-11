@@ -193,21 +193,41 @@
             return;
         }
 
+        // ✅ CORRECCIÓN: El payload ahora coincide con lo que espera
+        // el `admin_create` (pero lo llamamos desde el endpoint público)
+        // Se asignará el rol 'corredor' por defecto en el backend.
         const payload = {
             username: email,
             email: email,
             password: document.getElementById("reg-pass").value,
-            first_name: document.getElementById("reg-nombres").value
+            first_name: document.getElementById("reg-nombres").value,
+            last_name: "", // Apellido opcional en registro
+            rol: "corredor" // Rol por defecto para auto-registro
         };
+        
         try {
+            // ✅ CORRECCIÓN: Se llama al endpoint de creación de usuario
             const res = await fetch(`${API_BASE}/users/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error("Error al registrar usuario ❌");
-            alert("Registro enviado con éxito. Espera aprobación ✅");
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                // Intenta mostrar un error más específico de la API
+                let errorMsg = "Error al registrar usuario ❌";
+                if (errorData.username) {
+                    errorMsg = errorData.username[0];
+                } else if (errorData.detail) {
+                    errorMsg = errorData.detail;
+                }
+                throw new Error(errorMsg);
+            }
+            
+            alert("Registro enviado con éxito. Ahora puedes iniciar sesión. ✅");
             showView('login-view');
+            
         } catch (err) {
             alert(err.message);
         }

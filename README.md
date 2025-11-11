@@ -4,8 +4,8 @@ Aplicación web desarrollada con **Django** y **Django REST Framework**, que inc
 
 - Panel de administración (superusuario)
 - API REST
-- -Requerimientos y dependencias
-- Templates HTML, CSS y JS
+- Requerimientos y dependencias
+- Templates HTML, CSS y JS (como SPA)
 - CRUD para usuarios y contenidos
 
 ---
@@ -55,7 +55,7 @@ python manage.py makemigrations
 
 python manage.py migrate
 
-### 4.Ejecutar servidor de desarrollo:
+### 5. Ejecutar servidor de desarrollo:
 python manage.py runserver
 
 Luego abre tu navegador en http://127.0.0.1:8000/
@@ -69,36 +69,9 @@ python manage.py createsuperuser
 
 Completa los datos solicitados:
 
-Username: admin
-
-Email: usuario@nuam.cl
-
+Username: admin@nuam.cl (Usa un email corporativo)
+Email: admin@nuam.cl
 Password: ContraseñaSegura123!
-(el email tiene que terminar en "@nuam.cl")
-
-### Método no interactivo (útil para scripts)
-
-- **Windows PowerShell**
-  
-$env:DJANGO_SUPERUSER_USERNAME="valeadmin"
-
-$env:DJANGO_SUPERUSER_EMAIL="vale@example.com"
-
-$env:DJANGO_SUPERUSER_PASSWORD="ContraseñaSegura123!"
-
-python manage.py createsuperuser --noinput
-
-
-- **Linux / Mac bash**
-  
-export DJANGO_SUPERUSER_USERNAME=valeadmin
-
-export DJANGO_SUPERUSER_EMAIL="vale@example.com"
-
-export DJANGO_SUPERUSER_PASSWORD="ContraseñaSegura123!"
-
-python manage.py createsuperuser --noinput
-
 
 ### Verificar admin
 
@@ -106,88 +79,48 @@ Abre el navegador en [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/
 
 ---
 
-##Uso
+## 📂 Estructura del proyecto 📂 
 
-- **Admin:** `/admin/` con superusuario
-  
-- **Registro y login:** usuarios pueden registrarse con nombre, email y contraseña
-  
-- **Publicación de retos:** solo superusuario o creador del reto puede publicar/eliminar
-  
-- **Responder retos:** usuarios acumulan puntos por respuestas correctas
-  
-- **Ranking:** top 10 usuarios por puntaje
-
----
-
-## 📂 Estructura del proyecto📂 
-Proyecto_NUAM_TIHI43_V/
-├─ miapp/ # Aplicación principal (CRUD y API)
-│ ├─ migrations/ # Migraciones
-│ ├─ templates/ # Plantillas HTML
-│ ├─ static/ # CSS, JS, imágenes
+Proyecto_NUAM/
+├─ api/ # Aplicación principal (CRUD y API)
+│ ├─ migrations/
 │ ├─ admin.py # Configuración del admin
 │ ├─ models.py
 │ ├─ views.py
+│ ├─ serializers.py
+│ ├─ signals.py
 │ └─ urls.py
-├─ miweb/ # Configuración principal de Django
-├─ templates/ # Templates globales
+├─ nuam/ # Configuración principal de Django
+│ ├─ settings.py
+│ ├─ urls.py
+│ ├─ views.py
+│ ├─ wsgi.py
+│ └─ asgi.py
+├─ templates/ # Templates HTML (SPA y sitio Django)
+│ ├─ Admin/
+│ ├─ Corredor/
+│ ├─ Supervisor/
+│ └─ index.html
+├─ static/ # CSS, JS, imágenes
 ├─ manage.py
 ├─ db.sqlite3
 ├─ requirements.txt # Dependencias del proyecto
-├─ setup.bat # Script Windows para instalar automáticamente
 └─ README.md # Este archivo
-
-
-
 
 ---
 
-##Dependencias
+## Dependencias
 
-asgiref==3.9.2
-Django==5.2.6
-sqlparse==0.5.3
-tzdata==2025.2
-djangorestframework==3.15.2
-
+(Contenido de requirements.txt)
 
 > Se instalan automáticamente con:
 pip install -r requirements.txt
-
-
 
 ---
 
 ## Notas importantes
 
-- Base de datos: **SQLite** por defecto  
-- Las migraciones deben generarse localmente (`makemigrations` + `migrate`)  
-- Entorno virtual recomendado: `test`  
-- Superusuario tiene permisos completos (`is_staff` e `is_superuser`)  
-- Mantener `DEBUG=True` solo para desarrollo; en producción usar `DEBUG=False` y configurar `ALLOWED_HOSTS`
-
----
-
-
-## Tips rápidos para editores
-
-- Actualizar dependencias:
-
-pip install <paquete>
-
-pip freeze > requirements.txt
-
-
-
-- Subir cambios a git:
-git add .
-
-git commit -m "Mensaje breve y claro"
-
-git push origin main
-
-
-- Levantar servidor:
-
-python manage.py runserver
+- Base de datos: **SQLite** por defecto.
+- Entorno virtual recomendado: `test`.
+- Superusuario tiene permisos completos (`is_staff` e `is_superuser`).
+- Mantener `DEBUG=True` solo para desarrollo.

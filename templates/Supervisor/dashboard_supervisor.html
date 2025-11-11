@@ -2,118 +2,1105 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Supervisor - NUAM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Supervisor - NUAM</title>
+    
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+        /* --- Configuración Global --- */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        header {
-            background: #1e3c72;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 20px;
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: #f4f4f4;
         }
 
-        .menu {
+        /* --- Estructura Principal de la App --- */
+        .app-container {
             display: flex;
-            background: #2a4b8d;
-            padding: 10px;
-            gap: 10px;
+            flex-direction: column;
+            height: 100vh;
         }
 
-        .menu button {
-            padding: 10px 15px;
-            background: #fff;
-            color: #2a4b8d;
+        /* 1. Barra Superior */
+        .top-bar {
+            background-color: white;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #FD441E;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .top-bar-logo {
+            height: 32px;
+            width: auto;
+        }
+
+        /* --- Cuerpo del Dashboard --- */
+        .dashboard-body {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100% - 60px); 
+        }
+
+        /* 2. Barra Lateral (Sidenav) */
+        .sidenav {
+            flex-basis: 260px;
+            flex-shrink: 0;
+            background-color: #2c2c2c;
+            color: white;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidenav-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #555;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sidenav-profile-pic {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #FD441E;
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+        
+        .sidenav-profile .username {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .sidenav-profile .role {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .sidenav-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        
+        .sidenav-nav button {
+            background: none;
             border: none;
+            color: #e0e0e0;
+            padding: 0.9rem 1.25rem;
+            text-align: left;
+            font-size: 1rem;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .sidenav-nav button svg {
+            width: 1.1em;
+            height: 1.1em;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+        
+        .sidenav-nav button:hover {
+            background-color: #444;
+        }
+        
+        .sidenav-nav button.active {
+            background-color: #FD441E;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .sidenav-logout {
+            padding-top: 1rem;
+            border-top: 1px solid #555;
+        }
+        
+        .sidenav-logout button {
+             width: 100%;
         }
 
-        .menu button:hover {
-            background: #dcdcdc;
+        /* 3. Contenido Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+            background-color: #f4f4f4;
         }
 
-        .view {
+        .content-view {
             display: none;
-            padding: 20px;
+        }
+        .content-view.active {
+            display: block;
         }
 
-        .active {
-            display: block !important;
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-header h2 {
+            color: #FD441E;
+            font-size: 1.8rem;
         }
 
+        .btn-primary {
+            background-color: #FD441E;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background-color: #e03c1a;
+        }
+        .btn-primary svg {
+             width: 1em;
+             height: 1em;
+             fill: currentColor;
+        }
+        
         .card {
             background: white;
-            padding: 15px;
-            margin-bottom: 15px;
             border-radius: 8px;
-            box-shadow: 0px 1px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+        
+        /* Estilos de Filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .filters input, .filters select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
         }
 
-        h2 {
-            margin-top: 0;
+        /* Estilos de Tabla */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        thead {
+            background-color: #f9f9f9;
+        }
+        th, td {
+            padding: 0.9rem 0.75rem;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+        }
+        .btn-icon svg {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+        }
+        .btn-edit { color: #007bff; }
+        .btn-delete { color: #dc3545; }
+
+        /* --- Estilos del Modal (Corredor solo usa modales para registro) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px; 
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-nested {
+            z-index: 1001; 
+            background-color: rgba(0, 0, 0, 0.2); 
+        }
+        .modal-nested .modal-content {
+             max-width: 600px;
+             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h2 {
+            color: #FD441E;
+        }
+        .modal-close {
+            color: #aaa;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal-body form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-height: 80px;
+        }
+        
+        .form-group-inline {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .form-group-inline .form-group {
+            flex-grow: 1;
+            flex-basis: 45%;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #ddd;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Contenedor para sub-tablas (Tributarias, Factores) */
+        .sub-table-container {
+             margin-top: 1.5rem;
+             padding: 1rem;
+             background: #f9f9f9;
+             border-radius: 8px;
+        }
+        .sub-table-header {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             margin-bottom: 1rem;
+        }
+         .sub-table-header h4 {
+             color: #333;
+         }
+         
+        .btn-add-nested {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-add-nested svg {
+             width: 1em;
+             height: 1em;
+             fill: currentColor;
         }
     </style>
 </head>
 <body>
 
-<header>
-    PANEL DEL SUPERVISOR - NUAM
-</header>
+    <div class="app-container">
+        
+        <header class="top-bar">
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
+            nuam
+        </header>
 
-<div class="menu">
-    <button onclick="showView('usuarios')">Usuarios</button>
-    <button onclick="showView('logs')">Logs</button>
-    <button onclick="showView('auditorias')">Auditorías</button>
-    <button onclick="showView('perfil')">Mi Perfil</button>
-</div>
+        <div class="dashboard-body">
+            
+            <nav class="sidenav">
+                
+                <div class="sidenav-profile">
+                    <div class="sidenav-profile-pic">S</div>
+                    <span class="username">Supervisor</span>
+                    <span class="role">Supervisor</span>
+                </div>
+                
+                <div class="sidenav-nav">
+                    <button class="active" onclick="showView('view-mantenedor', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zM64 160H192V416H64V160zm224 0H448V416H288V160z"/></svg>
+                        Mantenedor
+                    </button>
+                    <button onclick="showView('view-registro-manual', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg>
+                        Registro Manual
+                    </button>
+                    <button onclick="showView('view-carga-masiva', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
+                        Carga Masiva (CSV)
+                    </button>
+                    <button onclick="showView('view-historial', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
+                        Historial
+                    </button>
+                </div>
+                
+                <div class="sidenav-logout">
+                    <button onclick="logout()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L160 128c0 17.7-14.3 32-32 32L32 160c-17.7 0-32 14.3-32 32l0 128c0 17.7 14.3 32 32 32l96 0c17.7 0 32 14.3 32 32l0 32c0 35.3-28.7 64-64 64L32 480c-17.7 0-32-14.3-32-32l0-384c0-17.7 14.3-32 32-32l96 0c35.3 0 64 28.7 64 64z"/></svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </nav>
 
-<!-- ✅ Vista Usuarios -->
-<div id="usuarios" class="view active">
-    <h2>Gestión de Usuarios</h2>
+            <main class="main-content">
 
-    <div class="card">Aquí aparecerá la lista de usuarios.</div>
-    <div class="card">Botones: activar, desactivar, eliminar, etc.</div>
-</div>
+                <div id="view-mantenedor" class="content-view active">
+                    <div class="content-header">
+                        <h2>Mantenedor de Calificaciones</h2>
+                        <button class="btn-primary" onclick="showView('view-registro-manual', document.querySelector('.sidenav-nav button:nth-child(2)'))">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                            Nuevo Registro
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="filters">
+                            <input type="text" id="filter-mantenedor-id" placeholder="ID Calificación...">
+                            <select id="filter-mantenedor-mercado">
+                                <option value="">Todo Mercado</option>
+                                </select>
+                            <select id="filter-mantenedor-origen">
+                                <option value="">Todo Origen</option>
+                                </select>
+                            <input type="number" id="filter-mantenedor-anio" placeholder="Año Comercial (AAAA)">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Monto Factor</th>
+                                        <th>F. Emisión</th>
+                                        <th>F. Pago</th>
+                                        <th>Instrumento</th>
+                                        <th>Mercado</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-<!-- ✅ Vista Logs -->
-<div id="logs" class="view">
-    <h2>Logs del Sistema</h2>
+                <div id="view-registro-manual" class="content-view">
+                    <div class="content-header">
+                        <h2>Registro Manual de Calificación</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <form onsubmit="handleCrearCalificacion(event)" id="form-registro-manual">
+                            <div class="form-group-inline">
+                                <div class="form-group">
+                                    <label for="reg-instrumento">Instrumento (ID Numérico)</label>
+                                    <input type="number" id="reg-instrumento" placeholder="ID del Instrumento (ej. 1)" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-mercado">Mercado (ID Numérico)</label>
+                                    <select id="reg-mercado" required>
+                                        <option value="">Seleccione Mercado...</option>
+                                        <option value="1">1 (Local - Creado en Admin)</option>
+                                        </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-estado">Estado (ID Numérico)</label>
+                                    <select id="reg-estado" required>
+                                        <option value="1">1 (Validado - Creado en Admin)</option>
+                                        </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-inline">
+                                <div class="form-group">
+                                    <label for="reg-monto-factor">Monto Factor</label>
+                                    <input type="number" step="0.00000001" id="reg-monto-factor" placeholder="Ej. 1.25000000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-fecha-emision">Fecha Emisión</label>
+                                    <input type="date" id="reg-fecha-emision" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-fecha-pago">Fecha Pago</label>
+                                    <input type="date" id="reg-fecha-pago" required>
+                                </div>
+                            </div>
 
-    <div class="card">Aquí se mostrarán los logs internos del sistema.</div>
-</div>
+                            <div class="sub-table-container">
+                                <div class="sub-table-header">
+                                    <h4>Calificaciones Tributarias (Paso 2 - Opcional)</h4>
+                                    <button type="button" class="btn-add-nested" onclick="showModal('modal-calif-tributaria')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                                        Agregar Tributaria
+                                    </button>
+                                </div>
+                                <div class="table-container">
+                                    <table id="tabla-tributarias-temp">
+                                        <thead>
+                                            <tr>
+                                                <th>Sec. Evento</th>
+                                                <th>Evento Capital</th>
+                                                <th>Año</th>
+                                                <th>Valor Histórico</th>
+                                                <th>Factores</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="modal-footer" style="border:none; padding: 1.5rem 0 0 0;">
+                                <button type="submit" class="btn-primary">Guardar Calificación Completa</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-<!-- ✅ Vista Auditorías -->
-<div id="auditorias" class="view">
-    <h2>Auditorías</h2>
-
-    <div class="card">Aquí verás los registros de auditoría.</div>
-</div>
-
-<!-- ✅ Vista Perfil -->
-<div id="perfil" class="view">
-    <h2>Mi Perfil</h2>
-
-    <div class="card">
-        Datos del supervisor (nombre, email, rol, etc.)
+                <div id="view-carga-masiva" class="content-view">
+                    <div class="content-header">
+                        <h2>Carga Masiva (CSV)</h2>
+                    </div>
+                    <div class="card">
+                        <form onsubmit="handleCargaMasiva(event)" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="csv-file">Archivo de Calificaciones (.csv)</label>
+                                <input type="file" id="csv-file" accept=".csv" required>
+                                <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">Asegúrese de que el archivo cumpla con el formato y las validaciones de datos.</p>
+                            </div>
+                            <div class="modal-footer" style="border:none; padding: 1.5rem 0 0 0;">
+                                <button type="submit" class="btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64z"/></svg>
+                                    Procesar Carga
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="view-historial" class="content-view">
+                    <div class="content-header">
+                        <h2>Historial de Mis Operaciones</h2>
+                    </div>
+                    <div class="card">
+                        <p>Aquí se mostrará un log filtrado solo para las acciones realizadas por el Supervisor.</p>
+                        <div class="table-container" style="margin-top: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Acción</th>
+                                        <th>ID Calificación</th>
+                                        <th>Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historial-tbody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
     </div>
-</div>
+    
+    <div id="modal-calif-tributaria" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Calificación Tributaria</h2>
+                <span class="modal-close" onclick="closeModal('modal-calif-tributaria')">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <form onsubmit="handleAgregarTributaria(event)" id="form-calif-tributaria">
+                        
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="trib-secuencia">Secuencia Evento</label>
+                            <input type="number" id="trib-secuencia" placeholder="Ej. 1" required>
+                        </div>
+                         <div class="form-group">
+                            <label for="trib-evento-capital">Evento Capital</label>
+                            <input type="number" step="0.0001" id="trib-evento-capital" placeholder="Ej. 1000.0000" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="trib-anio">Año Comercial</label>
+                            <input type="number" id="trib-anio" placeholder="AAAA" required>
+                        </div>
+                         <div class="form-group">
+                            <label for="trib-valor">Valor Histórico</label>
+                            <input type="number" step="0.0001" id="trib-valor" placeholder="Ej. 10000.0000">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="trib-desc">Descripción</label>
+                        <textarea id="trib-desc" placeholder="Descripción del evento..."></textarea>
+                    </div>
 
-<script>
-    function showView(viewId) {
-        // Ocultar todas las vistas
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                    <div class="sub-table-container">
+                        <div class="sub-table-header">
+                            <h4>Factores Tributarios (Paso 3 - Opcional)</h4>
+                            <button type="button" class="btn-add-nested" onclick="showModal('modal-factor-tributario', true)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                                Agregar Factor
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table id="tabla-factores-temp">
+                                <thead>
+                                    <tr>
+                                        <th>Código Factor</th>
+                                        <th>Descripción</th>
+                                        <th>Valor</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-        // Mostrar la vista seleccionada
-        document.getElementById(viewId).classList.add('active');
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-calif-tributaria')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Tributaria</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-factor-tributario" class="modal modal-nested">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Factor Tributario</h2>
+                <span class="modal-close" onclick="closeModal('modal-factor-tributario')">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <form onsubmit="handleAgregarFactor(event)" id="form-factor-tributario">
+                    <div class="form-group">
+                        <label for="fact-codigo">Código Factor</label>
+                        <input type="text" id="fact-codigo" placeholder="Ej. C101" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fact-desc">Descripción Factor</label>
+                        <input type="text" id="fact-desc" placeholder="Descripción..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fact-valor">Valor Factor</label>
+                        <input type="number" step="0.00000001" id="fact-valor" placeholder="Ej. 0.19000000" required>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-factor-tributario')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Factor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- 5. TODO EL JAVASCRIPT ES IDÉNTICO AL DEL CORREDOR ---
+        // (Carga el perfil del Supervisor, llama a "mis_calificaciones"
+        // para el supervisor, etc.)
+    
+        // --- Almacenamiento Temporal de Formularios Anidados ---
+        let tempTributarias = [];
+        let tempFactores = [];
+        
+        // 🛠️ CONFIGURACIÓN API (Se asume que el token está en localStorage por el login)
+        const API_BASE = "http://127.0.0.1:8000/api";
+        const token = localStorage.getItem('access'); 
+
+        
+        // ---------------------------------------------------
+        // ✅ 1. FUNCIONES DE NAVEGACIÓN Y MODALES
+        // ---------------------------------------------------
+        
+        function showView(viewId, clickedButton) {
+            document.querySelectorAll('.content-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.querySelectorAll('.sidenav-nav button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            const activeView = document.getElementById(viewId);
+            if (activeView) {
+                activeView.classList.add('active');
+            }
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+        }
+        
+        function showModal(modalId, isNested = false) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('active');
+            }
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        // ---------------------------------------------------
+        // ✅ 2. FUNCIONES DE CARGA DE DATOS (API)
+        // ---------------------------------------------------
+
+        async function loadProfile() {
+             if (!token) { return; }
+            try {
+                const res = await fetch(`${API_BASE}/users/me/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Sesión inválida. Por favor, inicie sesión de nuevo.');
+                const user = await res.json();
+                
+                // (Esta sección ahora cargará los datos del Supervisor)
+                const fullName = `${user.first_name || user.username} ${user.last_name || ''}`;
+                document.querySelector('.sidenav-profile .username').textContent = fullName.trim();
+                document.querySelector('.sidenav-profile .role').textContent = user.rol;
+                const inicial = (user.first_name || user.username).charAt(0).toUpperCase();
+                document.querySelector('.sidenav-profile .sidenav-profile-pic').textContent = inicial;
+
+            } catch (err) {
+                alert(err.message);
+                window.location.href = '/'; 
+            }
+        }
+
+
+        /**
+         * Llama a la API para obtener las CALIFICACIONES DEL SUPERVISOR
+         * (Usa el mismo endpoint 'mis_calificaciones')
+         */
+        async function fetchSupervisorCalificaciones() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/mis_calificaciones/`, { 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('No se pudo cargar la lista de calificaciones.');
+                
+                const data = await res.json();
+                renderCalificacionesTable(data.results || data); 
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function renderCalificacionesTable(calificaciones) {
+            const tbody = document.querySelector("#view-mantenedor table tbody");
+            tbody.innerHTML = ""; 
+
+            if (!calificaciones || calificaciones.length === 0) {
+                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No hay calificaciones registradas.</td></tr>';
+                 return;
+            }
+
+            calificaciones.forEach(cal => {
+                const instrumentoNombre = cal.instrumento ? cal.instrumento.nombre : 'N/A';
+                const mercadoNombre = cal.mercado ? cal.mercado.nombre : 'N/A';
+                const estadoNombre = cal.estado ? cal.estado.nombre : 'Pendiente';
+
+                const row = `
+                    <tr>
+                        <td>${cal.id}</td>
+                        <td>${cal.monto_factor}</td>
+                        <td>${cal.fecha_emision}</td>
+                        <td>${cal.fecha_pago}</td>
+                        <td>${instrumentoNombre}</td>
+                        <td>${mercadoNombre}</td>
+                        <td>${estadoNombre}</td>
+                        <td class="action-buttons">
+                            <button class="btn-icon btn-edit" title="Editar Calificación" onclick="alert('Función de Edición no implementada aún.')">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg></button>
+                            <button class="btn-icon btn-delete" title="Eliminar Calificación" onclick="alert('Función de Eliminación no implementada aún.')">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+
+        // ---------------------------------------------------
+        // ✅ 3. FUNCIONES DE REGISTRO MANUAL (IDÉNTICAS)
+        // ---------------------------------------------------
+        
+        function handleAgregarFactor(event) {
+            event.preventDefault();
+            
+            const factorData = {
+                codigo_factor: document.getElementById('fact-codigo').value,
+                descripcion_factor: document.getElementById('fact-desc').value,
+                valor_factor: document.getElementById('fact-valor').value
+            };
+            
+            tempFactores.push(factorData);
+            
+            document.getElementById('form-factor-tributario').reset();
+            closeModal('modal-factor-tributario');
+            renderFactoresTable(); 
+        }
+        
+        function renderFactoresTable() {
+            const tbody = document.getElementById('tabla-factores-temp').querySelector('tbody');
+            tbody.innerHTML = ""; 
+
+            tempFactores.forEach((fact, index) => {
+                const row = `
+                    <tr>
+                        <td>${fact.codigo_factor}</td>
+                        <td>${fact.descripcion_factor}</td>
+                        <td>${fact.valor_factor}</td>
+                        <td class="action-buttons">
+                            <button type="button" class="btn-icon btn-delete" title="Eliminar" onclick="eliminarFactor(${index})">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        function eliminarFactor(index) {
+            if (confirm('¿Eliminar este Factor?')) {
+                tempFactores.splice(index, 1);
+                renderFactoresTable();
+            }
+        }
+        
+        function handleAgregarTributaria(event) {
+            event.preventDefault();
+            
+            const tributariaData = {
+                secuencia_evento: document.getElementById('trib-secuencia').value,
+                evento_capital: document.getElementById('trib-evento-capital').value,
+                anio: document.getElementById('trib-anio').value,
+                valor_historico: document.getElementById('trib-valor').value || null,
+                descripcion: document.getElementById('trib-desc').value,
+                factores: [...tempFactores] 
+            };
+
+            tempTributarias.push(tributariaData);
+            
+            document.getElementById('form-calif-tributaria').reset();
+            tempFactores = [];
+            
+            closeModal('modal-calif-tributaria');
+            renderTributariasTable(); 
+            renderFactoresTable(); 
+        }
+
+        function renderTributariasTable() {
+            const tbody = document.getElementById('tabla-tributarias-temp').querySelector('tbody');
+            tbody.innerHTML = ""; 
+
+            tempTributarias.forEach((trib, index) => {
+                const row = `
+                    <tr>
+                        <td>${trib.secuencia_evento}</td>
+                        <td>${trib.evento_capital}</td>
+                        <td>${trib.anio}</td>
+                        <td>${trib.valor_historico || 'N/A'}</td>
+                        <td>${trib.factores.length}</td>
+                        <td class="action-buttons">
+                            <button type="button" class="btn-icon btn-delete" title="Eliminar" onclick="eliminarTributaria(${index})">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        /**
+ * Llama a la API para obtener el HISTORIAL del usuario
+ */
+async function fetchHistorial() {
+    if (!token) return;
+    try {
+        // El ViewSet ahora filtra por nuestro usuario
+        const res = await fetch(`${API_BASE}/logs/`, { 
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('No se pudo cargar el historial.');
+
+        const logs = await res.json();
+        renderHistorialTable(logs.results || logs); 
+    } catch (err) {
+        alert(err.message);
     }
-</script>
+}
+
+/**
+ * Dibuja la tabla de historial
+ */
+function renderHistorialTable(logs) {
+    const tbody = document.getElementById("historial-tbody");
+    tbody.innerHTML = ""; 
+
+    if (!logs || logs.length === 0) {
+         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay operaciones en tu historial.</td></tr>';
+         return;
+    }
+
+    logs.forEach(log => {
+        // Formateamos la fecha para que sea más legible
+        const fecha = new Date(log.fecha).toLocaleString('es-CL');
+
+        const row = `
+            <tr>
+                <td>${fecha}</td>
+                <td>${log.accion}</td>
+                <td>${log.calificacion || 'N/A'}</td>
+                <td>${log.detalle}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+        
+        function eliminarTributaria(index) {
+            if (confirm('¿Eliminar esta fila de Tributaria?')) {
+                tempTributarias.splice(index, 1);
+                renderTributariasTable();
+            }
+        }
+
+        async function handleCrearCalificacion(event) {
+            event.preventDefault();
+
+            if (!token) {
+                alert("Error: No se ha encontrado token de sesión. Por favor, inicie sesión de nuevo.");
+                return;
+            }
+
+            const payload = {
+                instrumento_id: document.getElementById('reg-instrumento').value,
+                mercado_id: document.getElementById('reg-mercado').value,
+                estado_id: document.getElementById('reg-estado').value,
+                monto_factor: document.getElementById('reg-monto-factor').value,
+                fecha_emision: document.getElementById('reg-fecha-emision').value,
+                fecha_pago: document.getElementById('reg-fecha-pago').value
+                // (NOTA: El envío de 'tributarias' aún está pendiente, igual que en Corredor)
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    let errorMsg = `Error (${res.status}): No se pudo guardar.\n\n`;
+                    for (const key in errorData) {
+                        errorMsg += `Campo '${key}': ${errorData[key].join(', ')}\n`;
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                const nuevaCalificacion = await res.json();
+                
+                alert(`¡Éxito! Se ha creado la Calificación con ID: ${nuevaCalificacion.id}`);
+
+                document.getElementById('form-registro-manual').reset();
+                tempTributarias = []; 
+                renderTributariasTable(); 
+
+                await fetchSupervisorCalificaciones(); 
+                
+                showView('view-mantenedor', document.querySelector('.sidenav-nav button:first-child')); 
+
+            } catch (err) {
+                console.error("Error en handleCrearCalificacion:", err);
+                alert(err.message);
+            }
+        }
+        
+        function handleCargaMasiva(event) {
+            event.preventDefault();
+            alert("Simulando: Procesando Carga Masiva...");
+        }
+
+        function logout() {
+            alert("Cerrando sesión...");
+            localStorage.removeItem('access');
+            localStorage.removeItem('refresh');
+            window.location.href = '/'; 
+        }
+
+        // ---------------------------------------------------
+        // 🛠️ 4. INICIALIZACIÓN
+        // ---------------------------------------------------
+
+        // En window.onload = function() { ... }
+
+    window.onload = function() {
+        if (!token) {
+            alert("Sesión no válida. Redirigiendo al login.");
+            window.location.href = '/'; 
+            return;
+        }
+        loadProfile();  
+
+        // La función que carga la tabla principal (Mantenedor)
+        // (En dashboard_corredor.html se llama fetchCorredorCalificaciones)
+        // (En dashboard_supervisor.html se llama fetchSupervisorCalificaciones)
+        // Déjala como esté.
+
+        // ESTA ES LA LÍNEA NUEVA:
+        fetchHistorial(); // <-- AÑADE ESTA LÍNEA
+
+        // (El resto de la función, ej: fetchSupervisorCalificaciones(), déjalo como estaba)
+    };
+        
+    </script>
 
 </body>
 </html>

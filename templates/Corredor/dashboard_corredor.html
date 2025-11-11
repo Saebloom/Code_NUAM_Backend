@@ -475,14 +475,10 @@
                             <input type="text" id="filter-mantenedor-id" placeholder="ID Calificación...">
                             <select id="filter-mantenedor-mercado">
                                 <option value="">Todo Mercado</option>
-                                <option value="local">Local</option>
-                                <option value="internacional">Internacional</option>
-                            </select>
+                                </select>
                             <select id="filter-mantenedor-origen">
                                 <option value="">Todo Origen</option>
-                                <option value="chile">Chile</option>
-                                <option value="peru">Perú</option>
-                            </select>
+                                </select>
                             <input type="number" id="filter-mantenedor-anio" placeholder="Año Comercial (AAAA)">
                         </div>
                         
@@ -523,16 +519,14 @@
                                     <label for="reg-mercado">Mercado (ID Numérico)</label>
                                     <select id="reg-mercado" required>
                                         <option value="">Seleccione Mercado...</option>
-                                        <option value="1">1 (Local)</option>
-                                        <option value="2">2 (Internacional)</option>
-                                    </select>
+                                        <option value="1">1 (Local - Creado en Admin)</option>
+                                        </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="reg-estado">Estado (ID Numérico)</label>
                                     <select id="reg-estado" required>
-                                        <option value="1">1 (Validado)</option>
-                                        <option value="2">2 (Pendiente)</option>
-                                    </select>
+                                        <option value="1">1 (Validado - Creado en Admin)</option>
+                                        </select>
                                 </div>
                             </div>
                             
@@ -853,7 +847,7 @@
             }
 
             calificaciones.forEach(cal => {
-                // Tu Serializer anida los objetos, así que podemos acceder a .nombre
+                // ✅ CORRECCIÓN: El serializer ahora envía los objetos completos
                 const instrumentoNombre = cal.instrumento ? cal.instrumento.nombre : 'N/A';
                 const mercadoNombre = cal.mercado ? cal.mercado.nombre : 'N/A';
                 const estadoNombre = cal.estado ? cal.estado.nombre : 'Pendiente';
@@ -995,6 +989,53 @@
             });
         }
         
+
+        /**
+ * Llama a la API para obtener el HISTORIAL del usuario
+ */
+async function fetchHistorial() {
+    if (!token) return;
+    try {
+        // El ViewSet ahora filtra por nuestro usuario
+        const res = await fetch(`${API_BASE}/logs/`, { 
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('No se pudo cargar el historial.');
+
+        const logs = await res.json();
+        renderHistorialTable(logs.results || logs); 
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+/**
+ * Dibuja la tabla de historial
+ */
+function renderHistorialTable(logs) {
+    const tbody = document.getElementById("historial-tbody");
+    tbody.innerHTML = ""; 
+
+    if (!logs || logs.length === 0) {
+         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay operaciones en tu historial.</td></tr>';
+         return;
+    }
+
+    logs.forEach(log => {
+        // Formateamos la fecha para que sea más legible
+        const fecha = new Date(log.fecha).toLocaleString('es-CL');
+
+        const row = `
+            <tr>
+                <td>${fecha}</td>
+                <td>${log.accion}</td>
+                <td>${log.calificacion || 'N/A'}</td>
+                <td>${log.detalle}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
         /**
          * Elimina una tributaria del array temporal 'tempTributarias'
          */
@@ -1018,12 +1059,11 @@
                 return;
             }
 
-            // Recolectar los datos del formulario principal
+            // ✅ CORRECCIÓN: Nombres de campo con _id
             const payload = {
-                // El formulario pide IDs numéricos, lo cual es correcto para la API
-                instrumento: document.getElementById('reg-instrumento').value,
-                mercado: document.getElementById('reg-mercado').value,
-                estado: document.getElementById('reg-estado').value,
+                instrumento_id: document.getElementById('reg-instrumento').value,
+                mercado_id: document.getElementById('reg-mercado').value,
+                estado_id: document.getElementById('reg-estado').value,
                 monto_factor: document.getElementById('reg-monto-factor').value,
                 fecha_emision: document.getElementById('reg-fecha-emision').value,
                 fecha_pago: document.getElementById('reg-fecha-pago').value
@@ -1031,9 +1071,6 @@
                 // NOTA: El envío de 'tributarias' está pendiente.
                 // Tu backend (CalificacionSerializer) las tiene como 'read_only',
                 // por lo que no las aceptará en este POST.
-                // Para guardar las tributarias, se necesitaría un segundo 'fetch'
-                // para cada tributaria, enviándolas a /api/calificacion-tributaria/
-                // después de que esta llamada sea exitosa.
             };
 
             // Enviar a la API
@@ -1099,15 +1136,26 @@
         // 🛠️ 4. INICIALIZACIÓN
         // ---------------------------------------------------
 
-        window.onload = function() {
-            if (!token) {
-                alert("Sesión no válida. Redirigiendo al login.");
-                window.location.href = '/'; 
-                return;
-            }
-            loadProfile();  // Carga el perfil del Corredor en el Sidenav
-            fetchCorredorCalificaciones(); // Carga la tabla de calificaciones
-        };
+        // En window.onload = function() { ... }
+
+    window.onload = function() {
+        if (!token) {
+            alert("Sesión no válida. Redirigiendo al login.");
+            window.location.href = '/'; 
+            return;
+        }
+        loadProfile();  
+
+        // La función que carga la tabla principal (Mantenedor)
+        // (En dashboard_corredor.html se llama fetchCorredorCalificaciones)
+        // (En dashboard_supervisor.html se llama fetchSupervisorCalificaciones)
+        // Déjala como esté.
+
+        // ESTA ES LA LÍNEA NUEVA:
+        fetchHistorial(); // <-- AÑADE ESTA LÍNEA
+
+        // (El resto de la función, ej: fetchSupervisorCalificaciones(), déjalo como estaba)
+    };
         
     </script>
 

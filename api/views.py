@@ -1,436 +1,373 @@
-from rest_framework import viewsets, status, serializers
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+# api/views.py
+import logging
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import Group
+from django.core.cache import cache
+from django.db import transaction
+from django.utils import timezone
+from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.contrib.auth.models import Group
-from django.db import transaction, IntegrityError
-from django.core.cache import cache
-from django.contrib.auth import authenticate
+# 🔽 1. IMPORTACIÓN CORREGIDA: Añadimos IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# 🛠️ Importar el modelo Usuario personalizado (tu AUTH_USER_MODEL)
 from .models import (
-    Usuario as User, 
-    Rol, Estado, Instrumento, Mercado, Archivo,
+    Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
-    Log, Auditoria
+    Log, Auditoria, Usuario
 )
-# 🛠️ Importación de Serializers
+
 from .serializers import (
-    UserSerializer, CurrentUserSerializer,
-    RolSerializer, EstadoSerializer, InstrumentoSerializer, MercadoSerializer,
-    ArchivoSerializer, CalificacionSerializer, CalificacionTributariaSerializer,
-    FactorTributarioSerializer
+    UserSerializer, EstadoSerializer, InstrumentoSerializer,
+    MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
+    CalificacionTributariaSerializer, FactorTributarioSerializer,
+    LogSerializer, AuditoriaSerializer, 
+    CurrentUserSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 
+logger = logging.getLogger('api')
 
-# --------------------------
-# 🎯 LOGIN CORPORATIVO
-# --------------------------
+# =============================================================
+# VISTAS DE AUTENTICACIÓN
+# =============================================================
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_nuam(request):
-    """Login corporativo con validación de dominio @nuam.cl."""
-    email_input = request.data.get('username') 
+    """
+    Login corporativo personalizado.
+    """
+    username = request.data.get('username', '').lower().strip()
     password = request.data.get('password')
 
-    if not email_input or not password:
-        return Response({'detail': 'Debe proporcionar un usuario y una contraseña.'}, status=status.HTTP_400_BAD_REQUEST)
-    if not email_input.lower().endswith('@nuam.cl'):
-        return Response({'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    user = None
-    try:
-        user_obj = User.objects.get(email__iexact=email_input)
-        user = authenticate(username=user_obj.username, password=password)
-    except User.DoesNotExist:
-        pass 
-
+    if not username.endswith('@nuam.cl'):
+        return Response(
+            {"detail": "Solo se permiten correos corporativos @nuam.cl"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    user = authenticate(username=username, password=password) 
+    
     if user is not None:
+        if not user.is_active:
+            return Response(
+                {"detail": "La cuenta de usuario está deshabilitada."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
         refresh = RefreshToken.for_user(user)
-        user_serializer = CurrentUserSerializer(user)
-
+        # Devolvemos el usuario (lo necesita index.html)
+        serializer = CurrentUserSerializer(user)
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-            'user': user_serializer.data,
-        }, status=status.HTTP_200_OK)
+            'user': serializer.data
+        })
     else:
-        return Response({'detail': 'Credenciales inválidas.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {"detail": "Credenciales inválidas."},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
+# =============================================================
+# VISTAS DE USUARIOS (ADMIN)
+# =============================================================
 
-# --------------------------
-# 🔐 USUARIOS Y GESTIÓN (CRUD COMPLETO)
-# --------------------------
-class UserViewSet(viewsets.ModelViewSet): # 🛠️ ModelViewSet permite GET, POST, PUT, PATCH, DELETE
-    queryset = User.objects.all().order_by('id') 
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para gestionar Usuarios.
+    """
+    queryset = Usuario.objects.all().order_by('id')
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser] # Solo admins pueden modificar o listar
 
-    def partial_update(self, request, *args, **kwargs):
-        """Permite actualizar parcialmente (PATCH) datos de usuario, rol y contraseña"""
+    # 🔽 2. ESTA ES LA CORRECCIÓN CRÍTICA
+    def get_permissions(self):
+        """
+        Asigna permisos basados en la acción (el 'endpoint' llamado).
+        """
+        if self.action == 'create':
+            # 'create' es el registro público del index.html
+            permission_classes = [AllowAny]
+        elif self.action == 'me':
+            # 'me' debe ser accesible para CUALQUIER usuario logueado
+            permission_classes = [IsAuthenticated]
+        else:
+            # El resto (list, update, delete, admin_create) es solo para Admins
+            permission_classes = [IsAdminUser] 
+        return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        """
+        Maneja el REGISTRO PÚBLICO desde index.html.
+        """
+        email = request.data.get('email', '').lower().strip()
+        password = request.data.get('password')
+        rol_name = request.data.get('rol', 'corredor') 
+
+        if not email or not password:
+            return Response({"detail": "Email y password son requeridos."}, status=status.HTTP_400_BAD_REQUEST)
+        if not email.endswith('@nuam.cl'):
+             return Response({"detail": "Solo se permiten correos @nuam.cl"}, status=status.HTTP_400_BAD_REQUEST)
+        if Usuario.objects.filter(username=email).exists():
+            return Response({"detail": "Este email ya está registrado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                user = Usuario.objects.create_user(
+                    username=email, email=email, password=password,
+                    first_name=request.data.get('first_name', ''),
+                    last_name=request.data.get('last_name', ''),
+                    is_active=True 
+                )
+                group, created = Group.objects.get_or_create(name=rol_name.capitalize())
+                user.groups.add(group)
+                user.save()
+                serializer = UserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['POST'], permission_classes=[IsAdminUser])
+    def admin_create(self, request):
+        """
+        Crea un usuario desde el panel de admin (dashboard.html), asignando un rol.
+        """
+        email = request.data.get('email', '').lower().strip()
+        rol_name = request.data.get('rol', 'corredor') 
+
+        if not email or not request.data.get('password'):
+            return Response({"detail": "Email y password son requeridos."}, status=status.HTTP_400_BAD_REQUEST)
+        if Usuario.objects.filter(username=email).exists(): 
+            return Response({"detail": "Un usuario con este email (username) ya existe."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                user = Usuario.objects.create_user( 
+                    username=email, email=email,
+                    password=request.data.get('password'),
+                    first_name=request.data.get('first_name', ''),
+                    last_name=request.data.get('last_name', ''),
+                    genero=request.data.get('genero', ''),
+                    telefono=request.data.get('telefono', ''),
+                    direccion=request.data.get('direccion', ''),
+                    rut_documento=request.data.get('rut_documento', ''),
+                    pais=request.data.get('pais', ''),
+                    is_active=True 
+                )
+                if rol_name == 'admin':
+                    user.is_staff = True
+                    user.is_superuser = True
+                else:
+                    group, created = Group.objects.get_or_create(name=rol_name.capitalize())
+                    user.groups.add(group)
+                user.save()
+                serializer = UserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # 🔽 3. FUNCIÓN 'UPDATE' (EDITAR) CORREGIDA Y ÚNICA 🔽
+    def update(self, request, *args, **kwargs):
+        """
+        Maneja la EDICIÓN (PATCH) de un usuario desde el dashboard.
+        Añade lógica para actualizar el rol.
+        """
+        partial = kwargs.pop('partial', True) 
         instance = self.get_object()
-        data = request.data.copy()
         
-        # 1. Manejar Contraseña
-        new_password = data.pop('password', None)
-        if new_password:
-            instance.set_password(new_password)
-            instance.save() 
-
-        # 2. Manejar Rol (Grupos)
-        if 'rol' in data:
-            new_rol = data.pop('rol')
-            instance.groups.clear() 
-            instance.is_superuser = False
-            instance.is_staff = False
-
-            if new_rol == 'admin':
+        # --- Lógica de ROL añadida ---
+        rol_name = request.data.get('rol')
+        if rol_name:
+            if rol_name == 'admin':
+                instance.is_staff = True
                 instance.is_superuser = True
-                instance.is_staff = True
-            elif new_rol == 'supervisor':
-                supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
-                instance.groups.add(supervisor_group)
-                instance.is_staff = True
-            elif new_rol == 'corredor':
-                corredor_group, _ = Group.objects.get_or_create(name='Corredor')
-                instance.groups.add(corredor_group)
-            
-            instance.save() # Guarda los cambios de is_superuser/is_staff/groups
+                instance.groups.clear() 
+            else:
+                group, created = Group.objects.get_or_create(name=rol_name.capitalize())
+                instance.groups.set([group]) 
+                instance.is_staff = False
+                instance.is_superuser = False
+            instance.save()
+        # --- Fin de la lógica de ROL ---
 
-        # 3. Serializer procesa el resto de los campos (first_name, last_name, genero, telefono, rut_documento, pais, etc.)
-        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer) # Llama al update del Serializer
-        
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
         return Response(serializer.data)
 
+    @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
+    def disable_user(self, request, pk=None):
+        try:
+            user = self.get_object()
+            if user.is_superuser:
+                return Response({"detail": "No se puede deshabilitar a un superusuario."}, status=status.HTTP_403_FORBIDDEN)
+            user.is_active = False
+            user.save()
+            return Response({"status": "usuario deshabilitado"}, status=status.HTTP_200_OK)
+        except Usuario.DoesNotExist:
+            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-    """Devuelve la información del usuario autenticado"""
-    serializer = CurrentUserSerializer(request.user, context={'request': request})
-    return Response(serializer.data)
+    @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
+    def enable_user(self, request, pk=None):
+        try:
+            user = self.get_object()
+            user.is_active = True
+            user.save()
+            return Response({"status": "usuario habilitado"}, status=status.HTTP_200_OK)
+        except Usuario.DoesNotExist:
+            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=True, methods=['DELETE'], permission_classes=[IsAdminUser])
+    def delete_permanent(self, request, pk=None):
+        try:
+            user = self.get_object()
+            if user.is_superuser:
+                # 🔽 4. CORREGIDO (era 4F_FORBIDDEN)
+                return Response({"detail": "No se puede eliminar a un superusuario."}, status=status.HTTP_403_FORBIDDEN)
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Usuario.DoesNotExist:
+            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-# 🛠️ POST 1: Deshabilitar Usuario (Soft Delete/Poner Inactivo)
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def disable_user(request, pk):
-    """Deshabilita un usuario (solo admin). Lo pone inactivo."""
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return Response({'detail': 'Usuario no encontrado'}, status=404)
-    # Protege al Superusuario actual de ser deshabilitado
-    if user.is_superuser:
-        return Response({'detail': 'No se puede deshabilitar al Superusuario principal.'}, status=status.HTTP_403_FORBIDDEN)
-    
-    user.is_active = False
-    user.save()
-    return Response({'detail': 'Usuario deshabilitado'}, status=200)
+    @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser])
+    def by_role(self, request):
+        try:
+            admins = Usuario.objects.filter(is_superuser=True)
+            supervisors = Usuario.objects.filter(groups__name='Supervisor') 
+            corredores = Usuario.objects.filter(groups__name='Corredor')
+            
+            return Response({
+                "administradores": UserSerializer(admins, many=True).data,
+                "supervisores": UserSerializer(supervisors, many=True).data,
+                "corredores": UserSerializer(corredores, many=True).data,
+            })
+        except Exception as e:
+            return Response({"detail": f"Error al obtener roles. Asegúrese de que los grupos 'Supervisor' y 'Corredor' existan. Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# 🛠️ POST 2: Habilitar Usuario (Reactivar)
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def enable_user(request, pk):
-    """Habilita (activa) un usuario (solo admin)."""
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return Response({'detail': 'Usuario no encontrado'}, status=404)
-    if user.is_active:
-        return Response({'detail': 'El usuario ya está activo'}, status=status.HTTP_400_BAD_REQUEST)
-    user.is_active = True
-    user.save()
-    return Response({'detail': 'Usuario habilitado con éxito'}, status=200)
+    @action(detail=False, methods=['GET']) # Permiso se maneja en get_permissions
+    def me(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "No autenticado"}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = CurrentUserSerializer(request.user)
+        return Response(serializer.data)
 
-# 🛠️ DELETE: Eliminar Usuario (Borrado Permanente)
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def delete_user(request, pk):
-    """Elimina permanentemente un usuario de la base de datos (solo admin)."""
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return Response({'detail': 'Usuario no encontrado'}, status=404)
-    if user.is_superuser:
-        return Response({'detail': 'No se puede eliminar al Superusuario principal.'}, status=status.HTTP_403_FORBIDDEN)
-    
-    user.delete()
-    return Response({'detail': 'Usuario eliminado permanentemente'}, status=204)
+# =============================================================
+# VISTAS DE CALIFICACIONES (CORE)
+# =============================================================
 
-# --------------------------
-# ➕ CREACIÓN DE USUARIOS (POR ADMIN)
-# --------------------------
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def admin_create_user(request):
-    """Crea un nuevo usuario con rol asignado."""
-    data = request.data
-    email = data.get('email')
-    password = data.get('password')
-    first_name = data.get('first_name', '')
-    last_name = data.get('last_name', '')
-    rol = data.get('rol') 
-    
-    # Campos personalizados
-    genero = data.get('genero', '')
-    telefono = data.get('telefono', '')
-    direccion = data.get('direccion', '')
-    rut_documento = data.get('rut_documento', '') 
-    pais = data.get('pais', '') 
+class CalificacionViewSet(viewsets.ModelViewSet):
+    queryset = Calificacion.objects.all().order_by('-created_at')
+    serializer_class = CalificacionSerializer
+    permission_classes = [IsOwnerOrAdmin] 
 
+    def get_queryset(self):
+        # (Lógica de caché...)
+        queryset = Calificacion.objects.select_related(
+            'usuario', 'instrumento', 'mercado', 'estado'
+        ).prefetch_related(
+            'tributarias', 'tributarias__factores'
+        ).filter(is_active=True).order_by('-created_at')
+        # (Lógica de caché...)
+        return queryset
 
-    if not email or not password or not rol:
-        return Response(
-            {'detail': 'Email, contraseña y rol son requeridos.'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    def retrieve(self, request, *args, **kwargs):
+        # ...
+        return super().retrieve(request, *args, **kwargs)
 
-    username = email
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user, created_by=self.request.user, updated_by=self.request.user)
+        # ...
+        logger.info(f"Usuario {self.request.user.username} creó Calificación ID: {serializer.instance.id}")
 
-    try:
-        # 🛠️ Creación de usuario con campos personalizados
-        user = User.objects.create(
-            username=username,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            genero=genero, 
-            telefono=telefono,
-            direccion=direccion,
-            rut_documento=rut_documento, 
-            pais=pais 
-        )
-        user.set_password(password) # Establecer la contraseña de forma segura
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+        # ...
+        logger.info(f"Usuario {self.request.user.username} actualizó Calificación ID: {serializer.instance.id}")
+
+    def perform_destroy(self, instance):
+        instance.soft_delete(user=self.request.user)
+        # ...
+        logger.info(f"Usuario {self.request.user.username} deshabilitó Calificación ID: {instance.id}")
         
-        if rol == 'admin':
-            user.is_staff = True 
-            user.is_superuser = True
-        elif rol == 'supervisor':
-            supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
-            user.groups.add(supervisor_group)
-        elif rol == 'corredor':
-            corredor_group, _ = Group.objects.get_or_create(name='Corredor')
-            user.groups.add(corredor_group)
+    @action(detail=False, methods=['GET'], permission_classes=[IsOwnerOrAdmin])
+    def mis_calificaciones(self, request):
+        # ...
+        mis_calificaciones = self.get_queryset().filter(usuario=request.user, is_active=True)
+        # ...
+        serializer = self.get_serializer(mis_calificaciones, many=True)
+        return Response(serializer.data)
 
-        user.save()
-        serializer = CurrentUserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+# =============================================================
+# VISTAS DE MODELOS GENÉRICOS (ADMIN/SELECTS)
+# =============================================================
 
-    except IntegrityError:
-        return Response(
-            {'detail': 'Un usuario con este email ya existe.'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Exception as e:
-        return Response(
-            {'detail': f'Ocurrió un error: {str(e)}'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-# --------------------------
-# 📈 REPORTE DE ROLES (NUEVO)
-# --------------------------
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def get_users_by_role(request):
-    """Devuelve listas de usuarios agrupados por sus roles."""
-    try:
-        admins = User.objects.filter(is_superuser=True, is_active=True)
-        
-        # 🛠️ CORRECCIÓN: Usar get_or_create para evitar el error si los grupos no existen
-        supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
-        supervisores = supervisor_group.user_set.filter(is_active=True)
-        
-        corredor_group, _ = Group.objects.get_or_create(name='Corredor')
-        corredores = corredor_group.user_set.filter(is_active=True)
-        
-        data = {
-            'administradores': UserSerializer(admins, many=True).data,
-            'supervisores': UserSerializer(supervisores, many=True).data,
-            'corredores': UserSerializer(corredores, many=True).data,
-        }
-        return Response(data, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        return Response({'detail': f'Error al cargar roles. Asegúrate de haber ejecutado las migraciones y creado los grupos: {str(e)}'}, status=500)
-
-
-# --------------------------
-# 📄 INSTRUMENTO
-# --------------------------
 class InstrumentoViewSet(viewsets.ModelViewSet):
     queryset = Instrumento.objects.all()
     serializer_class = InstrumentoSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
-
-# --------------------------
-# 💹 MERCADO
-# --------------------------
 class MercadoViewSet(viewsets.ModelViewSet):
     queryset = Mercado.objects.all()
     serializer_class = MercadoSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
-
-# --------------------------
-# 📦 ESTADO
-# --------------------------
 class EstadoViewSet(viewsets.ModelViewSet):
     queryset = Estado.objects.all()
     serializer_class = EstadoSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
-
-# --------------------------
-# 📁 ARCHIVO
-# --------------------------
 class ArchivoViewSet(viewsets.ModelViewSet):
     queryset = Archivo.objects.all()
     serializer_class = ArchivoSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
-
-# --------------------------
-# ⭐ CALIFICACIÓN
-# --------------------------
-class CalificacionViewSet(viewsets.ModelViewSet):
-    queryset = Calificacion.objects.select_related(
-        "instrumento", "mercado", "usuario", "estado"
-    ).prefetch_related('tributarias').all()
-
-    serializer_class = CalificacionSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        fecha_desde = self.request.query_params.get('fecha_desde')
-        fecha_hasta = self.request.query_params.get('fecha_hasta')
-        estado = self.request.query_params.get('estado')
-        mercado = self.request.query_params.get('mercado')
-
-        if fecha_desde:
-            queryset = queryset.filter(fecha_emision__gte=fecha_desde)
-        if fecha_hasta:
-            queryset = queryset.filter(fecha_emision__lte=fecha_hasta)
-        if estado:
-            queryset = queryset.filter(estado_id=estado)
-        if mercado:
-            queryset = queryset.filter(mercado_id=mercado)
-        return queryset
-
-    def get_object(self):
-        obj = super().get_object()
-        cache_key = f'calificacion_{obj.id}'
-        cached_obj = cache.get(cache_key)
-        if not cached_obj:
-            cache.set(cache_key, obj, timeout=300)
-        return obj
-
-    def list(self, request, *args, **kwargs):
-        cache_key = 'calificaciones_list'
-        cached_data = cache.get(cache_key)
-        if cached_data is None:
-            queryset = self.filter_queryset(self.get_queryset())
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                data = self.get_paginated_response(serializer.data).data
-            else:
-                serializer = self.get_serializer(queryset, many=True)
-                data = serializer.data
-            cache.set(cache_key, data, timeout=300)
-            return Response(data)
-        return Response(cached_data)
-
-    def perform_create(self, serializer):
-        with transaction.atomic():
-            usuario = self.request.user
-            data = serializer.validated_data
-            if not data.get("usuario"):
-                instance = serializer.save(usuario=usuario)
-            else:
-                instance = serializer.save()
-            cache.delete(f'calificacion_{instance.id}')
-            cache.delete('calificaciones_list')
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        Log.objects.create(
-            accion="Actualizar calificación",
-            detalle=f"Calificación {instance.id} actualizada por {self.request.user}",
-            usuario=self.request.user,
-            calificacion=instance
-        )
-
-    def perform_destroy(self, instance):
-        Log.objects.create(
-            accion="Eliminar calificación",
-            detalle=f"Calificación {instance.id} eliminada por {self.request.user}",
-            usuario=self.request.user,
-            calificacion=instance
-        )
-        instance.delete()
-
-    @action(detail=False, methods=["get"])
-    def mis_calificaciones(self, request):
-        qs = self.queryset.filter(usuario=request.user)
-        page = self.paginate_queryset(qs)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
-
-
-# --------------------------
-# 💼 CALIFICACIÓN TRIBUTARIA
-# --------------------------
 class CalificacionTributariaViewSet(viewsets.ModelViewSet):
     queryset = CalificacionTributaria.objects.all()
     serializer_class = CalificacionTributariaSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsOwnerOrAdmin] 
 
-
-# --------------------------
-# 📊 FACTOR TRIBUTARIO
-# --------------------------
 class FactorTributarioViewSet(viewsets.ModelViewSet):
     queryset = FactorTributario.objects.all()
     serializer_class = FactorTributarioSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsOwnerOrAdmin]
 
-
-# --------------------------
-# 📜 LOGS
-# --------------------------
 class LogViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Log.objects.select_related("usuario", "calificacion").all().order_by("-fecha")
+    """
+    Muestra el historial de Logs.
+    Los Admins ven todo. Los demás usuarios solo ven sus propios logs.
+    """
+    serializer_class = LogSerializer
+    permission_classes = [IsAuthenticated] # <-- 1. CAMBIO DE PERMISO
 
-    class SimpleLogSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Log
-            fields = "__all__"
+    def get_queryset(self):
+        """
+        Filtra los logs para que solo vean los suyos.
+        """
+        user = self.request.user
+        if user.is_staff:
+            # El Admin ve todo
+            return Log.objects.all().order_by('-fecha')
+        else:
+            # Los demás solo ven sus propias acciones
+            return Log.objects.filter(usuario=user).order_by('-fecha')
 
-    def get_serializer_class(self):
-        return self.SimpleLogSerializer
+# (Hacemos lo mismo para Auditoria, por si acaso)
+class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Muestra la Auditoria.
+    Los Admins ven todo. Los demás usuarios solo ven lo suyo.
+    """
+    serializer_class = AuditoriaSerializer
+    permission_classes = [IsAuthenticated] # <-- CAMBIO DE PERMISO
 
-
-# --------------------------
-# 🕵️‍♀️ AUDITORÍA
-# --------------------------
-class AuditoriaViewSet(viewsets.ModelViewSet):
-    queryset = Auditoria.objects.all()
-
-    class SimpleAudSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Auditoria
-            fields = "__all__"
-
-    def get_serializer_class(self):
-        return self.SimpleAudSerializer
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Auditoria.objects.all().order_by('-fecha')
+        else:
+            return Auditoria.objects.filter(usuario=user).order_by('-fecha')

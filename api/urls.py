@@ -1,49 +1,38 @@
-from django.urls import path, include
-from rest_framework import routers
-from .views import (
-    InstrumentoViewSet, MercadoViewSet, EstadoViewSet, ArchivoViewSet,
-    CalificacionViewSet, CalificacionTributariaViewSet, FactorTributarioViewSet,
-    UserViewSet, LogViewSet, AuditoriaViewSet,
-    current_user, disable_user, login_nuam,
-    admin_create_user, get_users_by_role, 
-    enable_user, delete_user # <--- Importaciones del CRUD completo
-)
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .monitoring import health_check
+# api/urls.py
 
-router = routers.DefaultRouter()
-router.register(r'users', UserViewSet, basename="user") # Cambié a 'user' para que el router sepa cómo manejar ModelViewSet
-router.register(r'instrumentos', InstrumentoViewSet)
-router.register(r'mercados', MercadoViewSet)
-router.register(r'estados', EstadoViewSet)
-router.register(r'archivos', ArchivoViewSet)
-router.register(r'calificaciones', CalificacionViewSet)
-router.register(r'calificacion-tributaria', CalificacionTributariaViewSet)
-router.register(r'factor-tributario', FactorTributarioViewSet)
-router.register(r'logs', LogViewSet, basename='logs')
-router.register(r'auditorias', AuditoriaViewSet, basename='auditorias')
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from api import views # Importa api/views.py
+
+# Configuración del Router para los ViewSets
+router = DefaultRouter()
+router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'calificaciones', views.CalificacionViewSet, basename='calificacion')
+router.register(r'instrumentos', views.InstrumentoViewSet, basename='instrumento')
+router.register(r'mercados', views.MercadoViewSet, basename='mercado')
+router.register(r'estados', views.EstadoViewSet, basename='estado')
+router.register(r'archivos', views.ArchivoViewSet, basename='archivo')
+router.register(r'calificaciones-tributarias', views.CalificacionTributariaViewSet, basename='calificaciontributaria')
+router.register(r'factores-tributarios', views.FactorTributarioViewSet, basename='factortributario')
+
+# Arreglo: Añadir los ViewSets de Log y Auditoria que faltaban
+router.register(r'logs', views.LogViewSet, basename='log')
+router.register(r'auditorias', views.AuditoriaViewSet, basename='auditoria')
+
+# Arreglo: Eliminar el 'RolViewSet' que ya no existe
+# router.register(r'roles', views.RolViewSet, basename='rol') # <-- Esta línea se elimina si ya limpiaste el modelo Rol
 
 urlpatterns = [
-    # Usuarios
-    path('users/me/', current_user, name='current_user'),
-    path('users/<int:pk>/disable/', disable_user, name='disable_user'),
-    
-    # 🛠️ RUTAS CRUD PERSONALIZADAS
-    path('users/<int:pk>/enable/', enable_user, name='enable_user'),        # HABILITAR
-    path('users/<int:pk>/delete/', delete_user, name='delete_user_perm'),  # BORRAR PERMANENTEMENTE
-    path('users/admin_create/', admin_create_user, name='admin_create_user'), # CREAR
-    path('users/by_role/', get_users_by_role, name='get_users_by_role'),   # ROLES
-    
-    # Router de los viewsets (Maneja GET /api/users/ y PUT/PATCH/DELETE /api/users/<pk>/)
+    # --- Rutas de API generadas por el Router ---
     path('', include(router.urls)),
-
-    # JWT Auth
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-    # Login corporativo NUAM
-    path("auth/login_nuam/", login_nuam, name="login_nuam"),
-
-    # Health check
-    path("health/", health_check, name="health_check"),
+    
+    # --- Ruta de Health Check (si la tienes, del archivo monitoring.py) ---
+    # path('health/', views.health_check, name='health-check'), 
+    
+    # --- Rutas de Autenticación (Personalizada) ---
+    path('auth/login_nuam/', views.login_nuam, name='login_nuam'),
 ]
+
+# NOTA: Tus rutas personalizadas para @action (como 'me', 'disable_user')
+# ya están incluidas automáticamente por el 'router' de arriba.
+# No necesitas las líneas 'path('users/me/', ...)' que tenías antes.

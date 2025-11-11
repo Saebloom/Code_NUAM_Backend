@@ -11,7 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
-    # "jazzmin",  # Lo comentamos/eliminamos porque no hay soporte en Python 3.13
+    # "jazzmin", 
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -23,8 +23,6 @@ INSTALLED_APPS = [
     "drf_yasg",
     "api",
 ]
-
-# JAZZMIN_SETTINGS eliminado
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -87,7 +85,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "templates", BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -117,7 +115,12 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 
 # Carpeta logs
 LOG_DIR = BASE_DIR / 'logs'
@@ -163,10 +166,12 @@ LOGGING = {
     },
 }
 
+# ⬇️ ⬇️ ⬇️ ESTA LÍNEA ES LA CORRECCIÓN CLAVE ⬇️ ⬇️ ⬇️
+# Indicar a Django que use tu modelo personalizado
+AUTH_USER_MODEL = 'api.Usuario'
+
 # Evita redirección a /accounts/login/ cuando @login_required es usado
 LOGIN_URL = "/"
 
 # Logout redirige al index
 LOGOUT_REDIRECT_URL = "/"
-# Modelo de usuario personalizado
-AUTH_USER_MODEL = "api.Usuario"

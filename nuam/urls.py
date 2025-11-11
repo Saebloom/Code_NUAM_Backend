@@ -1,3 +1,4 @@
+# nuam/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import permissions
@@ -5,63 +6,55 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+
+# 1. Importamos las vistas LIMPIAS de nuam/views.py
 from .views import (
-    login_view,
-    dashboard_admin,
-    dashboard_corredor,
-    dashboard_supervisor,
-    logout_view
+    spa_entry, 
+    custom_logout_view,
+    AdminDashboardView,
+    CorredorDashboardView,
+    SupervisorDashboardView
 )
 
 schema_view = get_schema_view(
-    openapi.Info(
-        title="NUAM API",
-        default_version='v1',
-        description="API para el sistema NUAM",
-        contact=openapi.Contact(email="contact@nuam.com"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
+   openapi.Info(
+      title="NUAM API",
+      default_version='v1',
+      description="API para el sistema NUAM",
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [
-    # Home/Login
-    path("", login_view, name="home"),
+    # 1. La raíz sirve el index.html (punto de entrada del SPA)
+    path("", spa_entry, name="home"), 
+
+    # 2. Ruta para el logout (limpia la sesión del admin)
+    path("logout/", custom_logout_view, name="logout"),
     
-    # Dashboards (Vistas de sesión de Django)
-    path("dashboard/admin/", dashboard_admin, name="dashboard_admin"),
-    path("dashboard/corredor/", dashboard_corredor, name="dashboard_corredor"),
-    path("dashboard/supervisor/", dashboard_supervisor, name="dashboard_supervisor"),
-
-    # Admin y API
+    # 3. Rutas de Admin y API (¡Importantes!)
     path("admin/", admin.site.urls),
-    path("api/", include("api.urls")),
+    path("api/", include("api.urls")), # Aquí vive toda tu API
 
-    # Swagger
+    # 4. Documentación
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 
-    # Logout
-    path("logout/", logout_view, name="logout"),
-
-    # -----------------------------------------------------------------
-    # 🛠️ CORRECCIÓN: Rutas de TemplateView para la API (JWT/SPA)
-    # -----------------------------------------------------------------
-    # (Apunta a las subcarpetas correctas)
-    
-    path('template/home/', TemplateView.as_view(template_name="index.html"), name='template_home'),
-    
+    # 5. Rutas que sirven los HTML de los dashboards.
+    # El JS de tu index.html redirige a estas.
     path('template/dashboard/admin/', 
-         TemplateView.as_view(template_name="Admin (superusuario)/dashboard.html"), 
+         AdminDashboardView.as_view(), 
          name='template_dashboard_admin'),
          
     path('template/dashboard/corredor/', 
-         TemplateView.as_view(template_name="Corredor/dashboard_corredor.html"), 
+         CorredorDashboardView.as_view(), 
          name='template_dashboard_corredor'),
          
     path('template/dashboard/supervisor/', 
-         TemplateView.as_view(template_name="Supervisor/dashboard_supervisor.html"), 
+         SupervisorDashboardView.as_view(), 
          name='template_dashboard_supervisor'),
-         
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
+
+# Servir archivos estáticos en modo DEBUG
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
