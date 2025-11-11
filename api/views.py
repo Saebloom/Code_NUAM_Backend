@@ -42,7 +42,6 @@ def login_nuam(request):
     username = request.data.get('username', '').lower().strip()
     password = request.data.get('password')
 
-<<<<<<< HEAD
     if not username.endswith('@nuam.cl'):
         return Response(
             {"detail": "Solo se permiten correos corporativos @nuam.cl"},
@@ -51,21 +50,6 @@ def login_nuam(request):
     
     user = authenticate(username=username, password=password) 
     
-=======
-    if not email_input or not password:
-        return Response({'detail': 'Debe proporcionar un usuario y una contraseña.'}, status=status.HTTP_400_BAD_REQUEST)
-    # ⚠️ REGLA DE DOMINIO: Validar que termine en @nuam.cl
-    if not email_input.lower().endswith('@nuam.cl'):
-        return Response({'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    user = None
-    try:
-        user_obj = User.objects.get(email__iexact=email_input)
-        user = authenticate(username=user_obj.username, password=password)
-    except User.DoesNotExist:
-        pass 
-
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
     if user is not None:
         if not user.is_active:
             return Response(
@@ -192,15 +176,6 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         partial = kwargs.pop('partial', True) 
         instance = self.get_object()
-<<<<<<< HEAD
-=======
-        
-        # ⚠️ REGLA DE SEGURIDAD: Impedir modificar la propia cuenta
-        if instance.pk == request.user.pk:
-             return Response({'detail': 'No puedes modificar tu propia cuenta de Superusuario/Admin a través de esta API.'}, status=status.HTTP_403_FORBIDDEN)
-             
-        data = request.data.copy()
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
         
         # --- Lógica de ROL añadida ---
         rol_name = request.data.get('rol')
@@ -259,7 +234,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Usuario.DoesNotExist:
             return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-<<<<<<< HEAD
     @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser])
     def by_role(self, request):
         try:
@@ -285,62 +259,6 @@ class UserViewSet(viewsets.ModelViewSet):
 # =============================================================
 # VISTAS DE CALIFICACIONES (CORE)
 # =============================================================
-=======
-# 🛠️ POST 1: Deshabilitar Usuario (Soft Delete/Poner Inactivo)
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def disable_user(request, pk):
-    """Deshabilita un usuario (solo admin). Lo pone inactivo."""
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return Response({'detail': 'Usuario no encontrado'}, status=404)
-    
-    # ⚠️ REGLA DE SEGURIDAD: Un admin NO puede deshabilitarse a sí mismo
-    if user.pk == request.user.pk:
-        return Response({'detail': 'No puedes deshabilitar tu propia cuenta.'}, status=status.HTTP_403_FORBIDDEN)
-    
-    user.is_active = False
-    user.save()
-    return Response({'detail': 'Usuario deshabilitado'}, status=200)
-
-# 🛠️ POST 2: Habilitar Usuario (Reactivar)
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def enable_user(request, pk):
-    """Habilita (activa) un usuario (solo admin)."""
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return Response({'detail': 'Usuario no encontrado'}, status=404)
-    
-    # ⚠️ REGLA DE SEGURIDAD: No puedes habilitarte si te deshabilitaste por fuera
-    if user.pk == request.user.pk:
-        return Response({'detail': 'No puedes habilitar/reactivar tu propia cuenta.'}, status=status.HTTP_403_FORBIDDEN)
-        
-    if user.is_active:
-        return Response({'detail': 'El usuario ya está activo'}, status=status.HTTP_400_BAD_REQUEST)
-    user.is_active = True
-    user.save()
-    return Response({'detail': 'Usuario habilitado con éxito'}, status=200)
-
-# 🛠️ DELETE: Eliminar Usuario (Borrado Permanente)
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def delete_user(request, pk):
-    """Elimina permanentemente un usuario de la base de datos (solo admin)."""
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return Response({'detail': 'Usuario no encontrado'}, status=404)
-        
-    # ⚠️ REGLA DE SEGURIDAD: Un admin NO puede eliminarse a sí mismo
-    if user.pk == request.user.pk:
-        return Response({'detail': 'No puedes eliminar tu propia cuenta.'}, status=status.HTTP_403_FORBIDDEN)
-    
-    user.delete()
-    return Response({'detail': 'Usuario eliminado permanentemente'}, status=204)
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
 
 class CalificacionViewSet(viewsets.ModelViewSet):
     queryset = Calificacion.objects.all().order_by('-created_at')
@@ -357,21 +275,9 @@ class CalificacionViewSet(viewsets.ModelViewSet):
         # (Lógica de caché...)
         return queryset
 
-<<<<<<< HEAD
     def retrieve(self, request, *args, **kwargs):
         # ...
         return super().retrieve(request, *args, **kwargs)
-=======
-    if not email or not password or not rol:
-        return Response(
-            {'detail': 'Email, contraseña y rol son requeridos.'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    # ⚠️ REGLA DE DOMINIO: Validar que termine en @nuam.cl
-    if not email.lower().endswith('@nuam.cl'):
-        return Response({'detail': 'El email debe terminar en @nuam.cl.'}, status=status.HTTP_400_BAD_REQUEST)
-
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
 
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user, created_by=self.request.user, updated_by=self.request.user)
@@ -396,18 +302,9 @@ class CalificacionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(mis_calificaciones, many=True)
         return Response(serializer.data)
 
-<<<<<<< HEAD
 # =============================================================
 # VISTAS DE MODELOS GENÉRICOS (ADMIN/SELECTS)
 # =============================================================
-=======
-        user.save()
-        serializer = CurrentUserSerializer(user)
-        return Response({
-            'detail': 'Usuario creado con éxito.',
-            'user': serializer.data
-        }, status=status.HTTP_201_CREATED)
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
 
 class InstrumentoViewSet(viewsets.ModelViewSet):
     queryset = Instrumento.objects.all()
@@ -459,7 +356,6 @@ class LogViewSet(viewsets.ReadOnlyModelViewSet):
             # Los demás solo ven sus propias acciones
             return Log.objects.filter(usuario=user).order_by('-fecha')
 
-<<<<<<< HEAD
 # (Hacemos lo mismo para Auditoria, por si acaso)
 class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -468,10 +364,6 @@ class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = AuditoriaSerializer
     permission_classes = [IsAuthenticated] # <-- CAMBIO DE PERMISO
-=======
-    def get_serializer_class(self):
-        return self.SimpleAudSerializer
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
 
     def get_queryset(self):
         user = self.request.user

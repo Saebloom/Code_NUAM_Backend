@@ -2,13 +2,6 @@
 
 Aplicación web desarrollada con **Django** y **Django REST Framework**, que incluye:
 
-<<<<<<< HEAD
-- Panel de administración (superusuario)
-- API REST
-- Requerimientos y dependencias
-- Templates HTML, CSS y JS (como SPA)
-- CRUD para usuarios y contenidos
-=======
 * Panel de administración (Administrador)
 * Dashboard de Supervisión (Supervisor/Auditor)
 * Dashboard de Mantenedor (Corredor)
@@ -17,7 +10,6 @@ Aplicación web desarrollada con **Django** y **Django REST Framework**, que inc
 * Templates HTML, CSS y JS para cada rol
 * CRUD para usuarios y calificaciones tributarias
 * Carga Masiva (CSV) y Gestión de Respaldos
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
 
 ---
 

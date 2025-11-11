@@ -174,10 +174,4 @@ AUTH_USER_MODEL = 'api.Usuario'
 LOGIN_URL = "/"
 
 # Logout redirige al index
-<<<<<<< HEAD
 LOGOUT_REDIRECT_URL = "/"
-=======
-LOGOUT_REDIRECT_URL = "/"
-# Modelo de usuario personalizado
-AUTH_USER_MODEL = "api.Usuario"
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871

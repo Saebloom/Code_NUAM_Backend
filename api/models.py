@@ -55,20 +55,11 @@ class AuditableModel(TimeStampedModel):
         self.updated_by = user
         self.save()
 
-<<<<<<< HEAD
 
 # -----------------------------
 # 📋 MODELOS DEL SISTEMA
 # -----------------------------
 
-=======
-# ----- Resto de modelos -----
-class Rol(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
-    descripcion = models.TextField(blank=True)
-    def __str__(self):
-        return self.nombre
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
 
 class Estado(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
