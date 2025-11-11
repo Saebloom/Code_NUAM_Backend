@@ -516,17 +516,16 @@
                                     <input type="number" id="reg-instrumento" placeholder="ID del Instrumento (ej. 1)" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="reg-mercado">Mercado (ID Numérico)</label>
+                                    <label for="reg-mercado">Mercado</label>
                                     <select id="reg-mercado" required>
-                                        <option value="">Seleccione Mercado...</option>
-                                        <option value="1">1 (Local - Creado en Admin)</option>
-                                        </select>
+                                        <option value="">Cargando mercados...</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="reg-estado">Estado (ID Numérico)</label>
+                                    <label for="reg-estado">Estado</label>
                                     <select id="reg-estado" required>
-                                        <option value="1">1 (Validado - Creado en Admin)</option>
-                                        </select>
+                                        <option value="">Cargando estados...</option>
+                                    </select>
                                 </div>
                             </div>
                             
@@ -1105,6 +1104,8 @@ function renderHistorialTable(logs) {
                 // Recarga los datos de la tabla del Mantenedor desde la API
                 await fetchCorredorCalificaciones(); 
                 
+
+                await fetchHistorial();
                 // Y te lleva de vuelta a esa vista
                 showView('view-mantenedor', document.querySelector('.sidenav-nav button:first-child')); 
 
@@ -1131,6 +1132,52 @@ function renderHistorialTable(logs) {
             localStorage.removeItem('refresh');
             window.location.href = '/'; 
         }
+        /**
+         * Rellena un <select> con datos de la API.
+         * @param {string} endpoint - La URL de la API (ej. /mercados/)
+         * @param {string} selectId - El ID del <select> (ej. reg-mercado)
+         * @param {string} defaultOption - Texto para la primera opción
+         */
+        async function populateSelect(endpoint, selectId, defaultOption = "Seleccione una opción...") {
+            const selectElement = document.getElementById(selectId);
+            selectElement.innerHTML = `<option value="">Cargando...</option>`; // Placeholder
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error(`No se pudo cargar ${endpoint}`);
+                
+                const data = await res.json();
+                const items = data.results || data; // Maneja paginación o no
+
+                selectElement.innerHTML = `<option value="">${defaultOption}</option>`; // Limpia "Cargando..."
+                
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    // Muestra "1 - Mercado Chile (CL)"
+                    option.textContent = `${item.id} - ${item.nombre}`; 
+                    selectElement.appendChild(option);
+                });
+
+            } catch (err) {
+                console.error(`Error cargando ${selectId}:`, err);
+                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
+            }
+        }
+
+        /**
+         * Carga todos los menús desplegables del formulario.
+         */
+        function loadDropdowns() {
+            // El backend (signals.py) ya crea "Mercado Chile (CL)", "Mercado Colombia (CO)", etc.
+            populateSelect('/mercados/', 'reg-mercado', 'Seleccione Mercado...');
+            
+            // El backend (signals.py) ya crea "Validado", "Pendiente", "Rechazado"
+            populateSelect('/estados/', 'reg-estado', 'Seleccione Estado...');
+            
+            // No llamamos a populateSelect para 'reg-instrumento' porque lo quieres manual.
+        }
 
         // ---------------------------------------------------
         // 🛠️ 4. INICIALIZACIÓN
@@ -1150,7 +1197,10 @@ function renderHistorialTable(logs) {
         // (En dashboard_corredor.html se llama fetchCorredorCalificaciones)
         // (En dashboard_supervisor.html se llama fetchSupervisorCalificaciones)
         // Déjala como esté.
-
+        fetchCorredorCalificaciones(); // o fetchSupervisorCalificaciones()
+            
+          
+        loadDropdowns();
         // ESTA ES LA LÍNEA NUEVA:
         fetchHistorial(); // <-- AÑADE ESTA LÍNEA
 

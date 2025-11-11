@@ -131,4 +131,79 @@ def setup_initial_data(sender, **kwargs):
 
         print("--- Configuración inicial terminada ---\n")
 
+
+from django.db.models.signals import post_save, pre_delete
+from django.db import transaction
+from .models import Calificacion, CalificacionTributaria, Log, Auditoria
+
+@receiver(post_save, sender=Calificacion)
+def log_calificacion_save(sender, instance, created, **kwargs):
+    """
+    Registra la creación o actualización de una calificación en el Log.
+    """
+    # Solo se ejecuta si no está en un test
+    if 'test' in sys.argv:
+        return
+
+    accion = "Crear calificación" if created else "Actualizar calificación"
+
+    # Usamos transaction.atomic para asegurar que el log se cree
+    try:
+        with transaction.atomic():
+            Log.objects.create(
+                accion=accion,
+                detalle=f"Calificación {instance.id} - Monto: {instance.monto_factor}",
+                usuario=instance.usuario, # <-- ¡Esto ya está corregido gracias al serializer!
+                calificacion=instance
+            )
+    except Exception as e:
+        # Si algo falla (ej. el usuario es NULO), lo imprime en consola
+        print(f"ERROR al crear Log: {e}")
+
+
+@receiver(pre_delete, sender=Calificacion)
+def log_calificacion_delete(sender, instance, **kwargs):
+    """
+    Registra la eliminación de una calificación en el Log.
+    """
+    if 'test' in sys.argv:
+        return
+
+    try:
+        with transaction.atomic():
+            # Nota: instance.usuario puede ser NULO si el usuario fue borrado
+            user = instance.usuario if instance.usuario else None
+            Log.objects.create(
+                accion="Eliminar calificación",
+                detalle=f"Calificación {instance.id} eliminada",
+                usuario=user,
+                calificacion=instance
+            )
+    except Exception as e:
+        print(f"ERROR al crear Log de eliminación: {e}")
+
+
+@receiver(post_save, sender=CalificacionTributaria)
+def log_auditoria_tributaria(sender, instance, created, **kwargs):
+    """
+    Actualiza la auditoría de la calificación padre
+    cuando se modifica una tributaria.
+    """
+    if 'test' in sys.argv:
+        return
+
+    try:
+        with transaction.atomic():
+            calificacion_padre = instance.calificacion
+            user = calificacion_padre.usuario if calificacion_padre.usuario else None
+
+            Auditoria.objects.create(
+                tipo="Actualización (Tributaria)",
+                resultado="Éxito",
+                observaciones=f"Cambio en tributaria {instance.id} (Seq: {instance.secuencia_evento})",
+                usuario=user,
+                calificacion=calificacion_padre
+            )
+    except Exception as e:
+        print(f"ERROR al crear Auditoria: {e}")
 # --- NO AGREGUES NINGÚN OTRO CÓDIGO A ESTE ARCHIVO ---
