@@ -2,14 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.conf import settings 
-# Importar User (aunque se usa settings.AUTH_USER_MODEL, lo mantenemos por claridad)
-from django.contrib.auth.models import User 
+from django.conf import settings
 
-
-# -----------------------------
-# 👤 MODELO DE USUARIO PERSONALIZADO (Hereda de AbstractUser)
-# -----------------------------
 class Usuario(AbstractUser):
     GENERO_CHOICES = [
         ("Masculino", "Masculino"),
@@ -17,37 +11,27 @@ class Usuario(AbstractUser):
         ("Otro", "Otro"),
     ]
 
+    # Campos personalizados
     genero = models.CharField(max_length=20, choices=GENERO_CHOICES, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     direccion = models.CharField(max_length=255, blank=True, null=True)
-    
-    # 🛠️ CAMPOS DE DOCUMENTO (AÑADIDOS)
-    rut_documento = models.CharField(max_length=12, blank=True, null=True, unique=True, verbose_name="RUT / Documento")
-    pais = models.CharField(max_length=50, blank=True, null=True, verbose_name="País")
-
+    rut_documento = models.CharField(max_length=20, blank=True, null=True, unique=True) # Aumentado a 20 por si acaso
+    pais = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        # Muestra nombre y apellido si existen, si no, solo el username
         return f"{self.first_name} {self.last_name} ({self.username})" if self.first_name else self.username
 
-# -----------------------------
-# 🕓 MODELOS BASE DE AUDITORÍA
-# -----------------------------
+# ----- Auditable Models (sin cambios) -----
 class TimeStampedModel(models.Model):
-    """Modelo base abstracto que proporciona campos de auditoría"""
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="%(class)s_created"
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, related_name="%(class)s_created"
     )
     updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="%(class)s_updated"
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, related_name="%(class)s_updated"
     )
 
     class Meta:
@@ -59,9 +43,7 @@ class TimeStampedModel(models.Model):
         self.updated_at = timezone.now()
         super().save(*args, **kwargs)
 
-
 class AuditableModel(TimeStampedModel):
-    """Modelo base abstracto que agrega campos de auditoría adicionales"""
     is_active = models.BooleanField(default=True)
     comments = models.TextField(blank=True, null=True)
 
@@ -69,15 +51,11 @@ class AuditableModel(TimeStampedModel):
         abstract = True
 
     def soft_delete(self, user):
-        """Realiza un borrado suave del registro"""
         self.is_active = False
         self.updated_by = user
         self.save()
 
-
-# -----------------------------
-# 📋 MODELOS DEL SISTEMA
-# -----------------------------
+# ----- Resto de modelos -----
 class Rol(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)

@@ -711,16 +711,6 @@
                                             <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td>2025-11-05 09:30:00</td>
-                                        <td>corredor@nuam.com</td>
-                                        <td>carga_erronea.csv</td>
-                                        <td>Fallido (Error Fila 10)</td>
-                                        <td>9</td>
-                                        <td class="action-buttons">
-                                            <button class="btn-icon btn-download" title="Descargar Archivo/Log"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -835,35 +825,39 @@
         </div>
         
         <form id="edit-user-form" onsubmit="event.preventDefault(); saveEditUser();">
-            <div class="form-group">
-              <label>Nombres</label>
-              <input type="text" id="edit-nombres" placeholder="Ej: Ana María" required>
-            </div>
+            <div class="form-group-inline">
+                <div class="form-group" style="flex-basis: 50%;">
+                    <label>Nombres</label>
+                    <input type="text" id="edit-nombres" placeholder="Ej: Ana María" required>
+                </div>
 
-            <div class="form-group">
-              <label>Apellidos</label>
-              <input type="text" id="edit-apellidos" placeholder="Ej: Pérez Soto" required>
+                <div class="form-group" style="flex-basis: 50%;">
+                    <label>Apellidos</label>
+                    <input type="text" id="edit-apellidos" placeholder="Ej: Pérez Soto" required>
+                </div>
             </div>
             
             <!-- Campos adicionales del frontend (Género, Contacto, Dirección) -->
-            <div class="form-group">
-              <label>Género</label>
-              <select id="edit-genero">
-                <option value="">Seleccione...</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
-              </select>
+            <div class="form-group-inline">
+                <div class="form-group" style="flex-basis: 50%;">
+                    <label>Género</label>
+                    <select id="edit-genero">
+                        <option value="">Seleccione...</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="flex-basis: 50%;">
+                    <label>Número de Contacto</label>
+                    <input type="tel" id="edit-contacto" pattern="[0-9]+" maxlength="15" placeholder="Sólo números">
+                </div>
             </div>
 
             <div class="form-group">
-              <label>Número de Contacto</label>
-              <input type="tel" id="edit-contacto" pattern="[0-9]+" maxlength="15" placeholder="Sólo números">
-            </div>
-
-            <div class="form-group">
-              <label>Dirección de Hogar</label>
-              <input type="text" id="edit-direccion" placeholder="Ej: Calle 123, Santiago">
+                <label>Dirección de Hogar</label>
+                <input type="text" id="edit-direccion" placeholder="Ej: Calle 123, Santiago">
             </div>
 
             <div class="form-group">
@@ -899,6 +893,7 @@
         const API_BASE = "http://127.0.0.1:8000/api";
         const token = localStorage.getItem('access'); // Obtiene el token del Admin
         let editUserId = null; // Variable global para saber qué usuario se edita
+        let currentUserID = null; // 🛠️ NUEVO: ID del admin logueado
 
         /**
          * Carga inicial de datos cuando el DOM está listo.
@@ -1010,6 +1005,9 @@
                 document.querySelector('#profile-role').textContent = user.rol;
                 const inicial = (user.first_name || user.username).charAt(0).toUpperCase();
                 document.querySelector('.sidenav-profile .sidenav-profile-pic').textContent = inicial;
+                
+                // 🛠️ NUEVO: Guardar el ID del usuario actual
+                currentUserID = user.id;
 
             } catch (err) {
                 alert(err.message);
@@ -1043,9 +1041,6 @@
             const tbody = document.querySelector("#tab-users table tbody");
             tbody.innerHTML = "";
             
-            // Obtenemos el email del usuario actual para deshabilitar botones en su propia fila
-            const selfName = document.querySelector('#profile-name').textContent; 
-
             users.forEach(user => {
                 const rol = user.is_superuser
                     ? "Administrador"
@@ -1056,14 +1051,15 @@
                 const enableDisabled = user.is_active ? 'disabled' : '';
                 const disableDisabled = user.is_active ? '' : 'disabled';
                 
-                // Deshabilitar acciones en el usuario actual (Superusuario)
+                // 🛠️ CORRECCIÓN LÓGICA DE SEGURIDAD:
+                // Deshabilitar acciones solo si el ID de la fila (user.id) 
+                // es el mismo que el del admin logueado (currentUserID)
                 let selfActionsDisabled = '';
-                if (user.is_superuser) {
+                if (user.id === currentUserID) {
                     selfActionsDisabled = 'disabled';
                 }
 
                 // Extracción de datos para la tabla y edición
-                // Asumiendo que UserSerializer expone: rut_documento, genero, telefono, direccion
                 const rut = user.rut_documento || 'N/A';
                 const genero = user.genero || '';
                 const telefono = user.telefono || '';
@@ -1163,6 +1159,7 @@
 
             
             try {
+                // Endpoint PATCH para actualizar los datos
                 const res = await fetch(`${API_BASE}/users/${editUserId}/`, { 
                     method: 'PATCH',
                     headers: { 
@@ -1361,6 +1358,13 @@
                 alert("Por favor, seleccione un rol para el usuario.");
                 return;
             }
+            
+            // ⚠️ REGLA DE DOMINIO: Validar que termine en @nuam.cl
+            if (!payload.email.toLowerCase().endsWith('@nuam.cl')) {
+                alert("Error: El email debe ser corporativo (@nuam.cl).");
+                return;
+            }
+
 
             try {
                 const res = await fetch(`${API_BASE}/users/admin_create/`, { 
@@ -1377,9 +1381,9 @@
                     throw new Error(errorData.detail || 'Error al crear el usuario.');
                 }
 
-                const nuevoUsuario = await res.json();
+                const data = await res.json();
                 
-                alert(`¡Usuario creado exitosamente!\nEmail: ${nuevoUsuario.email}\nRol: ${nuevoUsuario.rol}`);
+                alert(`¡Usuario creado exitosamente!\nEmail: ${data.user.email}\nRol: ${data.user.rol}`);
                 
                 closeModal('modal-crear-usuario');
                 event.target.reset(); // Limpia el formulario

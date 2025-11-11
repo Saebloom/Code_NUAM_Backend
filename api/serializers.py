@@ -1,13 +1,14 @@
 from rest_framework import serializers
+# 🛠️ Importar el modelo Usuario que heredaste
 from .models import (
     Rol, Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
-    Log, Auditoria, Usuario # Importar tu modelo Usuario personalizado
+    Log, Auditoria, Usuario 
 )
 from django.contrib.auth.models import Group # Importar Group para roles
 
 # ---------------------------
-# 👤 SERIALIZER DE USUARIO (Lectura/Escritura para CRUD)
+# 👤 SERIALIZER DE USUARIO
 # ---------------------------
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SerializerMethodField()
@@ -34,6 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'first_name': {'required': False, 'allow_blank': True},
             'last_name': {'required': False, 'allow_blank': True},
+            # Solo permitimos que se escriba la contraseña via el ViewSet (no aquí)
             'password': {'write_only': True, 'required': False} 
         }
 
@@ -44,6 +46,22 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.is_superuser:
             return "admin"
         return obj.groups.first().name if obj.groups.exists() else "desconocido"
+    
+    def update(self, instance, validated_data):
+        """Permite actualizar los datos del usuario (usado por PATCH)"""
+        instance.first_name = validated_data.get("first_name", instance.first_name)
+        instance.last_name = validated_data.get("last_name", instance.last_name)
+        instance.email = validated_data.get("email", instance.email)
+
+        # Campos personalizados
+        instance.genero = validated_data.get("genero", instance.genero)
+        instance.telefono = validated_data.get("telefono", instance.telefono)
+        instance.direccion = validated_data.get("direccion", instance.direccion)
+        instance.rut_documento = validated_data.get("rut_documento", instance.rut_documento)
+        instance.pais = validated_data.get("pais", instance.pais)
+
+        instance.save()
+        return instance
 
 
 # ---------------------------
@@ -51,7 +69,8 @@ class UserSerializer(serializers.ModelSerializer):
 # ---------------------------
 class CurrentUserSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
-    # Incluir campos de perfil
+    
+    # 🛠️ CORRECCIÓN: Se eliminó source='...' porque es redundante
     genero = serializers.CharField(read_only=True)
     telefono = serializers.CharField(read_only=True)
     direccion = serializers.CharField(read_only=True)
@@ -61,7 +80,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ["id", "username", "email", "first_name", "last_name", "rol", "genero", "telefono", "direccion", "rut_documento", "pais"] 
+        fields = [
+            "id", "username", "email", "first_name", "last_name", "rol", 
+            "genero", "telefono", "direccion", "rut_documento", "pais"
+        ] 
 
     def get_rol(self, obj):
         if obj.is_superuser:
@@ -72,9 +94,8 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return "corredor"
         return "desconocido"
 
-
 # ---------------------------
-# 📋 SERIALIZERS DE MODELOS GENERALES (RESTAURADOS Y SINCRONIZADOS)
+# 📋 SERIALIZERS DE MODELOS GENERALES (RESTAURADOS)
 # ---------------------------
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -115,6 +136,7 @@ class CalificacionTributariaSerializer(serializers.ModelSerializer):
 
 class CalificacionSerializer(serializers.ModelSerializer):
     tributarias = CalificacionTributariaSerializer(many=True, read_only=True)
+    # 🛠️ Usar el modelo Usuario correcto
     usuario = UserSerializer(read_only=True)
     usuario_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Usuario.objects.all(), source="usuario"

@@ -37,6 +37,7 @@ def login_nuam(request):
 
     if not email_input or not password:
         return Response({'detail': 'Debe proporcionar un usuario y una contraseña.'}, status=status.HTTP_400_BAD_REQUEST)
+    # ⚠️ REGLA DE DOMINIO: Validar que termine en @nuam.cl
     if not email_input.lower().endswith('@nuam.cl'):
         return Response({'detail': 'Solo se permiten correos corporativos @nuam.cl.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -71,6 +72,11 @@ class UserViewSet(viewsets.ModelViewSet): # 🛠️ ModelViewSet permite GET, PO
     def partial_update(self, request, *args, **kwargs):
         """Permite actualizar parcialmente (PATCH) datos de usuario, rol y contraseña"""
         instance = self.get_object()
+        
+        # ⚠️ REGLA DE SEGURIDAD: Impedir modificar la propia cuenta
+        if instance.pk == request.user.pk:
+             return Response({'detail': 'No puedes modificar tu propia cuenta de Superusuario/Admin a través de esta API.'}, status=status.HTTP_403_FORBIDDEN)
+             
         data = request.data.copy()
         
         # 1. Manejar Contraseña
@@ -124,9 +130,10 @@ def disable_user(request, pk):
         user = User.objects.get(pk=pk)
     except User.DoesNotExist:
         return Response({'detail': 'Usuario no encontrado'}, status=404)
-    # Protege al Superusuario actual de ser deshabilitado
-    if user.is_superuser:
-        return Response({'detail': 'No se puede deshabilitar al Superusuario principal.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    # ⚠️ REGLA DE SEGURIDAD: Un admin NO puede deshabilitarse a sí mismo
+    if user.pk == request.user.pk:
+        return Response({'detail': 'No puedes deshabilitar tu propia cuenta.'}, status=status.HTTP_403_FORBIDDEN)
     
     user.is_active = False
     user.save()
@@ -141,6 +148,11 @@ def enable_user(request, pk):
         user = User.objects.get(pk=pk)
     except User.DoesNotExist:
         return Response({'detail': 'Usuario no encontrado'}, status=404)
+    
+    # ⚠️ REGLA DE SEGURIDAD: No puedes habilitarte si te deshabilitaste por fuera
+    if user.pk == request.user.pk:
+        return Response({'detail': 'No puedes habilitar/reactivar tu propia cuenta.'}, status=status.HTTP_403_FORBIDDEN)
+        
     if user.is_active:
         return Response({'detail': 'El usuario ya está activo'}, status=status.HTTP_400_BAD_REQUEST)
     user.is_active = True
@@ -156,8 +168,10 @@ def delete_user(request, pk):
         user = User.objects.get(pk=pk)
     except User.DoesNotExist:
         return Response({'detail': 'Usuario no encontrado'}, status=404)
-    if user.is_superuser:
-        return Response({'detail': 'No se puede eliminar al Superusuario principal.'}, status=status.HTTP_403_FORBIDDEN)
+        
+    # ⚠️ REGLA DE SEGURIDAD: Un admin NO puede eliminarse a sí mismo
+    if user.pk == request.user.pk:
+        return Response({'detail': 'No puedes eliminar tu propia cuenta.'}, status=status.HTTP_403_FORBIDDEN)
     
     user.delete()
     return Response({'detail': 'Usuario eliminado permanentemente'}, status=204)
@@ -189,6 +203,10 @@ def admin_create_user(request):
             {'detail': 'Email, contraseña y rol son requeridos.'}, 
             status=status.HTTP_400_BAD_REQUEST
         )
+    # ⚠️ REGLA DE DOMINIO: Validar que termine en @nuam.cl
+    if not email.lower().endswith('@nuam.cl'):
+        return Response({'detail': 'El email debe terminar en @nuam.cl.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     username = email
 
@@ -219,7 +237,10 @@ def admin_create_user(request):
 
         user.save()
         serializer = CurrentUserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({
+            'detail': 'Usuario creado con éxito.',
+            'user': serializer.data
+        }, status=status.HTTP_201_CREATED)
 
     except IntegrityError:
         return Response(
