@@ -35,22 +35,35 @@ Antes de comenzar, asegúrate de tener instalado:
 
     Clona el repositorio y entra a la carpeta:
     ```bash
-    git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com/Saebloom/Code_NUAM_Backend.git)
+    git clone [https://github.com/Saebloom/Code_NUAM_Backend.git]
+
+    (https://github.com/Saebloom/Code_NUAM_Backend.git)
     cd Code_NUAM_Backend
     ```
 
     Usa los scripts de instalación que preparan todo el entorno automáticamente.
+    
+    * Abrir carpeta donde se encuentra el proyecto
 
     * **En Windows:**
-        1.  Haz doble clic en el archivo `install.bat`.
+        1.  Haz doble clic en el archivo `installwin.bat`.
         2.  Espera a que la terminal termine de instalar todo.
 
     * **En Linux / Mac:**
-        1.  Otorga permisos de ejecución al script: `chmod +x install.sh`
-        2.  Ejecuta el script: `./install.sh`
+        1.  Otorga permisos de ejecución al script: `chmod +x            installinux.sh`
+        2.  Ejecuta el script: `./installinux.sh`
 
     Estos scripts crearán el entorno virtual `test/`, instalarán las dependencias y ejecutarán `migrate` para configurar la base de datos y crear los usuarios de prueba.
+    
+    Activar el virtual enviroment y levantar servidor:
 
+    * **En Windows:**
+        1. test\scripts\activate
+        2. python manage.py runserver
+
+    * **En Linux:** 
+        1. source test/bin/activate
+        2. python manage.py runserver
 ### Opción B: Forma manual
 
 abrir cmd
@@ -61,14 +74,15 @@ git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com
 cd Code_NUAM_Backend
 
 ### 2.Crear y activar entorno virtual
-Windows
+
+* **Windows
 
 python -m venv test
 
 test\Scripts\activate
 
 
-Linux / Mac
+* **Linux / Mac
 python3 -m venv test
 
 source test/bin/activate
@@ -89,19 +103,6 @@ python manage.py migrate
 ### 5. Ejecutar servidor de desarrollo
 
 python manage.py runserver
-
-## 👤 Crear superusuario (Admin)
-
-python manage.py createsuperuser
-
-Username: admin
-
-Email: admin@nuam.cl
-
-Password: Administrador.2025
-
-(El email debe ser válido según la configuración del proyecto).
-
 
 ## Método no interactivo (útil para scripts)
 ### Windows PowerShell
@@ -137,9 +138,14 @@ El proyecto **no** requiere que crees un superusuario manualmente. Se crean 3 us
 
 Después de la instalación (automática o manual), asegúrate de tener el entorno virtual activado y ejecuta:
 
+## En Windows
 ```bash
 # (Si no está activado) test\Scripts\activate
 python manage.py runserver
+El sistema estará disponible en http://127.0.0.1:8000/.
+
+## En linux 
+# (Si no está activado) source test/bin/activate
 El sistema estará disponible en http://127.0.0.1:8000/.
 
 🚀 Uso (Flujo de Roles)
