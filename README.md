@@ -19,183 +19,116 @@ Antes de comenzar, asegúrate de tener instalado:
 
 * Python 3.12 o superior
 * Git
-* Servidor MySQL (para la base de datos)
 * Navegador web (Chrome, Firefox, Edge)
 
-> ⚠️ Python y MySQL deben instalarse manualmente. No se pueden instalar automáticamente desde el proyecto.
+> ⚠️ Python debe instalarse manually. No se puede instalar automáticamente desde el proyecto.
 
 ---
 
 ## ⚡ Instalación
 
-### 1. Clonar el repositorio
+Tienes dos formas de instalar el proyecto. La automática es la recomendada.
 
-Clona el repositorio y entra a la carpeta:
+### Opción A: Instalación Automática (Recomendada)
 
-git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com/Saebloom/Code_NUAM_Backend.git)
-cd Code_NUAM_Backend
+Usa los scripts de instalación que preparan todo el entorno automáticamente.
 
-### 2.Crear y activar entorno virtual
-#### Windows
+* **En Windows:**
+    1.  Haz doble clic en el archivo `install.bat`.
+    2.  Espera a que la terminal termine de instalar todo.
 
-python -m venv test
+* **En Linux / Mac:**
+    1.  Otorga permisos de ejecución al script: `chmod +x install.sh`
+    2.  Ejecuta el script: `./install.sh`
 
-test\Scripts\activate
+Estos scripts crearán el entorno virtual `test/`, instalarán las dependencias y ejecutarán `migrate` para configurar la base de datos y crear los usuarios de prueba.
 
+### Opción B: Instalación Manual
 
-#### Linux / Mac
+1.  **Clonar el repositorio**
+    ```bash
+    git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com/Saebloom/Code_NUAM_Backend.git)
+    cd Code_NUAM_Backend
+    ```
 
-python3 -m venv test
+2.  **Crear y activar entorno virtual**
+    * **Windows**
+        ```bash
+        python -m venv test
+        test\Scripts\activate
+        ```
+    * **Linux / Mac**
+        ```bash
+        python3 -m venv test
+        source test/bin/activate
+        ```
 
-source test/bin/activate
+3.  **Instalar dependencias**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### 3. Instalar dependencias
+4.  **Aplicar migraciones y crear datos**
+    Este es el paso más importante. **No** necesitas correr `makemigrations`.
+    ```bash
+    python manage.py migrate
+    ```
+    > ℹ️ **Nota:** Este comando creará la base de datos `db.sqlite3` y ejecutará automáticamente `api/signals.py`, creando los 3 usuarios de prueba y los datos de ejemplo (Instrumentos, Mercados, etc.).
 
-pip install -r requirements.txt
+---
 
+## 👤 Cuentas de Prueba (Creadas Automáticamente)
 
-Nota: Este proyecto utiliza MySQL. Asegúrate de tener mysqlclient instalado y de configurar tu conexión local en settings.py o un archivo .env.
+El proyecto **no** requiere que crees un superusuario manualmente. Se crean 3 usuarios por defecto al ejecutar `migrate`:
 
+| Rol | Correo | Contraseña |
+| :--- | :--- | :--- |
+| **Administrador** | `admin@nuam.cl` | `adminpass123` |
+| **Supervisor** | `supervisor@nuam.cl` | `superpass123` |
+| **Corredor** | `corredor@nuam.cl` | `correpass123` |
 
-### 4. Aplicar migraciones
+---
 
-python manage.py makemigrations
+## 🚀 Ejecutar servidor de desarrollo
 
-python manage.py migrate
+Después de la instalación (automática o manual), asegúrate de tener el entorno virtual activado y ejecuta:
 
-<<<<<<< HEAD
-### 5. Ejecutar servidor de desarrollo:
-=======
-### 5. Ejecutar servidor de desarrollo
-
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
+```bash
+# (Si no está activado) test\Scripts\activate
 python manage.py runserver
+El sistema estará disponible en http://127.0.0.1:8000/.
 
-## 👤 Crear superusuario (Admin)
-
-python manage.py createsuperuser
-
-<<<<<<< HEAD
-Completa los datos solicitados:
-
-Username: admin@nuam.cl (Usa un email corporativo)
-Email: admin@nuam.cl
-Password: ContraseñaSegura123!
-=======
-Username: admin
-
-Email: admin@nuam.cl
-
-Password: Administrador.2025
-
-(El email debe ser válido según la configuración del proyecto).
-
-
-## Método no interactivo (útil para scripts)
-### Windows PowerShell
-
-$env:DJANGO_SUPERUSER_USERNAME="admin"
-
-$env:DJANGO_SUPERUSER_EMAIL="admin@example.com"
-
-$env:DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
-
-python manage.py createsuperuser --noinput
-
-### Linux / Mac (bash)
-
-export DJANGO_SUPERUSER_USERNAME=admin
-
-export DJANGO_SUPERUSER_EMAIL="admin@example.com"
-
-export DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
-
-python manage.py createsuperuser --noinput
-
-
-# 🚀 Uso (Flujo de Roles)
+🚀 Uso (Flujo de Roles)
 El sistema opera bajo 3 roles principales. El acceso al login principal (/) redirigirá al dashboard correspondiente según el usuario.
 
-### Administrador:
+Administrador:
+Gestión de Usuarios y Roles.
 
--Gestión de Usuarios y Roles (CRUD).
+Visualización de Logs/Auditoría completos.
 
--Visualización de Logs/Auditoría completos.
+Gestión de Respaldos del sistema.
 
--Gestión de Respaldos del sistema.
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
+Revisión del historial de Cargas Masivas.
 
--Revisión del historial de Cargas Masivas.
+Supervisor (Auditor):
+Rol de solo lectura.
 
-### Supervisor (Auditor):
+Consulta calificaciones registradas.
 
--Rol de solo lectura.
+Accede a registros completos de operaciones (Historial).
 
-<<<<<<< HEAD
-## 📂 Estructura del proyecto 📂 
+Genera reportes consolidados.
 
-Proyecto_NUAM/
-├─ api/ # Aplicación principal (CRUD y API)
-│ ├─ migrations/
-│ ├─ admin.py # Configuración del admin
-│ ├─ models.py
-│ ├─ views.py
-│ ├─ serializers.py
-│ ├─ signals.py
-│ └─ urls.py
-├─ nuam/ # Configuración principal de Django
-│ ├─ settings.py
-│ ├─ urls.py
-│ ├─ views.py
-│ ├─ wsgi.py
-│ └─ asgi.py
-├─ templates/ # Templates HTML (SPA y sitio Django)
-│ ├─ Admin/
-│ ├─ Corredor/
-│ ├─ Supervisor/
-│ └─ index.html
-├─ static/ # CSS, JS, imágenes
-├─ manage.py
-├─ db.sqlite3
-├─ requirements.txt # Dependencias del proyecto
-└─ README.md # Este archivo
+Corredor (Mantenedor):
+Rol de ingreso de datos.
 
----
+Realiza el CRUD (Registrar, Modificar, Eliminar) de calificaciones.
 
-## Dependencias
+Realiza Cargas Masivas vía archivos CSV.
 
-(Contenido de requirements.txt)
+Visualización de su propio historial de operaciones.
 
-> Se instalan automáticamente con:
-pip install -r requirements.txt
-
----
-
-## Notas importantes
-
-- Base de datos: **SQLite** por defecto.
-- Entorno virtual recomendado: `test`.
-- Superusuario tiene permisos completos (`is_staff` e `is_superuser`).
-- Mantener `DEBUG=True` solo para desarrollo.
-=======
--Consulta calificaciones registradas.
-
--Accede a registros completos de operaciones (Historial).
-
--Genera reportes consolidados.
-
-### Corredor (Mantenedor):
-
--Rol de ingreso de datos.
-
--Realiza el CRUD (Registrar, Modificar, Eliminar) de calificaciones.
-
--Realiza Cargas Masivas vía archivos CSV.
-
--Visualización de su propio historial de operaciones.
-
-# 📂 Estructura del proyecto 📂
-
+📂 Estructura del proyecto 📂
 Code_NUAM_Backend/
 ├─ api/         # App principal (models, views, serializers, signals)
 ├─ nuam/        # Configuración del proyecto (settings.py, urls.py)
@@ -203,61 +136,14 @@ Code_NUAM_Backend/
 ├─ static/      # CSS, JS, Imágenes
 ├─ logs/        # Archivos de log (ej. nuam.log)
 ├─ manage.py
-├─ db.sqlite3   # (Solo para desarrollo inicial, la BD principal es MySQL)
 ├─ requirements.txt
+├─ install.bat  # Script de instalación Windows
+├─ install.sh   # Script de instalación Linux/Mac
 ├─ .gitignore
-└─ README.md    # Este archivo 
+└─ README.md    # Este archivo
+📝 Notas importantes
+Base de datos: El proyecto usa SQLite por defecto. La base de datos (db.sqlite3) se crea y configura automáticamente con migrate.
 
-# 📦 Dependencias 
+Migraciones: Solo necesitas ejecutar python manage.py migrate. No ejecutes makemigrations a menos que modifiques activamente los archivos models.py.
 
-#### ---Se instalan automáticamente con: pip install -r requirements.txt ---
-asgiref==3.9.2
-Django==5.2.6
-django-cors-headers==4.9.0
-django-jazzmin==3.0.1
-djangorestframework==3.15.2
-djangorestframework_simplejwt==5.5.1
-drf-yasg==1.21.11
-inflection==0.5.1
-packaging==25.0
-PyJWT==2.10.1
-pytz==2025.2
-PyYAML==6.0.3
-sqlparse==0.5.3
-typing_extensions==4.15.0
-tzdata==2025.2
-uritemplate==4.2.0
-
-
-
-# ✨ Tips rápidos para editores
-### Actualizar dependencias:
-
-pip install <paquete>
-
-### Subir cambios a git:
-git add .
-
-git commit -m "Mensaje breve y claro"
-
-git push origin main
-
-pip freeze > requirements.txt
-
-### Levantar servidor:
-
-python manage.py runserver
-
-
-# 📝 Notas importantes
--Base de datos: El proyecto está diseñado para MySQL.
-
-- Migraciones: Deben generarse y aplicarse localmente (makemigrations + migrate).
-
-- Entorno virtual: Se recomienda usar un entorno virtual (test, venv, etc.).
-
-- Superusuario: Tiene permisos completos (is_staff e is_superuser).
-
-- Debug: Mantener DEBUG=True solo para desarrollo; en producción usar DEBUG=False y configurar ALLOWED_HOSTS.
-
->>>>>>> 2a97614c31f07e96d1f08494c1912fc371e88871
+Debug: DEBUG=True está activado por defecto para desarrollo.
