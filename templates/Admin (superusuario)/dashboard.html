@@ -322,6 +322,10 @@
             max-height: 90vh; /* Altura máxima */
             overflow-y: auto; /* Scroll si el formulario es muy largo */
         }
+        /* 🛠️ Modal más pequeño para Respaldos */
+        #modal-crear-respaldo .modal-content {
+            max-width: 500px;
+        }
 
         .modal-header {
             display: flex;
@@ -366,6 +370,11 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 0.95rem;
+        }
+        /* 🛠️ Estilo para input readonly */
+        .form-group input[readonly] {
+            background-color: #e9ecef;
+            color: #495057;
         }
         
         /* Grupo de campos en línea (País y RUT) */
@@ -531,7 +540,7 @@
                                             <th>Email</th>
                                             <th>Nombres</th>
                                             <th>Apellidos</th>
-                                            <th>RUT / Documento</th> <!-- 🛠️ NUEVA COLUMNA -->
+                                            <th>RUT / Documento</th>
                                             <th>Rol</th>
                                             <th>Estado</th>
                                             <th>Acciones</th>
@@ -646,15 +655,16 @@
                 <div id="view-respaldos" class="content-view">
                     <div class="content-header">
                         <h2>Gestión de Respaldos</h2>
-                        <button class="btn-primary" onclick="generarRespaldo()">
+                        <!-- 🛠️ Botón actualizado para abrir el nuevo modal -->
+                        <button class="btn-primary" onclick="abrirModalRespaldo()">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
-                            Generar Respaldo
+                            Registrar Respaldo
                         </button>
                     </div>
                     
                     <div class="card">
                         <div class="table-container">
-                            <table>
+                            <table id="tabla-respaldos">
                                 <thead>
                                     <tr>
                                         <th>Fecha</th>
@@ -664,7 +674,8 @@
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <!-- 🛠️ Tbody ahora es dinámico -->
+                                <tbody id="respaldos-tbody">
                                     <tr>
                                         <td>2025-11-05 03:00:00</td>
                                         <td>Sistema (Automático)</td>
@@ -837,7 +848,6 @@
                 </div>
             </div>
             
-            <!-- Campos adicionales del frontend (Género, Contacto, Dirección) -->
             <div class="form-group-inline">
                 <div class="form-group" style="flex-basis: 50%;">
                     <label>Género</label>
@@ -883,6 +893,49 @@
       </div>
     </div>
 
+    <!-- 🛠️ NUEVO: Modal para Registrar Respaldo Manual -->
+    <div id="modal-crear-respaldo" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Registrar Respaldo Manual</h2>
+          <span class="modal-close" onclick="closeModal('modal-crear-respaldo')">&times;</span>
+        </div>
+        
+        <div class="modal-body">
+            <form onsubmit="handleCrearRespaldo(event)">
+                <div class="form-group">
+                    <label for="respaldo-fecha">Fecha de Respaldo</label>
+                    <input type="date" id="respaldo-fecha" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Usuario (Quien registra)</label>
+                    <input type="text" id="respaldo-usuario" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="respaldo-archivo">Nombre del Archivo</label>
+                    <input type="text" id="respaldo-archivo" placeholder="backup_manual_20251110.sql.gz" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="respaldo-estado">Estado</label>
+                    <select id="respaldo-estado" required>
+                        <option value="Completo">Completo</option>
+                        <option value="Interrumpido">Interrumpido</option>
+                        <option value="Con Error">Con Error</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-crear-respaldo')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+      </div>
+    </div>
+
 
     <!-- ⬇️ ⬇️ ⬇️ SECCIÓN DE SCRIPT ACTUALIZADA ⬇️ ⬇️ ⬇️ -->
     <script>
@@ -893,7 +946,8 @@
         const API_BASE = "http://127.0.0.1:8000/api";
         const token = localStorage.getItem('access'); // Obtiene el token del Admin
         let editUserId = null; // Variable global para saber qué usuario se edita
-        let currentUserID = null; // 🛠️ NUEVO: ID del admin logueado
+        let currentUserID = null; // 🛠️ ID del admin logueado
+        let adminUsername = "Admin"; // 🛠️ Nombre del admin logueado
 
         /**
          * Carga inicial de datos cuando el DOM está listo.
@@ -966,8 +1020,65 @@
         }
         
         // --- Funciones de Botones (Simuladas) ---
-        function generarRespaldo() {
-            alert("Acción: Iniciar generación de nuevo respaldo.");
+        
+        // 🛠️ NUEVA LÓGICA DE RESPALDOS
+        function getTodayDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        
+        function abrirModalRespaldo() {
+            const today = getTodayDate();
+            
+            // 1. Set min date para la fecha (no días anteriores)
+            const fechaInput = document.getElementById('respaldo-fecha');
+            fechaInput.setAttribute('min', today);
+            fechaInput.value = today; // Default a hoy
+
+            // 2. Pre-rellenar usuario
+            document.getElementById('respaldo-usuario').value = adminUsername;
+            
+            // 3. Reset otros campos
+            document.getElementById('respaldo-archivo').value = `backup_manual_${today.replace(/-/g, '')}.sql.gz`;
+            document.getElementById('respaldo-estado').value = "Completo";
+
+            // 4. Show modal
+            showModal('modal-crear-respaldo');
+        }
+        
+        function handleCrearRespaldo(event) {
+            event.preventDefault();
+            
+            const fecha = document.getElementById('respaldo-fecha').value;
+            const usuario = document.getElementById('respaldo-usuario').value;
+            const archivo = document.getElementById('respaldo-archivo').value;
+            const estado = document.getElementById('respaldo-estado').value;
+
+            // Simulación de API (en un caso real, esto llamaría al backend)
+            alert("Simulación: Respaldo manual registrado.");
+            
+            // Añadir a la tabla dinámicamente
+            const tbody = document.getElementById('respaldos-tbody');
+            const newRow = `
+                <tr>
+                    <td>${fecha}</td>
+                    <td>${usuario}</td>
+                    <td>${archivo}</td>
+                    <td>${estado}</td>
+                    <td class="action-buttons">
+                        <button class="btn-icon btn-download" title="Descargar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                        <button class="btn-icon btn-restore" title="Restaurar este respaldo" onclick="confirmarRestauracion('${archivo}')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M142.9 142.9c62.2-62.2 162.7-62.2 224.9 0s62.2 162.7 0 224.9s-162.7 62.2-224.9 0s-62.2-162.7 0-224.9zM416 256c0-88.4-71.6-160-160-160S96 167.6 96 256s71.6 160 160 160s160-71.6 160-160zM256 48a208 208 0 1 0 0 416 208 208 0 1 0 0-416zm-48 112c0-13.3-10.7-24-24-24s-24 10.7-24 24v96c0 13.3 10.7 24 24 24h96c13.3 0 24-10.7 24-24s-10.7-24-24-24H208V160z"/></svg></button>
+                        <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                    </td>
+                </tr>
+            `;
+            // Añadir al principio de la tabla
+            tbody.insertAdjacentHTML('afterbegin', newRow);
+            
+            closeModal('modal-crear-respaldo');
         }
         
         function confirmarRestauracion(nombreArchivo) {
@@ -999,15 +1110,14 @@
                 if (!res.ok) throw new Error('Sesión inválida. Por favor, inicie sesión de nuevo.');
                 const user = await res.json();
                 
-                // 🛠️ CORRECCIÓN: Usar first_name y last_name para el perfil
                 const displayName = user.first_name ? `${user.first_name} ${user.last_name || ''}` : user.username;
-                document.querySelector('#profile-name').textContent = displayName.trim();
+                adminUsername = displayName.trim(); // Guardar nombre de admin
+                currentUserID = user.id; // Guardar ID de admin
+                
+                document.querySelector('#profile-name').textContent = adminUsername;
                 document.querySelector('#profile-role').textContent = user.rol;
                 const inicial = (user.first_name || user.username).charAt(0).toUpperCase();
                 document.querySelector('.sidenav-profile .sidenav-profile-pic').textContent = inicial;
-                
-                // 🛠️ NUEVO: Guardar el ID del usuario actual
-                currentUserID = user.id;
 
             } catch (err) {
                 alert(err.message);
