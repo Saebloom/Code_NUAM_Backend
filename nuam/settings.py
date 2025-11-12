@@ -68,7 +68,7 @@ WSGI_APPLICATION = "nuam.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'NUAM',
+        'NAME': 'nuam',  # 👈 minúscula, igual que en MySQL
         'USER': 'nuamuser',
         'PASSWORD': 'NuamUser2025',
         'HOST': '127.0.0.1',  # o 'localhost'
@@ -79,7 +79,6 @@ DATABASES = {
         },
     }
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
