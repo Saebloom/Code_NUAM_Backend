@@ -266,14 +266,25 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin] 
 
     def get_queryset(self):
-        # (Lógica de caché...)
-        queryset = Calificacion.objects.select_related(
-            'usuario', 'instrumento', 'mercado', 'estado'
-        ).prefetch_related(
-            'tributarias', 'tributarias__factores'
-        ).filter(is_active=True).order_by('-created_at')
-        # (Lógica de caché...)
-        return queryset
+            """
+            Filtra las calificaciones.
+            Admin y Supervisor ven todo.
+            Corredor ve solo lo suyo.
+            """
+            user = self.request.user
+            
+            queryset = Calificacion.objects.select_related(
+                'usuario', 'instrumento', 'mercado', 'estado'
+            ).prefetch_related(
+                'tributarias', 'tributarias__factores'
+            ).filter(is_active=True).order_by('-created_at')
+
+            # ✅ CAMBIO: Añadimos la comprobación del grupo "Supervisor"
+            if user.is_staff or user.groups.filter(name="Supervisor").exists():
+                return queryset # Devuelve todo
+            else:
+                # Los demás (Corredor) solo ven sus propias calificaciones
+                return queryset.filter(usuario=user)
 
     def retrieve(self, request, *args, **kwargs):
         # ...
@@ -337,25 +348,24 @@ class FactorTributarioViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
 
 class LogViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Muestra el historial de Logs.
-    Los Admins ven todo. Los demás usuarios solo ven sus propios logs.
-    """
-    serializer_class = LogSerializer
-    permission_classes = [IsAuthenticated] # <-- 1. CAMBIO DE PERMISO
-
-    def get_queryset(self):
-        """
-        Filtra los logs para que solo vean los suyos.
-        """
-        user = self.request.user
-        if user.is_staff:
-            # El Admin ve todo
-            return Log.objects.all().order_by('-fecha')
-        else:
-            # Los demás solo ven sus propias acciones
-            return Log.objects.filter(usuario=user).order_by('-fecha')
-
+        # ... (código serializer y permission_classes) ...
+        permission_classes = [IsAuthenticated]
+        serializer_class = LogSerializer
+        
+        def get_queryset(self):
+            """
+            Filtra los logs.
+            Admin y Supervisor ven todo.
+            Corredor ve solo sus propias acciones.
+            """
+            user = self.request.user
+            
+            # ✅ CAMBIO: Añadimos la comprobación del grupo "Supervisor"
+            if user.is_staff or user.groups.filter(name="Supervisor").exists():
+                return Log.objects.all().order_by('-fecha')
+            else:
+                # Los demás (Corredor) solo ven sus propias acciones
+                return Log.objects.filter(usuario=user).order_by('-fecha')
 # (Hacemos lo mismo para Auditoria, por si acaso)
 class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
     """
