@@ -1,5 +1,9 @@
 # 🚀 Proyecto: Sistema de Calificaciones Tributarias (TIHI43)
 
+Integrantes: 
+Valeska Aguirre
+Nicolas Espejo
+
 Aplicación web desarrollada con **Django** y **Django REST Framework**, que incluye:
 
 * Panel de administración (Administrador)
