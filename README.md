@@ -38,12 +38,12 @@ Antes de comenzar, asegúrate de tener instalado:
     abrir cmd
 
     Clona el repositorio y entra a la carpeta:
-    ```bash
+    
     git clone [https://github.com/Saebloom/Code_NUAM_Backend.git]
 
     (https://github.com/Saebloom/Code_NUAM_Backend.git)
     cd Code_NUAM_Backend
-    ```
+    
 
     Usa los scripts de instalación que preparan todo el entorno automáticamente.
     
@@ -54,7 +54,7 @@ Antes de comenzar, asegúrate de tener instalado:
         2.  Espera a que la terminal termine de instalar todo.
 
     * **En Linux / Mac:**
-        1.  Otorga permisos de ejecución al script: `chmod +x            installinux.sh`
+        1.  Otorga permisos de ejecución al script: `chmod +x installinux.sh`
         2.  Ejecuta el script: `./installinux.sh`
 
     Estos scripts crearán el entorno virtual `test/`, instalarán las dependencias y ejecutarán `migrate` para configurar la base de datos y crear los usuarios de prueba.
@@ -143,7 +143,7 @@ El proyecto **no** requiere que crees un superusuario manualmente. Se crean 3 us
 Después de la instalación (automática o manual), asegúrate de tener el entorno virtual activado y ejecuta:
 
 ## En Windows
-```bash
+
 # (Si no está activado) test\Scripts\activate
 python manage.py runserver
 El sistema estará disponible en http://127.0.0.1:8000/.
