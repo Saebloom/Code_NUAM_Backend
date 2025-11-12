@@ -489,46 +489,41 @@
             <main class="main-content">
 
                 <div id="view-mantenedor" class="content-view active">
-                    <div class="content-header">
-                        <h2>Mantenedor de Calificaciones</h2>
-                        <button class="btn-primary" onclick="showView('view-registro-manual', document.querySelector('.sidenav-nav button:nth-child(2)'))">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
-                            Nuevo Registro
-                        </button>
+                <div class="content-header">
+                    <h2>Mantenedor de Calificaciones</h2>
+                    <button class="btn-primary" onclick="showView('view-registro-manual', document.querySelector('.sidenav-nav button:nth-child(2)'))">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                        Nuevo Registro
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="filters">
+                        <input type="text" id="filter-cal-id" placeholder="ID Calificación...">
+                        <input type="number" id="filter-cal-anio" placeholder="Año Comercial (AAAA)">
+                        <button class="btn-primary" onclick="handleSearch()">Buscar</button>
                     </div>
-                    
-                    <div class="card">
-                        <div class="filters">
-                            <input type="text" id="filter-mantenedor-id" placeholder="ID Calificación...">
-                            <select id="filter-mantenedor-mercado">
-                                <option value="">Todo Mercado</option>
-                                </select>
-                            <select id="filter-mantenedor-origen">
-                                <option value="">Todo Origen</option>
-                                </select>
-                            <input type="number" id="filter-mantenedor-anio" placeholder="Año Comercial (AAAA)">
-                        </div>
-                        
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Monto Factor</th>
-                                        <th>F. Emisión</th>
-                                        <th>F. Pago</th>
-                                        <th>Instrumento</th>
-                                        <th>Mercado</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    </tbody>
-                            </table>
-                        </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Monto Factor</th>
+                                    <th>F. Emisión</th>
+                                    <th>F. Pago</th>
+                                    <th>Instrumento</th>
+                                    <th>Mercado</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
 
                 <div id="view-registro-manual" class="content-view">
                     <div class="content-header">
@@ -844,11 +839,10 @@
         /**
          * Llama a la API para obtener las CALIFICACIONES DEL CORREDOR
          */
-        async function fetchCorredorCalificaciones() {
+        async function fetchCorredorCalificaciones(queryParams = "") {
             if (!token) return;
             try {
-                // Endpoint para MIS CALIFICACIONES
-                const res = await fetch(`${API_BASE}/calificaciones/mis_calificaciones/`, { 
+                const res = await fetch(`${API_BASE}/calificaciones/mis_calificaciones/${queryParams}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error('No se pudo cargar la lista de calificaciones.');
@@ -859,6 +853,33 @@
                 alert(err.message);
             }
         }
+
+        /**
+         * ✅ NUEVA FUNCIÓN: Lee los filtros y vuelve a llamar a la API
+         */
+        function handleSearch() {
+            const calId = document.getElementById('filter-cal-id').value;
+            const anio = document.getElementById('filter-cal-anio').value;
+            
+            // (Solo para Supervisor)
+            // const email = document.getElementById('filter-cal-email').value;
+
+            const params = new URLSearchParams();
+            if (calId) params.append('id', calId);
+            if (anio) params.append('anio', anio);
+            
+            // (Solo para Supervisor)
+            // if (email) params.append('usuario_email', email);
+
+            // Llama a la función de fetch correcta
+            if (window.fetchCorredorCalificaciones) {
+                fetchCorredorCalificaciones(`?${params.toString()}`);
+            } else if (window.fetchConsultaCalificaciones) {
+                fetchConsultaCalificaciones(`?${params.toString()}`);
+            }
+        }
+
+
 
         /**
          * Dibuja la tabla de calificaciones con los datos de la API

@@ -495,9 +495,10 @@
                     
                     <div class="card">
                         <div class="filters">
-                            <input type="text" id="filter-consulta-id" placeholder="ID Calificación...">
-                            <input type="text" id="filter-consulta-corredor" placeholder="Email Corredor...">
-                            <input type="number" id="filter-consulta-anio" placeholder="Año Comercial (AAAA)">
+                            <input type="text" id="filter-cal-id" placeholder="ID Calificación...">
+                            
+                            <input type="number" id="filter-cal-anio" placeholder="Año Comercial (AAAA)">
+                            <button class="btn-primary" onclick="handleSearch()">Buscar</button>
                         </div>
                         
                         <div class="table-container">
@@ -547,9 +548,21 @@
                     <div class="content-header">
                         <h2>Generador de Reportes</h2>
                     </div>
+                    
                     <div class="card">
-                        <p>Esta sección (Reporte Consolidado / Reporte Específico) está pendiente de implementación.</p>
+                        <div class="form-group">
+                            <label>Tipo de Reporte</label>
+                            <p style="margin-bottom: 1rem;">Seleccione el tipo de reporte que desea generar.</p>
+                            <div class="form-group-inline" style="gap: 1.5rem;">
+                                <button class="btn-primary" style="flex-basis: 200px;" onclick="showReportModal('consolidado')">
+                                    Reporte Consolidado
+                                </button>
+                                <button class="btn-secondary" style="flex-basis: 200px;" onclick="showReportModal('especifico')">
+                                    Reporte Específico
+                                </button>
+                            </div>
                         </div>
+                    </div>
                 </div>
                 
             </main>
@@ -656,7 +669,67 @@
             </div>
         </div>
     </div>
+    <div id="modal-reporte-consolidado" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Reporte Consolidado</h2>
+                <span class="modal-close" onclick="closeModal('modal-reporte-consolidado')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault(); generateConsolidatedReport();">
+                    
+                    <div class="form-group">
+                        <label for="reporte-mercado">Filtrar por Mercado</label>
+                        <select id="reporte-mercado">
+                            <option value="">Cargando mercados...</option>
+                        </select>
+                    </div>
 
+                    <div class="form-group">
+                        <label for="reporte-estado">Filtrar por Estado</label>
+                        <select id="reporte-estado">
+                            <option value="">Cargando estados...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reporte-usuario">Filtrar por Usuario</label>
+                        <select id="reporte-usuario">
+                            <option value="">Cargando usuarios...</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-reporte-consolidado')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Confirmar Reporte</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-reporte-especifico" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Reporte Específico</h2>
+                <span class="modal-close" onclick="closeModal('modal-reporte-especifico')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault(); generateSpecificReport();">
+                    <div class="form-group">
+                        <label for="reporte-calificacion">Seleccionar Calificación</label>
+                        <select id="reporte-calificacion" required>
+                            <option value="">Cargando calificaciones...</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('modal-reporte-especifico')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Confirmar Reporte</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
         // 🛠️ CONFIGURACIÓN API
@@ -684,6 +757,21 @@
             }
         }
         
+        function showModal(modalId, isNested = false) {
+        const modal = document.getElementById(modalId);
+        if(modal) {
+            modal.classList.add('active');
+        }
+    }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+
         // (Las funciones de Modal ya no son necesarias aquí, se eliminaron)
 
         // ---------------------------------------------------
@@ -714,11 +802,10 @@
         /**
          * Llama a la API para obtener TODAS las calificaciones (Admin/Supervisor)
          */
-        async function fetchConsultaCalificaciones() {
+        async function fetchConsultaCalificaciones(queryParams = "") {
             if (!token) return;
             try {
-                // ✅ CAMBIO: Llama al endpoint principal, no a 'mis_calificaciones'
-                const res = await fetch(`${API_BASE}/calificaciones/`, { 
+                const res = await fetch(`${API_BASE}/calificaciones/${queryParams}`, { 
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error('No se pudo cargar la lista de calificaciones.');
@@ -729,6 +816,32 @@
                 alert(err.message);
             }
         }
+
+        /**
+         * ✅ NUEVA FUNCIÓN: Lee los filtros y vuelve a llamar a la API
+         */
+        function handleSearch() {
+            const calId = document.getElementById('filter-cal-id').value;
+            const anio = document.getElementById('filter-cal-anio').value;
+            
+            // (Solo para Supervisor)
+            // const email = document.getElementById('filter-cal-email').value;
+
+            const params = new URLSearchParams();
+            if (calId) params.append('id', calId);
+            if (anio) params.append('anio', anio);
+            
+            // (Solo para Supervisor)
+            // if (email) params.append('usuario_email', email);
+
+            // Llama a la función de fetch correcta
+            if (window.fetchCorredorCalificaciones) {
+                fetchCorredorCalificaciones(`?${params.toString()}`);
+            } else if (window.fetchConsultaCalificaciones) {
+                fetchConsultaCalificaciones(`?${params.toString()}`);
+            }
+        }
+
 
         /**
          * Dibuja la tabla de Consulta de Calificaciones
@@ -834,6 +947,168 @@
             window.location.href = '/'; 
         }
 
+        
+        async function populateSelect(endpoint, selectId, defaultOption, textFieldName) {
+            const selectElement = document.getElementById(selectId);
+            selectElement.innerHTML = `<option value="">Cargando...</option>`;
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error(`Error cargando ${selectId}`);
+                
+                const data = await res.json();
+                const items = data.results || data; // Maneja paginación o no
+
+                selectElement.innerHTML = `<option value="">${defaultOption}</option>`; 
+                
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = `${item.id} - ${item[textFieldName]}`; // Usa el nombre de campo correcto
+                    selectElement.appendChild(option);
+                });
+            } catch (err) {
+                console.error(err.message);
+                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
+            }
+        }
+        
+        /**
+         * Función para poblar el <select> de Corredores (Usuarios)
+         */
+        /**
+     * ✅ CORREGIDO: Función para poblar el <select> de TODOS los Usuarios
+     */
+        async function populateUsuariosSelect() {
+            const selectId = 'reporte-usuario';
+            const selectElement = document.getElementById(selectId);
+            selectElement.innerHTML = `<option value="">Cargando...</option>`;
+            try {
+                // Usamos el endpoint que filtra por roles (ahora tenemos permiso)
+                const res = await fetch(`${API_BASE}/users/by_role/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Error cargando usuarios');
+
+                const data = await res.json();
+
+                selectElement.innerHTML = `<option value="">Todos los Usuarios</option>`; 
+
+                // Función auxiliar para añadir usuarios a la lista
+                const addUsersToSelect = (users, rol) => {
+                    users.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = `${item.email} (${rol})`; 
+                        selectElement.appendChild(option);
+                    });
+                };
+
+                // Añadimos todos los roles
+                addUsersToSelect(data.administradores, 'Admin');
+                addUsersToSelect(data.supervisores, 'Supervisor');
+                addUsersToSelect(data.corredores, 'Corredor');
+
+            } catch (err) {
+                console.error(err.message);
+                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
+            }
+        }
+        
+        /**
+         * Función para poblar el <select> de Calificaciones (Reporte Específico)
+         */
+        async function populateCalificacionesSelect() {
+            const selectId = 'reporte-calificacion';
+            const selectElement = document.getElementById(selectId);
+            selectElement.innerHTML = `<option value="">Cargando...</option>`;
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Error cargando calificaciones');
+                
+                const data = await res.json();
+                const items = data.results || data; 
+
+                selectElement.innerHTML = `<option value="">Seleccione una Calificación...</option>`; 
+                
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    // Muestra texto más descriptivo
+                    option.textContent = `ID ${item.id} (${item.instrumento.nombre}) - ${item.monto_factor}`; 
+                    selectElement.appendChild(option);
+                });
+            } catch (err) {
+                console.error(err.message);
+                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
+            }
+        }
+
+        /**
+         * Carga TODOS los menús desplegables de los modales de reporte
+         */
+        function loadReportDropdowns() {
+            // Reutilizamos la función genérica para Mercados y Estados
+            populateSelect('/mercados/', 'reporte-mercado', 'Todos los Mercados', 'nombre');
+            populateSelect('/estados/', 'reporte-estado', 'Todos los Estados', 'nombre');
+            
+            // Usamos las funciones específicas para Usuarios y Calificaciones
+            populateUsuariosSelect();
+            populateCalificacionesSelect();
+        }
+
+        /**
+         * Muestra el modal de reporte correcto
+         */
+        function showReportModal(tipo) {
+            if (tipo === 'consolidado') {
+                showModal('modal-reporte-consolidado');
+            } else if (tipo === 'especifico') {
+                showModal('modal-reporte-especifico');
+            }
+        }
+
+        /**
+         * Simula la generación de un reporte consolidado (AHORA LEE LOS 3 FILTROS)
+         */
+        async function generateConsolidatedReport() {
+            // ✅ Lee los 3 valores
+            const mercadoId = document.getElementById('reporte-mercado').value;
+            const estadoId = document.getElementById('reporte-estado').value;
+            const usuarioId = document.getElementById('reporte-usuario').value;
+            
+            alert(`Simulando: Generando reporte consolidado con:\n
+- Mercado ID: ${mercadoId || 'Todos'}
+- Estado ID: ${estadoId || 'Todos'}
+- Usuario ID: ${usuarioId || 'Todos'}
+            `);
+            
+            // En un caso real, la URL sería:
+            // /api/reports/consolidated/?mercado_id=${mercadoId}&estado_id=${estadoId}&usuario_id=${usuarioId}
+            
+            closeModal('modal-reporte-consolidado');
+        }
+
+        /**
+         * Simula la generación de un reporte específico
+         */
+        async function generateSpecificReport() {
+            const calificacionId = document.getElementById('reporte-calificacion').value;
+            
+            if (!calificacionId) {
+                alert("Por favor, seleccione una calificación específica.");
+                return;
+            }
+            
+            alert(`Simulando: Generando reporte específico para Calificación ID: ${calificacionId}...`);
+            
+            closeModal('modal-reporte-especifico');
+        }
+
+
         // ---------------------------------------------------
         // ✅ 5. INICIALIZACIÓN
         // ---------------------------------------------------
@@ -845,11 +1120,16 @@
                 return;
             }
             loadProfile();  
-            
-            // ✅ CAMBIO: Llama a las nuevas funciones
             fetchConsultaCalificaciones(); 
-            fetchHistorial(); 
+            fetchHistorial();
+            
+            // ✅ LÍNEA AÑADIDA: Carga los menús de los modales de reporte
+            loadReportDropdowns(); 
         };
+    
+        
+
+
         
     </script>
 

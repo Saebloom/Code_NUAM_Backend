@@ -557,7 +557,13 @@
                     </div>
 
                     <div id="tab-users" class="inner-tab-content active">
-                        <div class="card">
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <div class="filters">
+                                <input type="email" id="filter-user-email" placeholder="Filtrar por email...">
+                                <button class="btn-primary" onclick="handleUserSearch()">Buscar</button>
+                            </div>
+                        </div>
+                            <div class="card">
                             <div class="table-container">
                                 <table>
                                     <thead>
@@ -656,7 +662,7 @@
                                 <option value="update">Actualización</option>
                                 <option value="delete">Eliminación</option>
                             </select>
-                            <input type="text" id="filter-log-usuario" placeholder="Filtrar por usuario...">
+                            <button class="btn-primary" onclick="handleLogSearch()">Buscar</button>
                         </div>
                         
                         <div class="table-container">
@@ -984,7 +990,8 @@
                 return;
             }
             loadProfile();  // Carga el perfil del Admin en el Sidenav
-            fetchUsers();   // Carga la lista de usuarios en la tabla
+            fetchUsers();
+            fetchLogs();   
         };
 
         /**
@@ -1153,9 +1160,9 @@
         /**
          * Obtiene la lista de TODOS los usuarios desde la API
          */
-        async function fetchUsers() {
+        async function fetchUsers(queryParams = "") {
             try {
-                const res = await fetch(`${API_BASE}/users/`, { 
+                const res = await fetch(`${API_BASE}/users/${queryParams}`, { 
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error('No se pudo cargar la lista de usuarios.');
@@ -1167,6 +1174,93 @@
                 alert(err.message);
             }
         }
+        
+
+        /**
+     * ✅ NUEVO: Llama a la API para obtener el historial de Logs
+     */
+    async function fetchLogs(queryParams = "") {
+        if (!token) return;
+        const tbody = document.getElementById("logs-tbody");
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Cargando logs...</td></tr>';
+
+        try {
+            const res = await fetch(`${API_BASE}/logs/${queryParams}`, { 
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('No se pudo cargar el historial.');
+
+            const logs = await res.json();
+            renderLogsTable(logs.results || logs); 
+        } catch (err) {
+            alert(err.message);
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Error al cargar el historial.</td></tr>';
+        }
+    }
+
+    /**
+     * ✅ NUEVO: Dibuja la tabla de historial
+     */
+    function renderLogsTable(logs) {
+        const tbody = document.getElementById("logs-tbody");
+        tbody.innerHTML = ""; 
+
+        if (!logs || logs.length === 0) {
+             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay operaciones en el historial.</td></tr>';
+             return;
+        }
+
+        logs.forEach(log => {
+            const fecha = new Date(log.fecha).toLocaleString('es-CL');
+            const usuarioNombre = log.usuario || 'Sistema'; 
+
+            const row = `
+                <tr>
+                    <td>${fecha}</td>
+                    <td>${log.accion}</td>
+                    <td>${usuarioNombre}</td>
+                    <td>${log.detalle}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    /**
+     * ✅ NUEVO: Lee los filtros de Log y vuelve a llamar a fetchLogs
+     */
+    function handleLogSearch() {
+        const fecha = document.getElementById('filter-log-fecha').value;
+        const accion = document.getElementById('filter-log-accion').value;
+        const usuario = document.getElementById('filter-log-usuario').value;
+
+        const params = new URLSearchParams();
+        // (Tu API aún no filtra por esto, pero el JS está listo)
+        // if (fecha) params.append('fecha', fecha);
+        // if (accion) params.append('accion', accion);
+        // if (usuario) params.append('usuario', usuario);
+
+        fetchLogs(`?${params.toString()}`);
+    }
+
+
+
+        /**
+         * ✅ NUEVA FUNCIÓN: Lee los filtros y vuelve a llamar a fetchUsers
+         */
+        function handleUserSearch() {
+            const email = document.getElementById('filter-user-email').value;
+            
+            // Construye la cadena de consulta (query string)
+            const params = new URLSearchParams();
+            if (email) {
+                params.append('email', email);
+            }
+            
+            // Llama a fetchUsers con los filtros
+            fetchUsers(`?${params.toString()}`);
+        }
+
 
         // ---------------------------------------------------
         // 🛠️ TU LÓGICA DE TABLA Y CRUD (CONECTADA)
@@ -1328,7 +1422,7 @@
             }
             
             try {
-                const res = await fetch(`${API_BASE}/users/${userId}/disable/`, {
+                const res = await fetch(`${API_BASE}/users/${userId}/disable_user/`, { 
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
@@ -1357,7 +1451,7 @@
                 return;
             }
             try {
-                const res = await fetch(`${API_BASE}/users/${userId}/enable/`, { 
+                const res = await fetch(`${API_BASE}/users/${userId}/enable_user/`, { 
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
@@ -1386,7 +1480,7 @@
             }
             
             try {
-                const res = await fetch(`${API_BASE}/users/${userId}/delete/`, {
+                const res = await fetch(`${API_BASE}/users/${userId}/delete_permanent/`, { 
                     method: 'DELETE', // Método DELETE
                     headers: { 
                         'Authorization': `Bearer ${token}`,

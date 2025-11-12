@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
+from django.db import models
 from django.utils import timezone
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view, permission_classes
@@ -75,23 +76,39 @@ def login_nuam(request):
 # VISTAS DE USUARIOS (ADMIN)
 # =============================================================
 
+# =============================================================
+# VISTAS DE USUARIOS (ADMIN)
+# =============================================================
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gestionar Usuarios.
     """
-    queryset = Usuario.objects.all().order_by('id')
+    # queryset = Usuario.objects.all().order_by('id') # <--- Quitamos esto
     serializer_class = UserSerializer
 
-    # 🔽 2. ESTA ES LA CORRECCIÓN CRÍTICA
+    # --- ✅ AQUÍ ESTÁ EL MÉTODO get_queryset CORREGIDO ---
+    def get_queryset(self):
+        """
+        Sobrescribe el queryset base para añadir filtros.
+        """
+        queryset = Usuario.objects.all().order_by('id')
+        
+        # --- Lógica de filtro (ahora dentro de un método) ---
+        email = self.request.query_params.get('email', None)
+        if email is not None:
+            # Filtra por email (username) o por email real
+            queryset = queryset.filter(models.Q(username__icontains=email) | models.Q(email__icontains=email))
+            
+        return queryset
+    # --- FIN DEL get_queryset ---
+
     def get_permissions(self):
-        """
-        Asigna permisos basados en la acción (el 'endpoint' llamado).
-        """
+        
         if self.action == 'create':
-            # 'create' es el registro público del index.html
             permission_classes = [AllowAny]
-        elif self.action == 'me':
-            # 'me' debe ser accesible para CUALQUIER usuario logueado
+        elif self.action == 'me' or self.action == 'by_role': # <-- AÑADIDO AQUÍ
+            # 'me' y 'by_role' son accesibles para CUALQUIER usuario logueado
             permission_classes = [IsAuthenticated]
         else:
             # El resto (list, update, delete, admin_create) es solo para Admins
@@ -102,6 +119,7 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Maneja el REGISTRO PÚBLICO desde index.html.
         """
+        # ... (Tu código de 'create' sigue igual) ...
         email = request.data.get('email', '').lower().strip()
         password = request.data.get('password')
         rol_name = request.data.get('rol', 'corredor') 
@@ -134,13 +152,19 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Crea un usuario desde el panel de admin (dashboard.html), asignando un rol.
         """
+        # ... (Tu código de 'admin_create' sigue igual) ...
         email = request.data.get('email', '').lower().strip()
         rol_name = request.data.get('rol', 'corredor') 
+        rut = request.data.get('rut_documento', '').strip() # Limpiamos el RUT
 
         if not email or not request.data.get('password'):
             return Response({"detail": "Email y password son requeridos."}, status=status.HTTP_400_BAD_REQUEST)
+        
         if Usuario.objects.filter(username=email).exists(): 
             return Response({"detail": "Un usuario con este email (username) ya existe."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if rut and Usuario.objects.filter(rut_documento=rut).exists():
+            return Response({"detail": "Un usuario con este RUT/Documento ya existe."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
@@ -152,7 +176,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     genero=request.data.get('genero', ''),
                     telefono=request.data.get('telefono', ''),
                     direccion=request.data.get('direccion', ''),
-                    rut_documento=request.data.get('rut_documento', ''),
+                    rut_documento=rut if rut else None, 
                     pais=request.data.get('pais', ''),
                     is_active=True 
                 )
@@ -163,21 +187,19 @@ class UserViewSet(viewsets.ModelViewSet):
                     group, created = Group.objects.get_or_create(name=rol_name.capitalize())
                     user.groups.add(group)
                 user.save()
-                serializer = UserSerializer(user)
+                serializer = CurrentUserSerializer(user) # Usamos CurrentUserSerializer
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # 🔽 3. FUNCIÓN 'UPDATE' (EDITAR) CORREGIDA Y ÚNICA 🔽
     def update(self, request, *args, **kwargs):
         """
         Maneja la EDICIÓN (PATCH) de un usuario desde el dashboard.
-        Añade lógica para actualizar el rol.
         """
+        # ... (Tu código de 'update' sigue igual) ...
         partial = kwargs.pop('partial', True) 
         instance = self.get_object()
         
-        # --- Lógica de ROL añadida ---
         rol_name = request.data.get('rol')
         if rol_name:
             if rol_name == 'admin':
@@ -190,7 +212,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 instance.is_staff = False
                 instance.is_superuser = False
             instance.save()
-        # --- Fin de la lógica de ROL ---
 
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -202,6 +223,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
     def disable_user(self, request, pk=None):
+        # ... (Tu código de 'disable_user' sigue igual) ...
         try:
             user = self.get_object()
             if user.is_superuser:
@@ -214,6 +236,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
     def enable_user(self, request, pk=None):
+        # ... (Tu código de 'enable_user' sigue igual) ...
         try:
             user = self.get_object()
             user.is_active = True
@@ -222,20 +245,21 @@ class UserViewSet(viewsets.ModelViewSet):
         except Usuario.DoesNotExist:
             return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=True, methods=['DELETE'], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=['DELETE'], permission_classes=[IsAdminUser], name="delete_permanent")
     def delete_permanent(self, request, pk=None):
+        # ... (Tu código de 'delete_permanent' sigue igual) ...
         try:
             user = self.get_object()
             if user.is_superuser:
-                # 🔽 4. CORREGIDO (era 4F_FORBIDDEN)
                 return Response({"detail": "No se puede eliminar a un superusuario."}, status=status.HTTP_403_FORBIDDEN)
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Usuario.DoesNotExist:
             return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser])
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def by_role(self, request):
+        # ... (Tu código de 'by_role' sigue igual) ...
         try:
             admins = Usuario.objects.filter(is_superuser=True)
             supervisors = Usuario.objects.filter(groups__name='Supervisor') 
@@ -247,14 +271,17 @@ class UserViewSet(viewsets.ModelViewSet):
                 "corredores": UserSerializer(corredores, many=True).data,
             })
         except Exception as e:
-            return Response({"detail": f"Error al obtener roles. Asegúrese de que los grupos 'Supervisor' y 'Corredor' existan. Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"detail": f"Error al obtener roles. Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['GET']) # Permiso se maneja en get_permissions
+    @action(detail=False, methods=['GET']) 
     def me(self, request):
+        # ... (Tu código de 'me' sigue igual) ...
         if not request.user.is_authenticated:
             return Response({"detail": "No autenticado"}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = CurrentUserSerializer(request.user)
         return Response(serializer.data)
+
+# (Aquí empieza la siguiente clase, CalificacionViewSet...)
 
 # =============================================================
 # VISTAS DE CALIFICACIONES (CORE)
@@ -266,25 +293,39 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin] 
 
     def get_queryset(self):
-            """
-            Filtra las calificaciones.
-            Admin y Supervisor ven todo.
-            Corredor ve solo lo suyo.
-            """
-            user = self.request.user
-            
-            queryset = Calificacion.objects.select_related(
-                'usuario', 'instrumento', 'mercado', 'estado'
-            ).prefetch_related(
-                'tributarias', 'tributarias__factores'
-            ).filter(is_active=True).order_by('-created_at')
+        """
+        Filtra las calificaciones.
+        Admin y Supervisor ven todo.
+        Corredor ve solo lo suyo.
+        """
+        user = self.request.user
+        
+        queryset = Calificacion.objects.select_related(
+            'usuario', 'instrumento', 'mercado', 'estado'
+        ).prefetch_related(
+            'tributarias', 'tributarias__factores'
+        ).filter(is_active=True).order_by('-created_at')
 
-            # ✅ CAMBIO: Añadimos la comprobación del grupo "Supervisor"
-            if user.is_staff or user.groups.filter(name="Supervisor").exists():
-                return queryset # Devuelve todo
-            else:
-                # Los demás (Corredor) solo ven sus propias calificaciones
-                return queryset.filter(usuario=user)
+        # --- ✅ LÓGICA DE FILTRO AÑADIDA ---
+        calificacion_id = self.request.query_params.get('id', None)
+        usuario_email = self.request.query_params.get('usuario_email', None)
+        anio = self.request.query_params.get('anio', None)
+
+        if calificacion_id:
+            queryset = queryset.filter(id=calificacion_id)
+        
+        if usuario_email:
+            queryset = queryset.filter(usuario__username__icontains=usuario_email)
+
+        if anio:
+            queryset = queryset.filter(fecha_emision__year=anio)
+        # --- FIN DE LA LÓGICA AÑADIDA ---
+
+        if user.is_staff or user.groups.filter(name="Supervisor").exists():
+            return queryset # Devuelve todo (filtrado)
+        else:
+            # Corredor solo ve sus propias calificaciones (filtradas)
+            return queryset.filter(usuario=user)
 
     def retrieve(self, request, *args, **kwargs):
         # ...
