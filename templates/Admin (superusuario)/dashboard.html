@@ -508,7 +508,6 @@
                 
                 <div class="sidenav-profile">
                     <div class="sidenav-profile-pic">A</div>
-                    <!-- 🛠️ IDs añadidos para carga dinámica -->
                     <span class="username" id="profile-name">Admin</span>
                     <span class="role" id="profile-role">Superusuario</span>
                 </div>
@@ -577,9 +576,8 @@
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <!-- Las filas se cargarán aquí por JavaScript (fetchUsers) -->
-                                    </tbody>
+                                    <tbody id="users-tbody">
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
@@ -587,7 +585,6 @@
                     
                     <div id="tab-roles" class="inner-tab-content">
                         
-                        <!-- Lista de Administradores -->
                         <div class="card" style="margin-bottom: 1.5rem;">
                             <h3 style="color: #FD441E; margin-bottom: 1rem;">Administradores</h3>
                             <div class="table-container">
@@ -600,13 +597,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Se rellena con JS -->
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Lista de Supervisores -->
                         <div class="card" style="margin-bottom: 1.5rem;">
                             <h3 style="color: #FD441E; margin-bottom: 1rem;">Supervisores</h3>
                             <div class="table-container">
@@ -619,13 +614,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Se rellena con JS -->
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Lista de Corredores -->
                         <div class="card">
                             <h3 style="color: #FD441E; margin-bottom: 1rem;">Corredores</h3>
                             <div class="table-container">
@@ -638,8 +631,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Se rellena con JS -->
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
@@ -686,7 +678,6 @@
                 <div id="view-respaldos" class="content-view">
                     <div class="content-header">
                         <h2>Gestión de Respaldos</h2>
-                        <!-- 🛠️ Botón actualizado para abrir el nuevo modal -->
                         <button class="btn-primary" onclick="abrirModalRespaldo()">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
                             Registrar Respaldo
@@ -705,20 +696,8 @@
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
-                                <!-- 🛠️ Tbody ahora es dinámico -->
                                 <tbody id="respaldos-tbody">
-                                    <tr>
-                                        <td>2025-11-05 03:00:00</td>
-                                        <td>Sistema (Automático)</td>
-                                        <td>backup_20251105_0300.sql.gz</td>
-                                        <td>Completado</td>
-                                        <td class="action-buttons">
-                                            <button class="btn-icon btn-download" title="Descargar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
-                                            <button class="btn-icon btn-restore" title="Restaurar este respaldo" onclick="confirmarRestauracion('backup_20251105_0300.sql.gz')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M142.9 142.9c62.2-62.2 162.7-62.2 224.9 0s62.2 162.7 0 224.9s-162.7 62.2-224.9 0s-62.2-162.7 0-224.9zM416 256c0-88.4-71.6-160-160-160S96 167.6 96 256s71.6 160 160 160s160-71.6 160-160zM256 48a208 208 0 1 0 0 416 208 208 0 1 0 0-416zm-48 112c0-13.3-10.7-24-24-24s-24 10.7-24 24v96c0 13.3 10.7 24 24 24h96c13.3 0 24-10.7 24-24s-10.7-24-24-24H208V160z"/></svg></button>
-                                            <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -763,7 +742,6 @@
         </div>
     </div>
     
-    <!-- Modal Crear Usuario -->
     <div id="modal-crear-usuario" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -789,7 +767,6 @@
                             <input type="email" id="reg-email" placeholder="ingrese email corporativo" required>
                     </div>
 
-                    <!-- Campos de perfil personalizados -->
                     <div class="form-group-inline">
                         <div class="form-group col-pais">
                             <label for="reg-pais">País</label>
@@ -858,7 +835,6 @@
         </div>
     </div>
     
-    <!-- 🛠️ Modal para Editar Usuario (Nuevo) -->
     <div id="modal-editar-usuario" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -924,7 +900,6 @@
       </div>
     </div>
 
-    <!-- 🛠️ NUEVO: Modal para Registrar Respaldo Manual -->
     <div id="modal-crear-respaldo" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -968,7 +943,6 @@
     </div>
 
 
-    <!-- ⬇️ ⬇️ ⬇️ SECCIÓN DE SCRIPT ACTUALIZADA ⬇️ ⬇️ ⬇️ -->
     <script>
         // -----------------------------------------------------------------
         // 🛠️ CONFIGURACIÓN Y FUNCIONES DINÁMICAS
@@ -991,7 +965,10 @@
             }
             loadProfile();  // Carga el perfil del Admin en el Sidenav
             fetchUsers();
-            fetchLogs();   
+            fetchLogs();
+            
+            // ⬇️ ⬇️ ⬇️ CAMBIO IMPORTANTE ⬇️ ⬇️ ⬇️
+            fetchRespaldos(); // Ahora carga los respaldos desde la API
         };
 
         /**
@@ -1053,7 +1030,7 @@
         
         // --- Funciones de Botones (Simuladas) ---
         
-        // 🛠️ NUEVA LÓGICA DE RESPALDOS
+        // 🛠️ LÓGICA DE RESPALDOS (AHORA CONECTADA A API)
         function getTodayDate() {
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -1065,52 +1042,132 @@
         function abrirModalRespaldo() {
             const today = getTodayDate();
             
-            // 1. Set min date para la fecha (no días anteriores)
             const fechaInput = document.getElementById('respaldo-fecha');
-            fechaInput.setAttribute('min', today);
+            // fechaInput.setAttribute('min', today); // Opcional: permitir fechas pasadas
             fechaInput.value = today; // Default a hoy
 
-            // 2. Pre-rellenar usuario
             document.getElementById('respaldo-usuario').value = adminUsername;
-            
-            // 3. Reset otros campos
             document.getElementById('respaldo-archivo').value = `backup_manual_${today.replace(/-/g, '')}.sql.gz`;
             document.getElementById('respaldo-estado').value = "Completo";
 
-            // 4. Show modal
             showModal('modal-crear-respaldo');
         }
         
-        function handleCrearRespaldo(event) {
+        // ⬇️ ⬇️ ⬇️ FUNCIÓN REEMPLAZADA (AHORA USA fetch()) ⬇️ ⬇️ ⬇️
+        async function handleCrearRespaldo(event) {
             event.preventDefault();
             
-            const fecha = document.getElementById('respaldo-fecha').value;
-            const usuario = document.getElementById('respaldo-usuario').value;
-            const archivo = document.getElementById('respaldo-archivo').value;
-            const estado = document.getElementById('respaldo-estado').value;
+            // currentUserID se define en la función loadProfile()
+            if (!currentUserID) {
+                alert("Error: No se ha podido identificar al usuario. Por favor, recargue la página.");
+                return;
+            }
 
-            // Simulación de API (en un caso real, esto llamaría al backend)
-            alert("Simulación: Respaldo manual registrado.");
-            
-            // Añadir a la tabla dinámicamente
+            const payload = {
+                fecha: document.getElementById('respaldo-fecha').value,
+                usuario_id: currentUserID, // 👈 Envía el ID del Admin
+                archivo: document.getElementById('respaldo-archivo').value,
+                estado: document.getElementById('respaldo-estado').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/respaldos/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'No se pudo registrar el respaldo.');
+                }
+                
+                alert("Respaldo registrado en la base de datos.");
+                
+                fetchRespaldos(); // 👈 Llama a la nueva función para recargar
+                closeModal('modal-crear-respaldo');
+
+            } catch (err) {
+                alert(`Error al guardar en la API: ${err.message}`);
+            }
+        }
+
+        // ⬇️ ⬇️ ⬇️ NUEVA FUNCIÓN (CARGA RESPALDOS DESDE API) ⬇️ ⬇️ ⬇️
+        async function fetchRespaldos() {
             const tbody = document.getElementById('respaldos-tbody');
-            const newRow = `
-                <tr>
-                    <td>${fecha}</td>
-                    <td>${usuario}</td>
-                    <td>${archivo}</td>
-                    <td>${estado}</td>
-                    <td class="action-buttons">
-                        <button class="btn-icon btn-download" title="Descargar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
-                        <button class="btn-icon btn-restore" title="Restaurar este respaldo" onclick="confirmarRestauracion('${archivo}')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M142.9 142.9c62.2-62.2 162.7-62.2 224.9 0s62.2 162.7 0 224.9s-162.7 62.2-224.9 0s-62.2-162.7 0-224.9zM416 256c0-88.4-71.6-160-160-160S96 167.6 96 256s71.6 160 160 160s160-71.6 160-160zM256 48a208 208 0 1 0 0 416 208 208 0 1 0 0-416zm-48 112c0-13.3-10.7-24-24-24s-24 10.7-24 24v96c0 13.3 10.7 24 24 24h96c13.3 0 24-10.7 24-24s-10.7-24-24-24H208V160z"/></svg></button>
-                        <button class="btn-icon btn-delete" title="Eliminar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
-                    </td>
-                </tr>
-            `;
-            // Añadir al principio de la tabla
-            tbody.insertAdjacentHTML('afterbegin', newRow);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Cargando respaldos...</td></tr>';
             
-            closeModal('modal-crear-respaldo');
+            try {
+                const res = await fetch(`${API_BASE}/respaldos/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('No se pudieron cargar los respaldos.');
+
+                const data = await res.json();
+                const respaldos = data.results || data;
+                
+                tbody.innerHTML = ""; // Limpia la tabla
+
+                if (respaldos.length === 0) {
+                     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay respaldos registrados.</td></tr>';
+                     return;
+                }
+
+                respaldos.forEach(r => {
+                    // (r.usuario ya viene como String desde el Serializer)
+                    const fecha = r.fecha; 
+                    const usuario = r.usuario || 'Sistema';
+                    const archivo = r.archivo;
+                    const estado = r.estado;
+
+                    const newRow = `
+                        <tr>
+                            <td>${fecha}</td>
+                            <td>${usuario}</td>
+                            <td>${archivo}</td>
+                            <td>${estado}</td>
+                            <td class="action-buttons">
+                                <button class="btn-icon btn-download" title="Descargar (Simulado)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg></button>
+                                <button class="btn-icon btn-restore" title="Restaurar este respaldo (Simulado)" onclick="confirmarRestauracion('${archivo}')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M142.9 142.9c62.2-62.2 162.7-62.2 224.9 0s62.2 162.7 0 224.9s-162.7 62.2-224.9 0s-62.2-162.7 0-224.9zM416 256c0-88.4-71.6-160-160-160S96 167.6 96 256s71.6 160 160 160s160-71.6 160-160zM256 48a208 208 0 1 0 0 416 208 208 0 1 0 0-416zm-48 112c0-13.3-10.7-24-24-24s-24 10.7-24 24v96c0 13.3 10.7 24 24 24h96c13.3 0 24-10.7 24-24s-10.7-24-24-24H208V160z"/></svg></button>
+                                <button class="btn-icon btn-delete" title="Eliminar Registro" onclick="handleDeleteRespaldo(${r.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', newRow);
+                });
+
+            } catch (err) {
+                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        // ⬇️ ⬇️ ⬇️ NUEVA FUNCIÓN (ELIMINA RESPALDO DESDE API) ⬇️ ⬇️ ⬇️
+        async function handleDeleteRespaldo(respaldoId) {
+            if (!confirm('¿Está seguro de que desea ELIMINAR este registro de respaldo? (Esto no borra el archivo físico, solo el registro).')) {
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/respaldos/${respaldoId}/`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.status === 204) {
+                    alert('Registro de respaldo eliminado.');
+                } else if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'No se pudo eliminar el registro.');
+                }
+                
+                fetchRespaldos(); // Recarga la tabla 
+
+            } catch (err) {
+                alert(err.message);
+            }
         }
         
         function confirmarRestauracion(nombreArchivo) {
@@ -1161,6 +1218,8 @@
          * Obtiene la lista de TODOS los usuarios desde la API
          */
         async function fetchUsers(queryParams = "") {
+            const tbody = document.getElementById("users-tbody");
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Cargando usuarios...</td></tr>';
             try {
                 const res = await fetch(`${API_BASE}/users/${queryParams}`, { 
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -1172,12 +1231,13 @@
                 renderUserTable(users);
             } catch (err) {
                 alert(err.message);
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">${err.message}</td></tr>`;
             }
         }
         
 
         /**
-     * ✅ NUEVO: Llama a la API para obtener el historial de Logs
+     * Llama a la API para obtener el historial de Logs
      */
     async function fetchLogs(queryParams = "") {
         if (!token) return;
@@ -1199,7 +1259,7 @@
     }
 
     /**
-     * ✅ NUEVO: Dibuja la tabla de historial
+     * Dibuja la tabla de historial
      */
     function renderLogsTable(logs) {
         const tbody = document.getElementById("logs-tbody");
@@ -1227,26 +1287,25 @@
     }
 
     /**
-     * ✅ NUEVO: Lee los filtros de Log y vuelve a llamar a fetchLogs
+     * Lee los filtros de Log y vuelve a llamar a fetchLogs
      */
     function handleLogSearch() {
         const fecha = document.getElementById('filter-log-fecha').value;
         const accion = document.getElementById('filter-log-accion').value;
-        const usuario = document.getElementById('filter-log-usuario').value;
+        // const usuario = document.getElementById('filter-log-usuario').value; // Este filtro no está implementado en la API aún
 
         const params = new URLSearchParams();
         // (Tu API aún no filtra por esto, pero el JS está listo)
         // if (fecha) params.append('fecha', fecha);
         // if (accion) params.append('accion', accion);
-        // if (usuario) params.append('usuario', usuario);
-
+        
         fetchLogs(`?${params.toString()}`);
     }
 
 
 
         /**
-         * ✅ NUEVA FUNCIÓN: Lee los filtros y vuelve a llamar a fetchUsers
+         * Lee los filtros y vuelve a llamar a fetchUsers
          */
         function handleUserSearch() {
             const email = document.getElementById('filter-user-email').value;
@@ -1267,9 +1326,14 @@
         // ---------------------------------------------------
         
         function renderUserTable(users) {
-            const tbody = document.querySelector("#tab-users table tbody");
+            const tbody = document.getElementById("users-tbody");
             tbody.innerHTML = "";
             
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No se encontraron usuarios.</td></tr>';
+                return;
+            }
+
             users.forEach(user => {
                 const rol = user.is_superuser
                     ? "Administrador"
@@ -1313,7 +1377,6 @@
                     <td>${estado}</td>
                     <td class="action-buttons">
                         
-                        <!-- MODIFICAR (EDITAR) -->
                         <button class="btn-action btn-modify" title="Modificar usuario" 
                             onclick="handleEditUser(${user.id}, 
                                 '${firstNameSafe}', 
@@ -1326,19 +1389,16 @@
                             Modificar
                         </button>
 
-                        <!-- HABILITAR -->
                         <button class="btn-action btn-enable" title="Habilitar usuario" 
                             onclick="handleEnableUser(${user.id})" ${enableDisabled} ${selfActionsDisabled}>
                             Habilitar
                         </button>
 
-                        <!-- DESHABILITAR -->
                         <button class="btn-action btn-disable" title="Deshabilitar usuario" 
                             onclick="handleDisableUser(${user.id})" ${disableDisabled} ${selfActionsDisabled}>
                             Deshabilitar
                         </button>
 
-                        <!-- ELIMINAR -->
                         <button class="btn-action btn-delete" title="Eliminar permanentemente" 
                             onclick="handleDeletePermanent(${user.id})" ${selfActionsDisabled}>
                             Eliminar
@@ -1534,6 +1594,10 @@
             const populateTable = (tableId, users) => {
                 const tbody = document.querySelector(tableId).querySelector('tbody');
                 tbody.innerHTML = ""; // Limpia
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay usuarios en este rol.</td></tr>';
+                    return;
+                }
                 users.forEach(user => {
                     const estado = user.is_active ? 'Activo' : 'Inactivo';
                     const fullName = `${user.first_name || ''} ${user.last_name || ''}`;
@@ -1563,7 +1627,7 @@
             const rut = document.getElementById('reg-rut').value;
 
             // 1. VALIDACIÓN ESPECÍFICA POR PAÍS
-            if (!validateRutDocumento(pais, rut)) {
+            if (rut && !validateRutDocumento(pais, rut)) {
                 alert(`Error: El formato del RUT/Documento (${rut}) no es válido para ${pais}.`);
                 return;
             }
@@ -1607,12 +1671,15 @@
 
                 if (!res.ok) {
                     const errorData = await res.json();
+                    // Intenta mostrar el error específico de la API (ej. "RUT ya existe")
                     throw new Error(errorData.detail || 'Error al crear el usuario.');
                 }
 
                 const data = await res.json();
                 
-                alert(`¡Usuario creado exitosamente!\nEmail: ${data.user.email}\nRol: ${data.user.rol}`);
+                // ⬇️ ⬇️ ⬇️ CORRECCIÓN DE ALERTA ⬇️ ⬇️ ⬇️
+                // El serializer devuelve 'email' y 'rol' directamente, no 'data.user.email'
+                alert(`¡Usuario creado exitosamente!\nEmail: ${data.email}\nRol: ${data.rol}`);
                 
                 closeModal('modal-crear-usuario');
                 event.target.reset(); // Limpia el formulario
@@ -1651,8 +1718,7 @@
                 return dv == calculatedDv;
 
             } else if (pais === 'CO') {
-                // Colombia: NIT/RUT (9-10 dígitos + DV)
-                // Se espera un formato similar a XXXXXXXXX-Y. Validación simple: 8 a 11 dígitos
+                // Colombia: NIT/RUT (8 a 11 dígitos)
                 const regex = /^\d{8,11}$/;
                 return regex.test(rut);
                 
@@ -1662,7 +1728,7 @@
                 return regex.test(rut);
             }
             
-            return true;
+            return true; // Si no es CL, CO, o PE, no valida
         }
 
         // --- Funciones de Validación y Geolocalización (Mantenidas) ---
