@@ -1,3 +1,4 @@
+# api/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -155,6 +156,8 @@ class Log(models.Model):
     def __str__(self):
         return f"{self.fecha} - {self.accion}"
 
+
+
 class Auditoria(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     tipo = models.CharField(max_length=100)
@@ -163,4 +166,27 @@ class Auditoria(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     calificacion = models.ForeignKey('Calificacion', on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
-        return f"Auditoría {self.id} - {self.tipo}"
+         return f"Auditoría {self.id} - {self.tipo}"
+
+class Respaldo(models.Model):
+    """
+    Registra los respaldos manuales o automáticos del sistema.
+    """
+    ESTADO_CHOICES = [
+        ("Completo", "Completo"),
+        ("Interrumpido", "Interrumpido"),
+        ("Con Error", "Con Error"),
+    ]
+
+    fecha = models.DateField()
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, help_text="Usuario que registró el respaldo")
+    archivo = models.CharField(max_length=255, help_text="Nombre del archivo de respaldo (ej. backup.sql.gz)")
+    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default="Completo")
+    # Este campo se llenará automáticamente
+    creado_en = models.DateTimeField(auto_now_add=True) 
+
+    def __str__(self):
+        return f"Respaldo {self.archivo} - {self.fecha}"
+
+    class Meta:
+        ordering = ['-fecha', '-creado_en']

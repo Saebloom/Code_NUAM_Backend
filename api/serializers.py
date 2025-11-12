@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from .models import (
     Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
-    Log, Auditoria
+    Log, Auditoria, Respaldo
 )
 
 User = get_user_model()
@@ -136,3 +136,25 @@ class AuditoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Auditoria
         fields = "__all__"
+
+
+class RespaldoSerializer(serializers.ModelSerializer):
+    """
+    Serializer para el nuevo modelo Respaldo.
+    """
+    # Muestra el username del usuario que lo registró
+    usuario = serializers.StringRelatedField(read_only=True)
+    
+    # Campo para recibir el ID del usuario al crear
+    usuario_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source='usuario', write_only=True
+    )
+
+    class Meta:
+        model = Respaldo
+        fields = [
+            'id', 'fecha', 'usuario', 'archivo', 
+            'estado', 'creado_en', 'usuario_id'
+        ]
+        # Hacemos 'usuario' y 'creado_en' de solo lectura en la respuest
+        read_only_fields = ['usuario', 'creado_en']

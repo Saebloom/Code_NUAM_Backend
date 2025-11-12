@@ -21,7 +21,7 @@ router.register(r'calificaciones-tributarias', views.CalificacionTributariaViewS
 router.register(r'factores-tributarios', views.FactorTributarioViewSet, basename='factortributario')
 router.register(r'logs', views.LogViewSet, basename='log')
 router.register(r'auditorias', views.AuditoriaViewSet, basename='auditoria')
-
+router.register(r'respaldos', views.RespaldoViewSet, basename='respaldo')
 
 urlpatterns = [
     # --- Rutas de API generadas por el Router ---

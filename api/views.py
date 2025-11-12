@@ -16,7 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import (
     Estado, Instrumento, Mercado, Archivo,
     Calificacion, CalificacionTributaria, FactorTributario,
-    Log, Auditoria, Usuario
+    Log, Auditoria, Usuario, Respaldo
 )
 
 from .serializers import (
@@ -24,7 +24,7 @@ from .serializers import (
     MercadoSerializer, ArchivoSerializer, CalificacionSerializer,
     CalificacionTributariaSerializer, FactorTributarioSerializer,
     LogSerializer, AuditoriaSerializer, 
-    CurrentUserSerializer
+    CurrentUserSerializer, RespaldoSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 
@@ -232,7 +232,7 @@ class UserViewSet(viewsets.ModelViewSet):
             user.save()
             return Response({"status": "usuario deshabilitado"}, status=status.HTTP_200_OK)
         except Usuario.DoesNotExist:
-            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_44_NOT_FOUND)
 
     @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
     def enable_user(self, request, pk=None):
@@ -422,3 +422,14 @@ class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
             return Auditoria.objects.all().order_by('-fecha')
         else:
             return Auditoria.objects.filter(usuario=user).order_by('-fecha')
+
+#Gestión de RESPALDO DASHBOARD SUPERUSUARIO
+class RespaldoViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para gestionar los registros de Respaldos.
+    Solo los Admins pueden crear, ver, editar o borrar registros de respaldos.
+    """
+    queryset = Respaldo.objects.all()
+    serializer_class = RespaldoSerializer
+    # Solo los Admins (is_staff) pueden gestionar respaldos
+    permission_classes = [IsAdminUser]
