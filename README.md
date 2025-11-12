@@ -39,7 +39,7 @@ Antes de comenzar, asegúrate de tener instalado:
 
     Clona el repositorio y entra a la carpeta:
     
-    git clone [https://github.com/Saebloom/Code_NUAM_Backend.git]
+    git clone https://github.com/Saebloom/Code_NUAM_Backend.git
 
     (https://github.com/Saebloom/Code_NUAM_Backend.git)
     cd Code_NUAM_Backend
@@ -74,7 +74,8 @@ abrir cmd
 
 Clona el repositorio y entra a la carpeta:
 
-git clone [https://github.com/Saebloom/Code_NUAM_Backend.git](https://github.com/Saebloom/Code_NUAM_Backend.git)
+git clone https://github.com/Saebloom/Code_NUAM_Backend.git
+(https://github.com/Saebloom/Code_NUAM_Backend.git)
 cd Code_NUAM_Backend
 
 ### 2.Crear y activar entorno virtual
