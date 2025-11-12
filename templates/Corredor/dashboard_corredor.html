@@ -1250,8 +1250,9 @@ function renderHistorialTable(logs) {
             }
         }
 
+        
         /**
-         * 3. GUARDA LA CALIFICACIÓN COMPLETA (PASO FINAL)
+         * GUARDA LA CALIFICACIÓN COMPLETA 
          * Llama a la API para crear la calificación y luego actualiza la tabla.
          */
         async function handleCrearCalificacion(event) {
@@ -1263,18 +1264,14 @@ function renderHistorialTable(logs) {
                 return;
             }
 
-            // ✅ CORRECCIÓN: Nombres de campo con _id
             const payload = {
                 instrumento_id: document.getElementById('reg-instrumento').value,
                 mercado_id: document.getElementById('reg-mercado').value,
                 estado_id: document.getElementById('reg-estado').value,
                 monto_factor: document.getElementById('reg-monto-factor').value,
                 fecha_emision: document.getElementById('reg-fecha-emision').value,
-                fecha_pago: document.getElementById('reg-fecha-pago').value
-                
-                // NOTA: El envío de 'tributarias' está pendiente.
-                // Tu backend (CalificacionSerializer) las tiene como 'read_only',
-                // por lo que no las aceptará en este POST.
+                fecha_pago: document.getElementById('reg-fecha-pago').value,
+                tributarias: tempTributarias 
             };
 
             // Enviar a la API
@@ -1308,9 +1305,8 @@ function renderHistorialTable(logs) {
 
                 // Recarga los datos de la tabla del Mantenedor desde la API
                 await fetchCorredorCalificaciones(); 
-                
-
                 await fetchHistorial();
+
                 // Y te lleva de vuelta a esa vista
                 showView('view-mantenedor', document.querySelector('.sidenav-nav button:first-child')); 
 
@@ -1319,7 +1315,7 @@ function renderHistorialTable(logs) {
                 alert(err.message);
             }
         }
-        
+
         /**
          * Simulación de Carga Masiva
          */

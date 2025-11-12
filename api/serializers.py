@@ -54,14 +54,20 @@ class MercadoSerializer(serializers.ModelSerializer):
 class ArchivoSerializer(serializers.ModelSerializer):
     class Meta: model = Archivo; fields = "__all__"
 class FactorTributarioSerializer(serializers.ModelSerializer):
-    class Meta: model = FactorTributario; fields = "__all__"
+    class Meta: 
+        model = FactorTributario
+        fields = "__all__"
+        read_only_fields = ['calificacion_tributaria']
 class CalificacionTributariaSerializer(serializers.ModelSerializer):
-    factores = FactorTributarioSerializer(many=True, read_only=True)
-    class Meta: model = CalificacionTributaria; fields = "__all__"
+    factores = FactorTributarioSerializer(many=True, required=False)
+    class Meta: 
+        model = CalificacionTributaria
+        fields = "__all__"
+        read_only_fields = ['calificacion']
 
 # (Serializer de Calificación)
 class CalificacionSerializer(serializers.ModelSerializer):
-    tributarias = CalificacionTributariaSerializer(many=True, read_only=True)
+    tributarias = CalificacionTributariaSerializer(many=True, required=False)
     usuario = UserSerializer(read_only=True) 
     instrumento = InstrumentoSerializer(read_only=True)
     mercado = MercadoSerializer(read_only=True)
@@ -86,6 +92,36 @@ class CalificacionSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "created_at", "instrumento", "mercado", "estado"
         ]
+
+
+    def create(self, validated_data):
+        # 1. Saca los datos anidados del 'paquete'
+        tributarias_data = validated_data.pop('tributarias', [])
+        
+        # 2. Crea la Calificacion (el objeto padre)
+        # (La vista ya añade el 'usuario' y 'created_by')
+        calificacion = super().create(validated_data)
+
+        # 3. Recorre los datos de las tributarias
+        for tributaria_data in tributarias_data:
+            # Saca los datos de los factores (los nietos)
+            factores_data = tributaria_data.pop('factores', [])
+            
+            # Crea el objeto Tributaria (el hijo)
+            tributaria = CalificacionTributaria.objects.create(
+                calificacion=calificacion, 
+                **tributaria_data
+            )
+            
+            # 4. Recorre los datos de los factores
+            for factor_data in factores_data:
+                # Crea el objeto Factor (el nieto)
+                FactorTributario.objects.create(
+                    calificacion_tributaria=tributaria, 
+                    **factor_data
+                )
+        
+        return calificacion
 
 # --- Current User Serializer ---
 class CurrentUserSerializer(serializers.ModelSerializer):
