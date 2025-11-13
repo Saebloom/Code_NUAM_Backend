@@ -135,20 +135,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         # Usa la lógica unificada
         return obtener_rol_usuario(obj)
 
-class InstrumentoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Instrumento
-        fields = "__all__"
 
-class MercadoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Mercado
-        fields = "__all__"
-
-class EstadoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Estado
-        fields = "__all__"
 
 
 class LogSerializer(serializers.ModelSerializer):

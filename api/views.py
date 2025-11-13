@@ -1,11 +1,17 @@
 # api/views.py
 import logging
+import csv
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
+from openpyxl import Workbook, load_workbook  
+from openpyxl.styles import Font, Alignment, PatternFill
 from django.db import models
 from django.utils import timezone
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -291,13 +297,210 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     queryset = Calificacion.objects.all().order_by('-created_at')
     serializer_class = CalificacionSerializer
     permission_classes = [IsOwnerOrAdmin] 
+    parser_classes = (MultiPartParser, FormParser, JSONParser,)
 
     def get_queryset(self):
+        
+        user = self.request.user
+        # Si es admin o supervisor, ve todo
+        if user.is_staff or user.groups.filter(name='Supervisor').exists():
+            return Calificacion.objects.all()
+        # Si es corredor, solo ve lo suyo
+        return Calificacion.objects.filter(usuario=user)
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user, created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+
+    def perform_destroy(self, instance):
+        instance.soft_delete(user=self.request.user)
+
+    # --- 1. ACCIÓN DE EXPORTAR CSV ---
+    @action(detail=False, methods=['get'], url_path='exportar_csv')
+    def exportar_csv(self, request):
         """
-        Filtra las calificaciones.
-        Admin y Supervisor ven todo.
-        Corredor ve solo lo suyo.
+        Genera un archivo EXCEL (.xlsx) con toda la información anidada (aplanada).
         """
+        user = request.user
+        queryset = self.get_queryset()
+
+        # --- Lógica de Openpyxl ---
+        wb = Workbook()
+        ws = wb.active
+        ws.title = f"Calificaciones_{user.username}"
+
+        # 1. Definir Encabezados y Estilos
+        headers = [
+            'ID_Calificacion', 'Instrumento_ID', 'Mercado_ID', 'Estado_ID', 'Monto', 
+            'Fecha_Emision', 'Fecha_Pago', 'Creado_Por', 'Fecha_Creacion',
+            'Secuencia_Trib', 'Evento_Capital', 'Anio_Trib', 'Valor_Historico',
+            'Codigo_Factor', 'Valor_Factor'
+        ]
+
+        # Estilo para cabeceras
+        header_font = Font(bold=True, color="FFFFFF")
+        header_align = Alignment(horizontal="center", vertical="center")
+
+        ws.append(headers) # Añadir cabeceras
+
+        # Aplicar estilo a la fila de cabecera (Fila 1)
+        for cell in ws[1]:
+            cell.font = header_font
+            cell.alignment = header_align
+            # Añadir un color de fondo (opcional, pero "bonito")
+            cell.fill = PatternFill(start_color="FD441E", end_color="FD441E", fill_type="solid")
+
+        # 2. Añadir los datos
+        for cal in queryset:
+            base_data = [
+                cal.id, cal.instrumento_id, cal.mercado_id, cal.estado_id, cal.monto_factor,
+                cal.fecha_emision, cal.fecha_pago, cal.usuario.username if cal.usuario else 'N/A',
+                cal.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            ]
+            tributarias = cal.tributarias.all()
+
+            if not tributarias:
+                ws.append(base_data + ['', '', '', '', '', '']) # Rellenar celdas vacías
+            else:
+                for trib in tributarias:
+                    trib_data = [
+                        trib.secuencia_evento, trib.evento_capital, trib.anio, trib.valor_historico
+                    ]
+                    factores = trib.factores.all()
+                    if not factores:
+                        ws.append(base_data + trib_data + ['', ''])
+                    else:
+                        for fact in factores:
+                            fact_data = [fact.codigo_factor, fact.valor_factor]
+                            ws.append(base_data + trib_data + fact_data)
+
+        # 3. Ajustar ancho de columnas (lo que lo hace "ordenado")
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter # Obtener la letra de la columna
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column].width = adjusted_width
+
+        # 4. Crear la respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        # Cambiamos la extensión a .xlsx
+        response['Content-Disposition'] = f'attachment; filename="calificaciones_{user.username}.xlsx"'
+
+        wb.save(response) # Guardar el libro de Excel en la respuesta
+        return response
+
+    # --- 2. ACCIÓN DE IMPORTAR CSV ---
+    @action(detail=False, methods=['post'], url_path='importar_csv')
+    def importar_csv(self, request):
+        """
+        Lee un CSV o un XLSX y crea Calificaciones -> Tributarias -> Factores.
+        """
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No se envió ningún archivo.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        creados = 0
+        errores = []
+        rows = []
+
+        try:
+            # --- LÓGICA MEJORADA PARA LEER CSV O XLSX ---
+            if file.name.endswith('.csv'):
+                decoded_file = file.read().decode('utf-8').splitlines()
+                reader = csv.DictReader(decoded_file)
+                rows = list(reader)
+
+            elif file.name.endswith('.xlsx'):
+                # Usamos openpyxl para leer el Excel
+                wb = load_workbook(filename=file, read_only=True)
+                ws = wb.active
+
+                # Convertir la hoja de Excel en una lista de diccionarios
+                headers = [cell.value for cell in ws[1]] # Lee la fila 1 como cabeceras
+                for row in ws.iter_rows(min_row=2): # Itera desde la fila 2
+                    row_data = {}
+                    for header, cell in zip(headers, row):
+                        row_data[header] = cell.value
+                    rows.append(row_data)
+            else:
+                return Response({'error': 'El archivo debe ser .csv o .xlsx'}, status=status.HTTP_400_BAD_REQUEST)
+            # --- FIN DE LA LÓGICA DE LECTURA ---
+
+
+            # Usamos atomic para que si una fila falla, no rompa todo el proceso
+            with transaction.atomic():
+                for index, row in enumerate(rows):
+                    try:
+                        # ... (código para obtener IDs) ...
+                        inst_id = row.get('Instrumento_ID')
+                        merc_id = row.get('Mercado_ID')
+                        est_id = row.get('Estado_ID')
+                        
+    
+                        if not (inst_id and merc_id and est_id):
+                            continue 
+
+                        # 2. Crear Calificación
+                        cal = Calificacion.objects.create(
+                            instrumento_id=inst_id,
+                            mercado_id=merc_id,
+                            estado_id=est_id,
+                            monto_factor=row.get('Monto'),
+                            fecha_emision=row.get('Fecha_Emision'),
+                            fecha_pago=row.get('Fecha_Pago'),
+                            usuario=request.user,
+                            created_by=request.user,
+                            updated_by=request.user  # <--- 1. AÑADE ESTA LÍNEA
+                        )
+
+                        # 3. Crear Tributaria (si existen datos en la fila)
+                        sec_trib = row.get('Secuencia_Trib')
+                        if sec_trib:
+                            trib = CalificacionTributaria.objects.create(
+                                calificacion=cal,
+                                secuencia_evento=sec_trib,
+                                evento_capital=row.get('Evento_Capital') or 0,
+                                anio=row.get('Anio_Trib') or 2025,
+                                valor_historico=row.get('Valor_Historico') or 0,
+                                created_by=request.user,  # <--- 2. AÑADE ESTA LÍNEA
+                                updated_by=request.user   # <--- 3. AÑADE ESTA LÍNEA
+                            )
+
+                            # 4. Crear Factor (si existen datos y existe tributaria)
+                            cod_fact = row.get('Codigo_Factor')
+                            if cod_fact:
+                                # (FactorTributario no necesita esto, así que está bien)
+                                FactorTributario.objects.create(
+                                    calificacion_tributaria=trib,
+                                    codigo_factor=cod_fact,
+                                    valor_factor=row.get('Valor_Factor') or 0,
+                                    descripcion_factor="Carga Masiva"
+                                )
+                        
+                        creados += 1
+
+                    except Exception as e:
+                        errores.append(f"Fila {index + 2}: {str(e)}") 
+
+            return Response({
+                'status': 'Proceso finalizado',
+                'creados': creados,
+                'errores': errores
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
         user = self.request.user
         
         queryset = Calificacion.objects.select_related(

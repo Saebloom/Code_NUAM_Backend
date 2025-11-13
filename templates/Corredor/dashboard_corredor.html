@@ -534,8 +534,10 @@
                         <form onsubmit="handleCrearCalificacion(event)" id="form-registro-manual">
                             <div class="form-group-inline">
                                 <div class="form-group">
-                                    <label for="reg-instrumento">Instrumento (ID Numérico)</label>
-                                    <input type="number" id="reg-instrumento" placeholder="ID del Instrumento (ej. 1)" required>
+                                    <label for="reg-instrumento">Instrumento</label>
+                                    <select id="reg-instrumento" required>
+                                        <option value="">Cargando instrumentos...</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="reg-mercado">Mercado</label>
@@ -601,14 +603,38 @@
 
                 <div id="view-carga-masiva" class="content-view">
                     <div class="content-header">
-                        <h2>Carga Masiva (CSV)</h2>
+                        <h2>Carga Masiva y Reportes</h2>
                     </div>
+                    
                     <div class="card">
+                        <h3 style="margin-bottom: 1rem; color: #333;">2. Cargar Archivo (CSV o Excel)</h3>
                         <form onsubmit="handleCargaMasiva(event)" enctype="multipart/form-data">
                             <div class="form-group">
-                                <label for="csv-file">Archivo de Calificaciones (.csv)</label>
+                                <label for="csv-file">Seleccionar archivo (.csv o .xlsx)</label>
+                                <input type="file" id="csv-file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+                                <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">
+                                    El archivo debe tener las columnas: 
+                                    <i>Instrumento_ID, Mercado_ID, Estado_ID, Monto, Fecha_Emision, Fecha_Pago...</i>
+                                </p>
+                            </div>
+                        <button class="btn-primary" onclick="handleExportarCSV()">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zM432 456c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg>
+                            Generar y Descargar Archivo
+                        </button>
+                    </div>
+                    
+                    <br>
+
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem; color: #333;">2. Cargar Archivo (CSV)</h3>
+                        <form onsubmit="handleCargaMasiva(event)" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="csv-file">Seleccionar archivo (.csv)</label>
                                 <input type="file" id="csv-file" accept=".csv" required>
-                                <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">Asegúrese de que el archivo cumpla con el formato y las validaciones de datos.</p>
+                                <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem;">
+                                    El archivo debe tener las columnas: 
+                                    <i>Instrumento_ID, Mercado_ID, Estado_ID, Monto, Fecha_Emision, Fecha_Pago...</i>
+                                </p>
                             </div>
                             <div class="modal-footer" style="border:none; padding: 1.5rem 0 0 0;">
                                 <button type="submit" class="btn-primary">
@@ -658,8 +684,10 @@
                 <form onsubmit="handleSaveEdit(event)" id="form-edit-manual">
                     <div class="form-group-inline">
                         <div class="form-group">
-                            <label for="edit-instrumento">Instrumento (ID Numérico)</label>
-                            <input type="number" id="edit-instrumento" placeholder="ID del Instrumento (ej. 1)" required>
+                            <label for="edit-instrumento">Instrumento</label>
+                            <select id="edit-instrumento" required>
+                                <option value="">Cargando instrumentos...</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="edit-mercado">Mercado</label>
@@ -1374,10 +1402,12 @@ function renderHistorialTable(logs) {
             // --- MODIFICADO ---
             // Rellenamos los dropdowns de CREACIÓN
             populateSelect('/mercados/', 'reg-mercado', 'Seleccione Mercado...');
+            populateSelect('/instrumentos/', 'reg-instrumento', 'Seleccione Instrumento...');
             populateSelect('/estados/', 'reg-estado', 'Seleccione Estado...');
 
             // Rellenamos los dropdowns de EDICIÓN
             populateSelect('/mercados/', 'edit-mercado', 'Seleccione Mercado...');
+            populateSelect('/instrumentos/', 'edit-instrumento', 'Seleccione Instrumento...');
             populateSelect('/estados/', 'edit-estado', 'Seleccione Estado...');
             
         }
@@ -1401,7 +1431,98 @@ function renderHistorialTable(logs) {
 
         
     };
+       
+    /**
+     * Descarga el CSV desde el backend
+     */
+    async function handleExportarCSV() {
+        if (!token) return;
         
+        try {
+            // Hacemos la petición al nuevo endpoint 'exportar_csv'
+            const res = await fetch(`${API_BASE}/calificaciones/exportar_csv/`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.status === 200) {
+                // Convertimos la respuesta en un blob (archivo)
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                // Creamos un link invisible para forzar la descarga
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `mis_calificaciones_${new Date().toISOString().slice(0,10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                
+                alert("Archivo generado y descargado correctamente.");
+            } else {
+                alert("Error al generar el archivo CSV.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error de conexión al exportar.");
+        }
+    }
+
+    /**
+     * Sube el CSV al backend
+     */
+    async function handleCargaMasiva(event) {
+        event.preventDefault();
+        
+        const fileInput = document.getElementById('csv-file');
+        if (fileInput.files.length === 0) {
+            alert("Por favor selecciona un archivo.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            alert("Procesando archivo... Esto puede tomar unos segundos.");
+            
+            const res = await fetch(`${API_BASE}/calificaciones/importar_csv/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                    // Nota: NO poner 'Content-Type': 'application/json' aquí, 
+                    // el navegador lo detecta automáticamente como multipart/form-data
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                let msg = `¡Proceso Terminado!\n\nRegistros creados: ${data.creados}`;
+                if (data.errores && data.errores.length > 0) {
+                    msg += `\n\nErrores encontrados (${data.errores.length}):\n` + data.errores.slice(0, 5).join('\n') + '...';
+                }
+                alert(msg);
+                
+                // Limpiar formulario
+                event.target.reset();
+                // Recargar tablas
+                fetchCorredorCalificaciones();
+                fetchHistorial();
+            } else {
+                alert(`Error en la carga: ${data.error || 'Error desconocido'}`);
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("Error crítico al subir el archivo.");
+        }
+    }
+
+
     </script>
 
 </body>
