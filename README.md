@@ -24,10 +24,26 @@ Antes de comenzar, asegúrate de tener instalado:
 
   * Python 3.12 o superior
   * Git
-  * **MySQL Server** (8.0 o superior, con el servicio `mysqld` corriendo)
+  * **MySQL Server** (8.0 o superior, con el servicio `mysql` corriendo)
   * Navegador web (Chrome, Firefox, Edge)
 
 > ⚠️ **Nota Importante:** Python y MySQL Server deben instalarse manualmente. No se pueden instalar automáticamente desde el proyecto.
+
+## 🛠 Requisitos Previos (Específicos para Linux)
+Para que el script de instalación automática (installinux.sh) funcione, el sistema (ej. Ubuntu/Debian) debe tener instaladas las siguientes dependencias de sistema.
+
+Puedes instalarlas con los siguientes comandos:
+
+# 1. Asegurar que Python 3.12, Git y el módulo Venv estén instalados
+sudo apt update
+sudo apt install git python3.12 python3.12-venv
+
+# 2. Instalar el cliente de MySQL (para que el script pueda ejecutar comandos)
+sudo apt install mysql-client
+
+# 3. Instalar librerías de compilación (CRUCIAL)
+
+sudo apt install build-essential python3.12-dev default-libmysqlclient-dev libffi-dev
 
 -----
 
@@ -45,6 +61,7 @@ Este método automatiza la creación del entorno, la instalación de paquetes y 
 
     
     git clone https://github.com/Saebloom/Code_NUAM_Backend.git
+    
     cd Code_NUAM_Backend
   
 
@@ -59,7 +76,8 @@ Este método automatiza la creación del entorno, la instalación de paquetes y 
 
       * **En Linux / Mac:**
 
-        1.  Otorga permisos de ejecución al script: `chmod +x installinux.sh`
+        1.  Otorga permisos de ejecución al script: `chmod +x installinux.
+
         2.  Ejecuta el script: `./installinux.sh`
 
 5.  **IMPORTANTE:** El script te pedirá tu contraseña de **`root` de MySQL**.
@@ -88,21 +106,22 @@ Si la opción automática falla o prefieres un control total, sigue estos 5 paso
 
 
 git clone https://github.com/Saebloom/Code_NUAM_Backend.git
+
 cd Code_NUAM_Backend
 
 
 #### 2\. Crear y Activar Entorno Virtual
 
   * **Windows:**
-    ```sh
+    
     python -m venv test
     test\Scripts\activate
-    ```
+    
   * **Linux / Mac:**
-    ```sh
+    
     python3 -m venv test
     source test/bin/activate
-    ```
+    
 
 #### 3\. Instalar Dependencias
 
