@@ -1,135 +1,154 @@
-# 🚀 Proyecto: Sistema de Calificaciones Tributarias (TIHI43)
+# 🚀 Proyecto: Sistema de Calificaciones Tributarias (NUAM)
 
-Integrantes: 
-Valeska Aguirre
-Nicolas Espejo
+**Integrantes:**
+
+  * Valeska Aguirre
+  * Nicolas Espejo
 
 Aplicación web desarrollada con **Django** y **Django REST Framework**, que incluye:
 
-* Panel de administración (Administrador)
-* Dashboard de Supervisión (Supervisor/Auditor)
-* Dashboard de Mantenedor (Corredor)
-* API REST con documentación Swagger
-* Sistema de Auditoría y Logs automáticos
-* Templates HTML, CSS y JS para cada rol
-* CRUD para usuarios y calificaciones tributarias
-* Carga Masiva (CSV) y Gestión de Respaldos
+  * Panel de administración (Administrador)
+  * Dashboard de Supervisión (Supervisor/Auditor)
+  * Dashboard de Mantenedor (Corredor)
+  * API REST con documentación Swagger
+  * Sistema de Auditoría y Logs automáticos
+  * Templates HTML, CSS y JS para cada rol
+  * CRUD para usuarios y calificaciones tributarias
+  * Carga Masiva (CSV/Excel) y Gestión de Respaldos
 
----
+-----
 
-## 🛠 Requisitos previos
+## 🛠 Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instalado:
 
-* Python 3.12 o superior
-* Git
-* Navegador web (Chrome, Firefox, Edge)
+  * Python 3.12 o superior
+  * Git
+  * **MySQL Server** (8.0 o superior, con el servicio `mysqld` corriendo)
+  * Navegador web (Chrome, Firefox, Edge)
 
-> ⚠️ Python debe instalarse manually. No se puede instalar automáticamente desde el proyecto.
+> ⚠️ **Nota Importante:** Python y MySQL Server deben instalarse manualmente. No se pueden instalar automáticamente desde el proyecto.
 
----
+-----
 
 ## ⚡ Instalación
 
-    Tienes dos formas de instalar el proyecto. La automática es la recomendada.
+Tienes dos formas de instalar el proyecto. La automática es la recomendada.
 
-    ### Opción A: Instalación Automática (Recomendada)
-    
-    abrir cmd
+### Opción A: Instalación Automática (Recomendada)
 
-    Clona el repositorio y entra a la carpeta:
+Este método automatiza la creación del entorno, la instalación de paquetes y la configuración de la base de datos.
+
+1.  Abre una terminal (CMD o PowerShell).
+
+2.  Clona el repositorio y entra a la carpeta:
+
     
     git clone https://github.com/Saebloom/Code_NUAM_Backend.git
-
-    (https://github.com/Saebloom/Code_NUAM_Backend.git)
     cd Code_NUAM_Backend
-    
+  
 
-    Usa los scripts de instalación que preparan todo el entorno automáticamente.
-    
-    * Abrir carpeta donde se encuentra el proyecto
+3.  Asegúrate de que tu servicio MySQL Server se esté ejecutando en segundo plano.
 
-    * **En Windows:**
-        1.  Haz doble clic en el archivo `installwin.bat`.
-        2.  Espera a que la terminal termine de instalar todo.
+4.  Ejecuta el script de instalación correspondiente:
 
-    * **En Linux / Mac:**
+      * **En Windows:**
+
+          * Haz doble clic en el archivo `installwin.bat`.
+          * O, desde tu terminal, escribe: `installwin.bat`
+
+      * **En Linux / Mac:**
+
         1.  Otorga permisos de ejecución al script: `chmod +x installinux.sh`
         2.  Ejecuta el script: `./installinux.sh`
 
-    Estos scripts crearán el entorno virtual `test/`, instalarán las dependencias y ejecutarán `migrate` para configurar la base de datos y crear los usuarios de prueba.
-    
-    Activar el virtual enviroment y levantar servidor:
+5.  **IMPORTANTE:** El script te pedirá tu contraseña de **`root` de MySQL**.
 
-    * **En Windows:**
-        1. test\scripts\activate
-        2. python manage.py runserver
+      * Esto es necesario para que el script pueda ejecutar automáticamente los comandos SQL para crear la base de datos `nuam` y el usuario `nuamuser`.
 
-    * **En Linux:** 
-        1. source test/bin/activate
-        2. python manage.py runserver
-### Opción B: Forma manual
+6.  Una vez que el script termine, activa el entorno virtual y levanta el servidor:
 
-abrir cmd
+      * **En Windows:**
 
-Clona el repositorio y entra a la carpeta:
+        1.  `test\Scripts\activate`
+        2.  `python manage.py runserver`
+
+      * **En Linux / Mac:**
+
+        1.  `source test/bin/activate`
+        2.  `python manage.py runserver`
+
+-----
+
+### Opción B: Instalación Manual (Paso a Paso)
+
+Si la opción automática falla o prefieres un control total, sigue estos 5 pasos.
+
+#### 1\. Clonar el Repositorio
+
 
 git clone https://github.com/Saebloom/Code_NUAM_Backend.git
-(https://github.com/Saebloom/Code_NUAM_Backend.git)
 cd Code_NUAM_Backend
 
-### 2.Crear y activar entorno virtual
 
-* **Windows
+#### 2\. Crear y Activar Entorno Virtual
 
-python -m venv test
+  * **Windows:**
+    ```sh
+    python -m venv test
+    test\Scripts\activate
+    ```
+  * **Linux / Mac:**
+    ```sh
+    python3 -m venv test
+    source test/bin/activate
+    ```
 
-test\Scripts\activate
+#### 3\. Instalar Dependencias
 
 
-* **Linux / Mac
-python3 -m venv test
-
-source test/bin/activate
-
-### 3. Instalar dependencias
 pip install -r requirements.txt
 
 
-Nota: Este proyecto utiliza MySQL. Asegúrate de tener mysqlclient instalado y de configurar tu conexión local en settings.py o un archivo .env.
+#### 4\. Configurar la Base de Datos (Paso Manual de MySQL)
 
+El proyecto está configurado en `settings.py` para buscar una base de datos MySQL específica. Debes crearla manualmente.
 
-### 4. Aplicar migraciones
+1.  Abre una terminal y conéctate a MySQL como `root`:
+   
+    mysql -u root -p
+    
+2.  Introduce tu contraseña de `root` de MySQL.
+3.  Ejecuta los siguientes 3 comandos (uno por uno):
+    
+    CREATE DATABASE nuam CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    
+    
+    CREATE USER 'nuamuser'@'localhost' IDENTIFIED BY 'NuamUser2025';
+    
+    
+    GRANT ALL PRIVILEGES ON nuam.* TO 'nuamuser'@'localhost';
+    
+    EXIT;
+    
+    *Esto crea la base de datos `nuam` y le da al usuario `nuamuser` (definido en `settings.py`) todos los permisos sobre ella.*
 
-python manage.py makemigrations
+#### 5\. Aplicar Migraciones y Ejecutar
 
-python manage.py migrate
+1.  **Ejecuta `migrate`:** Este comando se conectará a la base de datos MySQL que acabas de crear, construirá todas las tablas y ejecutará los `signals` para crear los usuarios de prueba.
+   
+    python manage.py migrate
+    
+2.  **Ejecuta el servidor:**
+    
+    python manage.py runserver
+   
 
-### 5. Ejecutar servidor de desarrollo
-
-python manage.py runserver
-
-## Método no interactivo (útil para scripts)
-### Windows PowerShell
-
-$env:DJANGO_SUPERUSER_USERNAME="admin"
-
-$env:DJANGO_SUPERUSER_EMAIL="admin@example.com"
-
-$env:DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
-
-python manage.py createsuperuser --noinput
-
-### Linux / Mac (bash)
-export DJANGO_SUPERUSER_USERNAME=admin
-export DJANGO_SUPERUSER_EMAIL="admin@example.com"
-export DJANGO_SUPERUSER_PASSWORD="Administrador.2025"
-python manage.py createsuperuser --noinput
----
+-----
 
 ## 👤 Cuentas de Prueba (Creadas Automáticamente)
 
-El proyecto **no** requiere que crees un superusuario manualmente. Se crean 3 usuarios por defecto al ejecutar `migrate`:
+El proyecto **no** requiere que crees un superusuario manualmente. Estas 3 cuentas se crean automáticamente al ejecutar `migrate` (gracias al archivo `api/signals.py`):
 
 | Rol | Correo | Contraseña |
 | :--- | :--- | :--- |
@@ -137,53 +156,40 @@ El proyecto **no** requiere que crees un superusuario manualmente. Se crean 3 us
 | **Supervisor** | `supervisor@nuam.cl` | `superpass123` |
 | **Corredor** | `corredor@nuam.cl` | `correpass123` |
 
----
+El sistema está disponible en **`http://127.0.0.1:8000/`**.
 
-## 🚀 Ejecutar servidor de desarrollo
+-----
 
-Después de la instalación (automática o manual), asegúrate de tener el entorno virtual activado y ejecuta:
+## 🚀 Uso (Flujo de Roles)
 
-## En Windows
+El sistema opera bajo 3 roles principales. El acceso al login principal (`/`) redirigirá al dashboard correspondiente según el usuario.
 
-# (Si no está activado) test\Scripts\activate
-python manage.py runserver
-El sistema estará disponible en http://127.0.0.1:8000/.
+  * **Administrador:**
 
-## En linux 
-# (Si no está activado) source test/bin/activate
-El sistema estará disponible en http://127.0.0.1:8000/.
+      * Gestión de Usuarios y Roles.
+      * Visualización de Logs/Auditoría completos.
+      * Gestión de Respaldos del sistema.
+      * Revisión del historial de Cargas Masivas.
 
-🚀 Uso (Flujo de Roles)
-El sistema opera bajo 3 roles principales. El acceso al login principal (/) redirigirá al dashboard correspondiente según el usuario.
+  * **Supervisor (Auditor):**
 
-Administrador:
-Gestión de Usuarios y Roles.
+      * Rol de solo lectura.
+      * Consulta calificaciones registradas.
+      * Accede a registros completos de operaciones (Historial).
+      * Genera reportes consolidados (simulado).
 
-Visualización de Logs/Auditoría completos.
+  * **Corredor (Mantenedor):**
 
-Gestión de Respaldos del sistema.
+      * Rol de ingreso de datos.
+      * Realiza el CRUD (Registrar, Modificar, Eliminar) de calificaciones.
+      * Realiza Cargas Masivas vía archivos (CSV/Excel).
+      * Visualización de su propio historial de operaciones.
 
-Revisión del historial de Cargas Masivas.
+-----
 
-Supervisor (Auditor):
-Rol de solo lectura.
+## 📂 Estructura del proyecto
 
-Consulta calificaciones registradas.
-
-Accede a registros completos de operaciones (Historial).
-
-Genera reportes consolidados.
-
-Corredor (Mantenedor):
-Rol de ingreso de datos.
-
-Realiza el CRUD (Registrar, Modificar, Eliminar) de calificaciones.
-
-Realiza Cargas Masivas vía archivos CSV.
-
-Visualización de su propio historial de operaciones.
-
-📂 Estructura del proyecto 📂
+```
 Code_NUAM_Backend/
 ├─ api/         # App principal (models, views, serializers, signals)
 ├─ nuam/        # Configuración del proyecto (settings.py, urls.py)
@@ -192,13 +198,16 @@ Code_NUAM_Backend/
 ├─ logs/        # Archivos de log (ej. nuam.log)
 ├─ manage.py
 ├─ requirements.txt
-├─ install.bat  # Script de instalación Windows
-├─ install.sh   # Script de instalación Linux/Mac
+├─ installwin.bat # Script de instalación Windows
+├─ installinux.sh # Script de instalación Linux/Mac
 ├─ .gitignore
 └─ README.md    # Este archivo
-📝 Notas importantes
-Base de datos: El proyecto usa SQLite por defecto. La base de datos (db.sqlite3) se crea y configura automáticamente con migrate.
+```
 
-Migraciones: Solo necesitas ejecutar python manage.py migrate. No ejecutes makemigrations a menos que modifiques activamente los archivos models.py.
+-----
 
-Debug: DEBUG=True está activado por defecto para desarrollo.
+## 📝 Notas Importantes
+
+  * **Base de datos:** El proyecto está configurado para usar **MySQL**. La conexión está definida en `settings.py`. Los scripts de instalación (`installwin.bat`, `installinux.sh`) configuran esto automáticamente si proporcionas la contraseña de `root` correcta.
+  * **Migraciones:** Solo necesitas ejecutar `python manage.py migrate`. No ejecutes `makemigrations` a menos que modifiques activamente los archivos `models.py`.
+  * **Debug:** `DEBUG=True` está activado por defecto para desarrollo.
