@@ -78,7 +78,7 @@ Este método automatiza la creación del entorno, la instalación de paquetes y 
 
         1.  Otorga permisos de ejecución al script: `chmod +x installinux.
 
-        2.  Ejecuta el script: `./installinux.sh`
+        2.  Ejecuta el script: ./installinux.sh
 
 5.  **IMPORTANTE:** El script te pedirá tu contraseña de **`root` de MySQL**.
 
