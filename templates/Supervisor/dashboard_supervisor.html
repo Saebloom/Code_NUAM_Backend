@@ -4,453 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Supervisor - NUAM</title>
-    
     <style>
-        /* --- Configuración Global --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        /* --- Estilos Globales --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        html, body { height: 100%; overflow: hidden; background-color: #f4f4f4; }
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
 
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            background-color: #f4f4f4;
-        }
+        /* Barra Superior */
+        .top-bar { background-color: white; padding: 1rem 2rem; font-size: 1.5rem; font-weight: 600; color: #FD441E; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); z-index: 10; display: flex; align-items: center; gap: 0.75rem; }
+        .top-bar-logo { height: 32px; width: auto; }
 
-        /* --- Estructura Principal de la App --- */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        /* Cuerpo */
+        .dashboard-body { display: flex; flex-grow: 1; height: calc(100% - 60px); }
+        .sidenav { flex-basis: 260px; flex-shrink: 0; background-color: #2c2c2c; color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; overflow-y: auto; }
+        .main-content { flex-grow: 1; padding: 2rem 2.5rem; overflow-y: auto; background-color: #f4f4f4; }
 
-        /* 1. Barra Superior */
-        .top-bar {
-            background-color: white;
-            padding: 1rem 2rem;
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #FD441E;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .top-bar-logo {
-            height: 32px;
-            width: auto;
-        }
+        /* Perfil */
+        .sidenav-profile { display: flex; flex-direction: column; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid #555; margin-bottom: 1.5rem; }
+        .sidenav-profile-pic { width: 70px; height: 70px; border-radius: 50%; background-color: #FD441E; color: white; display: grid; place-items: center; font-size: 2rem; font-weight: bold; margin-bottom: 0.75rem; }
+        .sidenav-profile .username { font-weight: 600; font-size: 1.1rem; }
+        .sidenav-profile .role { font-size: 0.9rem; color: #ccc; }
 
-        /* --- Cuerpo del Dashboard --- */
-        .dashboard-body {
-            display: flex;
-            flex-grow: 1;
-            height: calc(100% - 60px); 
-        }
+        /* Navegación */
+        .sidenav-nav { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
+        .sidenav-nav button { background: none; border: none; color: #e0e0e0; padding: 0.9rem 1.25rem; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.75rem; transition: background-color 0.2s; }
+        .sidenav-nav button:hover { background-color: #444; }
+        .sidenav-nav button.active { background-color: #FD441E; color: white; font-weight: 600; }
+        .sidenav-nav button svg { width: 1.1em; height: 1.1em; fill: currentColor; flex-shrink: 0; }
 
-        /* 2. Barra Lateral (Sidenav) */
-        .sidenav {
-            flex-basis: 260px;
-            flex-shrink: 0;
-            background-color: #2c2c2c;
-            color: white;
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        
-        .sidenav-profile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid #555;
-            margin-bottom: 1.5rem;
-        }
-        
-        .sidenav-profile-pic {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background-color: #FD441E;
-            color: white;
-            display: grid;
-            place-items: center;
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.75rem;
-        }
-        
-        .sidenav-profile .username {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        
-        .sidenav-profile .role {
-            font-size: 0.9rem;
-            color: #ccc;
-        }
+        /* Footer */
+        .sidenav-footer { margin-top: auto; padding: 1rem; border-top: 1px solid #4a4a4a; }
+        .logout-button { display: flex; align-items: center; width: 100%; padding: 0.85rem 1.25rem; font-size: 0.95rem; font-weight: 500; cursor: pointer; border-radius: 6px; background-color: #575757; color: #ececec; border: none; transition: background-color 0.2s; }
+        .logout-button:hover { background-color: #FD441E; color: white; }
 
-        .sidenav-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex-grow: 1;
-        }
-        
-        .sidenav-nav button {
-            background: none;
-            border: none;
-            color: #e0e0e0;
-            padding: 0.9rem 1.25rem;
-            text-align: left;
-            font-size: 1rem;
-            cursor: pointer;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        
-        .sidenav-nav button svg {
-            width: 1.1em;
-            height: 1.1em;
-            fill: currentColor;
-            flex-shrink: 0;
-        }
-        
-        .sidenav-nav button:hover {
-            background-color: #444;
-        }
-        
-        .sidenav-nav button.active {
-            background-color: #FD441E;
-            color: white;
-            font-weight: 600;
-        }
-        
-        .sidenav-footer {
-            margin-top: auto; /* Empuja al fondo */
-            padding: 1rem;
-            border-top: 1px solid #4a4a4a;
-        }
+        /* Vistas y Tarjetas */
+        .content-view { display: none; }
+        .content-view.active { display: block; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .content-header h2 { color: #FD441E; font-size: 1.8rem; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 1.5rem; margin-bottom: 1.5rem; }
 
-        .logout-button {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 0.85rem 1.25rem;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: background-color 0.2s, color 0.2s;
+        /* Filtros y Forms */
+        .filters { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+        .filters input, .filters select { padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; min-width: 200px; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+        .form-group label { font-weight: 600; margin-bottom: 0.5rem; color: #555; }
+        .form-group input, .form-group select { padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; width: 100%; }
 
-            /* Estilos del botón oscuro */
-            background-color: #575757; 
-            color: #ececec;
-            text-align: left;
-            border: none;
-        }
+        /* Botones */
+        .btn-primary { background-color: #FD441E; color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-primary:hover { background-color: #e03c1a; }
+        .btn-secondary { background-color: #6c757d; color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+        .btn-primary svg { width: 1em; height: 1em; fill: currentColor; }
 
-        .logout-button:hover {
-            background-color: #FD441E; /* Color hover naranja */
-            color: white;
-        }
+        /* Tabla */
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        thead { background-color: #f9f9f9; }
+        th, td { padding: 0.9rem 0.75rem; border-bottom: 1px solid #ddd; text-align: left; white-space: nowrap; }
+        th { font-weight: 600; color: #333; }
 
-        .logout-button .icon {
-            margin-right: 12px;
-            font-size: 1.2rem;
-            line-height: 1;
-        }
-        /* 3. Contenido Principal */
-        .main-content {
-            flex-grow: 1;
-            padding: 2rem 2.5rem;
-            overflow-y: auto;
-            background-color: #f4f4f4;
-        }
-
-        .content-view {
-            display: none;
-        }
-        .content-view.active {
-            display: block;
-        }
-
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .content-header h2 {
-            color: #FD441E;
-            font-size: 1.8rem;
-        }
-
-        .btn-primary {
-            background-color: #FD441E;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-primary:hover {
-            background-color: #e03c1a;
-        }
-        .btn-primary svg {
-             width: 1em;
-             height: 1em;
-             fill: currentColor;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            padding: 1.5rem;
-        }
-        
-        /* Estilos de Filtros */
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .filters input, .filters select {
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 0.95rem;
-        }
-
-        /* Estilos de Tabla */
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        thead {
-            background-color: #f9f9f9;
-        }
-        th, td {
-            padding: 0.9rem 0.75rem;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-        th {
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .btn-icon {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 0.25rem;
-        }
-        .btn-icon svg {
-            width: 1em;
-            height: 1em;
-            fill: currentColor;
-        }
-        .btn-edit { color: #007bff; }
-        .btn-delete { color: #dc3545; }
-
-        /* --- Estilos del Modal (Corredor solo usa modales para registro) --- */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.active {
-            display: flex;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 2rem;
-            border: 1px solid #888;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 800px; 
-            position: relative;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-nested {
-            z-index: 1001; 
-            background-color: rgba(0, 0, 0, 0.2); 
-        }
-        .modal-nested .modal-content {
-             max-width: 600px;
-             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .modal-header h2 {
-            color: #FD441E;
-        }
-        .modal-close {
-            color: #aaa;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .modal-body form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #555;
-        }
-        .form-group input,
-        .form-group select {
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 0.95rem;
-        }
-        .form-group textarea {
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            min-height: 80px;
-        }
-        
-        .form-group-inline {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .form-group-inline .form-group {
-            flex-grow: 1;
-            flex-basis: 45%;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #ddd;
-            padding-top: 1.5rem;
-            margin-top: 1.5rem;
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-        
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        /* Contenedor para sub-tablas (Tributarias, Factores) */
-        .sub-table-container {
-             margin-top: 1.5rem;
-             padding: 1rem;
-             background: #f9f9f9;
-             border-radius: 8px;
-        }
-        .sub-table-header {
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-             margin-bottom: 1rem;
-        }
-         .sub-table-header h4 {
-             color: #333;
-         }
-         
-        .btn-add-nested {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-add-nested svg {
-             width: 1em;
-             height: 1em;
-             fill: currentColor;
-        }
+        /* Modales */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.4); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: #fefefe; margin: auto; padding: 2rem; border: 1px solid #888; border-radius: 8px; width: 90%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .modal-header h2 { color: #FD441E; }
+        .modal-close { color: #aaa; font-size: 2rem; font-weight: bold; cursor: pointer; }
+        .modal-footer { border-top: 1px solid #ddd; padding-top: 1.5rem; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        
         <header class="top-bar">
-            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo">
-            nuam
+            <img src="/static/img/Nuam.png" alt="Nuam Logo" class="top-bar-logo"> nuam
         </header>
 
         <div class="dashboard-body">
-            
             <nav class="sidenav">
-                
                 <div class="sidenav-profile">
                     <div class="sidenav-profile-pic" id="profile-pic">S</div>
                     <span class="username" id="profile-name">Supervisor</span>
@@ -459,25 +91,22 @@
                 
                 <div class="sidenav-nav">
                     <button class="active" onclick="showView('view-consulta', this)">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zM64 160H192V416H64V160zm224 0H448V416H288V160z"/></svg>
-                        Consulta de Calificaciones
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                        Consulta Calificaciones
                     </button>
-                    
-                    <button onclick="showView('view-historial', this)">
+                    <button onclick="showView('view-reportes', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM216 408c0 13.3-10.7 24-24 24s-24-10.7-24-24V305.9l-31 31c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l72-72c9.4-9.4 24.6-9.4 33.9 0l72 72c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-31-31V408z"/></svg>
+                        Reportes
+                    </button>
+                    <button onclick="showView('view-logs', this)">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
                         Historial de Operaciones
-                    </button>
-
-                    <button onclick="showView('view-reporte', this)">
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M0 64C0 28.7 28.7 0 64 0H224V128c0 17.7 14.3 32 32 32H384V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384 64H256V0L384 128z"/></svg>
-                        Reporte
                     </button>
                 </div>
                 
                 <div class="sidenav-footer">
-                    <button id="btn-logout" class="logout-button" onclick="logout()">
-                        <span class="icon">&#x21B3;</span>
-                        Cerrar Sesión
+                    <button class="logout-button" onclick="logout()">
+                        <span class="icon">&#x21B3;</span> Cerrar Sesión
                     </button>
                 </div>
             </nav>
@@ -487,244 +116,107 @@
                 <div id="view-consulta" class="content-view active">
                     <div class="content-header">
                         <h2>Consulta de Calificaciones</h2>
-                        <button class="btn-primary" onclick="exportarCSV()">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24z"/></svg>
-                            Exportar CSV
-                        </button>
                     </div>
-                    
                     <div class="card">
                         <div class="filters">
-                            <input type="text" id="filter-cal-id" placeholder="ID Calificación...">
-                            
-                            <input type="number" id="filter-cal-anio" placeholder="Año Comercial (AAAA)">
+                            <input type="number" id="filter-id" placeholder="ID Calificación">
+                            <input type="text" id="filter-email" placeholder="Email Corredor">
+                            <input type="number" id="filter-anio" placeholder="Año (ej. 2025)">
                             <button class="btn-primary" onclick="handleSearch()">Buscar</button>
                         </div>
-                        
                         <div class="table-container">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Corredor (Usuario)</th>
-                                        <th>Monto Factor</th>
-                                        <th>F. Emisión</th>
-                                        <th>Instrumento</th>
-                                        <th>Mercado</th>
-                                        <th>Estado</th>
-                                        </tr>
+                                    <tr><th>ID</th><th>Corredor</th><th>Monto</th><th>Fecha Emisión</th><th>Instrumento</th><th>Estado</th></tr>
                                 </thead>
-                                <tbody id="consulta-tbody">
-                                    </tbody>
+                                <tbody id="consulta-tbody"><tr><td colspan="6" style="text-align:center">Cargando...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <div id="view-historial" class="content-view">
+                <div id="view-reportes" class="content-view">
                     <div class="content-header">
-                        <h2>Historial de Operaciones</h2>
+                        <h2>Generación de Reportes</h2>
+                    </div>
+
+                    <div class="card" style="border-left: 5px solid #fd7e14;">
+                        <h3 style="margin-bottom:1rem; color:#fd7e14;">1. Reporte Consolidado (General)</h3>
+                        <p style="color:#666; margin-bottom:1rem;">Genera un archivo Excel con múltiples registros aplicando filtros.</p>
+                        <div style="text-align:right;">
+                            <button class="btn-primary" onclick="showReportModal('consolidado')" style="background-color:#fd7e14;">
+                                Configurar y Descargar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-left: 5px solid #20c997;">
+                        <h3 style="margin-bottom:1rem; color:#20c997;">2. Reporte Específico (Individual)</h3>
+                        <p style="color:#666; margin-bottom:1rem;">Busca una calificación específica por ID para descargar su detalle.</p>
+                        <div style="text-align:right;">
+                            <button class="btn-primary" onclick="showReportModal('especifico')" style="background-color:#20c997;">
+                                Configurar y Descargar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-logs" class="content-view">
+                    <div class="content-header">
+                        <h2>Historial de Operaciones (Auditoría)</h2>
                     </div>
                     <div class="card">
-                        <p>Aquí se mostrará un log de todas las operaciones (Admin, Supervisores y Corredores).</p>
-                        <div class="table-container" style="margin-top: 1rem;">
+                        <div class="table-container">
                             <table>
-                                <thead>
-                                    <tr>
-                                        <th>Fecha</th>
-                                        <th>Usuario</th> <th>Acción</th>
-                                        <th>ID Calificación</th>
-                                        <th>Detalle</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="historial-tbody">
-                                    </tbody>
+                                <thead><tr><th>Fecha</th><th>Acción</th><th>Usuario</th><th>Detalle</th></tr></thead>
+                                <tbody id="logs-tbody"><tr><td colspan="4" style="text-align:center">Cargando...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <div id="view-reporte" class="content-view">
-                    <div class="content-header">
-                        <h2>Generador de Reportes</h2>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="form-group">
-                            <label>Tipo de Reporte</label>
-                            <p style="margin-bottom: 1rem;">Seleccione el tipo de reporte que desea generar.</p>
-                            <div class="form-group-inline" style="gap: 1.5rem;">
-                                <button class="btn-primary" style="flex-basis: 200px;" onclick="showReportModal('consolidado')">
-                                    Reporte Consolidado
-                                </button>
-                                <button class="btn-secondary" style="flex-basis: 200px;" onclick="showReportModal('especifico')">
-                                    Reporte Específico
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
             </main>
         </div>
     </div>
-    
-    <div id="modal-calif-tributaria" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Agregar Calificación Tributaria</h2>
-                <span class="modal-close" onclick="closeModal('modal-calif-tributaria')">&times;</span>
-            </div>
-            
-            <div class="modal-body">
-                <form onsubmit="handleAgregarTributaria(event)" id="form-calif-tributaria">
-                        
-                    <div class="form-group-inline">
-                        <div class="form-group">
-                            <label for="trib-secuencia">Secuencia Evento</label>
-                            <input type="number" id="trib-secuencia" placeholder="Ej. 1" required>
-                        </div>
-                         <div class="form-group">
-                            <label for="trib-evento-capital">Evento Capital</label>
-                            <input type="number" step="0.0001" id="trib-evento-capital" placeholder="Ej. 1000.0000" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group-inline">
-                        <div class="form-group">
-                            <label for="trib-anio">Año Comercial</label>
-                            <input type="number" id="trib-anio" placeholder="AAAA" required>
-                        </div>
-                         <div class="form-group">
-                            <label for="trib-valor">Valor Histórico</label>
-                            <input type="number" step="0.0001" id="trib-valor" placeholder="Ej. 10000.0000">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="trib-desc">Descripción</label>
-                        <textarea id="trib-desc" placeholder="Descripción del evento..."></textarea>
-                    </div>
 
-                    <div class="sub-table-container">
-                        <div class="sub-table-header">
-                            <h4>Factores Tributarios (Paso 3 - Opcional)</h4>
-                            <button type="button" class="btn-add-nested" onclick="showModal('modal-factor-tributario', true)">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
-                                Agregar Factor
-                            </button>
-                        </div>
-                        <div class="table-container">
-                            <table id="tabla-factores-temp">
-                                <thead>
-                                    <tr>
-                                        <th>Código Factor</th>
-                                        <th>Descripción</th>
-                                        <th>Valor</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secondary" onclick="closeModal('modal-calif-tributaria')">Cancelar</button>
-                        <button type="submit" class="btn-primary">Guardar Tributaria</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <div id="modal-factor-tributario" class="modal modal-nested">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Agregar Factor Tributario</h2>
-                <span class="modal-close" onclick="closeModal('modal-factor-tributario')">&times;</span>
-            </div>
-            
-            <div class="modal-body">
-                <form onsubmit="handleAgregarFactor(event)" id="form-factor-tributario">
-                    <div class="form-group">
-                        <label for="fact-codigo">Código Factor</label>
-                        <input type="text" id="fact-codigo" placeholder="Ej. C101" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="fact-desc">Descripción Factor</label>
-                        <input type="text" id="fact-desc" placeholder="Descripción..." required>
-                    </div>
-                    <div class="form-group">
-                        <label for="fact-valor">Valor Factor</label>
-                        <input type="number" step="0.00000001" id="fact-valor" placeholder="Ej. 0.19000000" required>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secondary" onclick="closeModal('modal-factor-tributario')">Cancelar</button>
-                        <button type="submit" class="btn-primary">Guardar Factor</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
     <div id="modal-reporte-consolidado" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2>Reporte Consolidado</h2>
-                <span class="modal-close" onclick="closeModal('modal-reporte-consolidado')">&times;</span>
-            </div>
+        <div class="modal-content">
+            <div class="modal-header"><h2>Reporte Consolidado</h2><span class="modal-close" onclick="closeModal('modal-reporte-consolidado')">&times;</span></div>
             <div class="modal-body">
                 <form onsubmit="event.preventDefault(); generateConsolidatedReport();">
-                    
                     <div class="form-group">
-                        <label for="reporte-mercado">Filtrar por Mercado</label>
-                        <select id="reporte-mercado">
-                            <option value="">Cargando mercados...</option>
-                        </select>
+                        <label>Mercado</label>
+                        <select id="reporte-mercado"><option value="">Cargando...</option></select>
                     </div>
-
                     <div class="form-group">
-                        <label for="reporte-estado">Filtrar por Estado</label>
-                        <select id="reporte-estado">
-                            <option value="">Cargando estados...</option>
-                        </select>
+                        <label>Estado</label>
+                        <select id="reporte-estado"><option value="">Cargando...</option></select>
                     </div>
-                    
                     <div class="form-group">
-                        <label for="reporte-usuario">Filtrar por Usuario</label>
-                        <select id="reporte-usuario">
-                            <option value="">Cargando usuarios...</option>
-                        </select>
+                        <label>Usuario (Corredor)</label>
+                        <select id="reporte-usuario"><option value="">Cargando...</option></select>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" onclick="closeModal('modal-reporte-consolidado')">Cancelar</button>
-                        <button type="submit" class="btn-primary">Confirmar Reporte</button>
+                        <button type="submit" class="btn-primary">Descargar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    
+
     <div id="modal-reporte-especifico" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2>Reporte Específico</h2>
-                <span class="modal-close" onclick="closeModal('modal-reporte-especifico')">&times;</span>
-            </div>
+        <div class="modal-content">
+            <div class="modal-header"><h2>Reporte Específico</h2><span class="modal-close" onclick="closeModal('modal-reporte-especifico')">&times;</span></div>
             <div class="modal-body">
                 <form onsubmit="event.preventDefault(); generateSpecificReport();">
                     <div class="form-group">
-                        <label for="reporte-calificacion">Seleccionar Calificación</label>
-                        <select id="reporte-calificacion" required>
-                            <option value="">Cargando calificaciones...</option>
-                        </select>
+                        <label>Seleccionar Calificación</label>
+                        <select id="reporte-calificacion" required><option value="">Cargando...</option></select>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" onclick="closeModal('modal-reporte-especifico')">Cancelar</button>
-                        <button type="submit" class="btn-primary">Confirmar Reporte</button>
+                        <button type="submit" class="btn-primary">Descargar</button>
                     </div>
                 </form>
             </div>
@@ -732,406 +224,180 @@
     </div>
 
     <script>
-        // 🛠️ CONFIGURACIÓN API
         const API_BASE = "http://127.0.0.1:8000/api";
-        const token = localStorage.getItem('access'); 
-
-        // ---------------------------------------------------
-        // ✅ 1. FUNCIONES DE NAVEGACIÓN Y MODALES
-        // ---------------------------------------------------
-        
-        function showView(viewId, clickedButton) {
-            document.querySelectorAll('.content-view').forEach(view => {
-                view.classList.remove('active');
-            });
-            document.querySelectorAll('.sidenav-nav button').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            const activeView = document.getElementById(viewId);
-            if (activeView) {
-                activeView.classList.add('active');
-            }
-            if (clickedButton) {
-                clickedButton.classList.add('active');
-            }
-        }
-        
-        function showModal(modalId, isNested = false) {
-        const modal = document.getElementById(modalId);
-        if(modal) {
-            modal.classList.add('active');
-        }
-    }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) {
-                modal.classList.remove('active');
-            }
-        }
-
-
-        // (Las funciones de Modal ya no son necesarias aquí, se eliminaron)
-
-        // ---------------------------------------------------
-        // ✅ 2. FUNCIONES DE CARGA DE DATOS (API)
-        // ---------------------------------------------------
-
-        async function loadProfile() {
-             if (!token) { return; }
-            try {
-                const res = await fetch(`${API_BASE}/users/me/`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('Sesión inválida. Por favor, inicie sesión de nuevo.');
-                const user = await res.json();
-                
-                const fullName = `${user.first_name || user.username} ${user.last_name || ''}`;
-                document.querySelector('#profile-name').textContent = fullName.trim();
-                document.querySelector('#profile-role').textContent = user.rol;
-                const inicial = (user.first_name || user.username).charAt(0).toUpperCase();
-                document.querySelector('#profile-pic').textContent = inicial;
-
-            } catch (err) {
-                alert(err.message);
-                window.location.href = '/'; 
-            }
-        }
-
-        /**
-         * Llama a la API para obtener TODAS las calificaciones (Admin/Supervisor)
-         */
-        async function fetchConsultaCalificaciones(queryParams = "") {
-            if (!token) return;
-            try {
-                const res = await fetch(`${API_BASE}/calificaciones/${queryParams}`, { 
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('No se pudo cargar la lista de calificaciones.');
-                
-                const data = await res.json();
-                renderConsultaTable(data.results || data); 
-            } catch (err) {
-                alert(err.message);
-            }
-        }
-
-        /**
-         * ✅ NUEVA FUNCIÓN: Lee los filtros y vuelve a llamar a la API
-         */
-        function handleSearch() {
-            const calId = document.getElementById('filter-cal-id').value;
-            const anio = document.getElementById('filter-cal-anio').value;
-            
-            // (Solo para Supervisor)
-            // const email = document.getElementById('filter-cal-email').value;
-
-            const params = new URLSearchParams();
-            if (calId) params.append('id', calId);
-            if (anio) params.append('anio', anio);
-            
-            // (Solo para Supervisor)
-            // if (email) params.append('usuario_email', email);
-
-            // Llama a la función de fetch correcta
-            if (window.fetchCorredorCalificaciones) {
-                fetchCorredorCalificaciones(`?${params.toString()}`);
-            } else if (window.fetchConsultaCalificaciones) {
-                fetchConsultaCalificaciones(`?${params.toString()}`);
-            }
-        }
-
-
-        /**
-         * Dibuja la tabla de Consulta de Calificaciones
-         */
-        function renderConsultaTable(calificaciones) {
-            // ✅ CAMBIO: Apunta al nuevo tbody 'consulta-tbody'
-            const tbody = document.getElementById("consulta-tbody");
-            tbody.innerHTML = ""; 
-
-            if (!calificaciones || calificaciones.length === 0) {
-                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No se encontraron calificaciones.</td></tr>';
-                 return;
-            }
-
-            calificaciones.forEach(cal => {
-                const instrumentoNombre = cal.instrumento ? `${cal.instrumento.id} - ${cal.instrumento.nombre}` : 'N/A';
-                const mercadoNombre = cal.mercado ? cal.mercado.nombre : 'N/A';
-                const estadoNombre = cal.estado ? cal.estado.nombre : 'Pendiente';
-                // ✅ CAMBIO: Muestra el email del Corredor que la creó
-                const corredorEmail = cal.usuario ? cal.usuario.username : 'N/A';
-
-                const row = `
-                    <tr>
-                        <td>${cal.id}</td>
-                        <td>${corredorEmail}</td>
-                        <td>${cal.monto_factor}</td>
-                        <td>${cal.fecha_emision}</td>
-                        <td>${instrumentoNombre}</td>
-                        <td>${mercadoNombre}</td>
-                        <td>${estadoNombre}</td>
-                        </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-        
-        // ---------------------------------------------------
-        // ✅ 3. FUNCIONES DE HISTORIAL (ACTUALIZADAS)
-        // ---------------------------------------------------
-
-        /**
-         * Llama a la API para obtener el HISTORIAL (ahora verá todo)
-         */
-        async function fetchHistorial() {
-            if (!token) return;
-            try {
-                // Gracias al Arreglo 1 (Backend), esta llamada ahora devuelve todo
-                const res = await fetch(`${API_BASE}/logs/`, { 
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('No se pudo cargar el historial.');
-
-                const logs = await res.json();
-                renderHistorialTable(logs.results || logs); 
-            } catch (err) {
-                alert(err.message);
-            }
-        }
-
-        /**
-         * Dibuja la tabla de historial
-         */
-        function renderHistorialTable(logs) {
-            const tbody = document.getElementById("historial-tbody");
-            tbody.innerHTML = ""; 
-
-            if (!logs || logs.length === 0) {
-                 tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay operaciones en el historial.</td></tr>';
-                 return;
-            }
-
-            logs.forEach(log => {
-                const fecha = new Date(log.fecha).toLocaleString('es-CL');
-                // ✅ CAMBIO: Muestra el usuario que hizo la acción
-                const usuarioNombre = log.usuario || 'Sistema'; 
-
-                const row = `
-                    <tr>
-                        <td>${fecha}</td>
-                        <td>${usuarioNombre}</td>
-                        <td>${log.accion}</td>
-                        <td>${log.calificacion || 'N/A'}</td>
-                        <td>${log.detalle}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-        
-        // ---------------------------------------------------
-        // ✅ 4. FUNCIONES DE EXPORTAR Y LOGOUT
-        // ---------------------------------------------------
-
-        function exportarCSV() {
-            alert("Función 'Exportar CSV' pendiente de implementación.");
-            // Aquí iría la lógica para convertir la tabla a CSV
-        }
-
-        function logout() {
-            alert("Cerrando sesión...");
-            localStorage.removeItem('access');
-            localStorage.removeItem('refresh');
-            window.location.href = '/'; 
-        }
-
-        
-        async function populateSelect(endpoint, selectId, defaultOption, textFieldName) {
-            const selectElement = document.getElementById(selectId);
-            selectElement.innerHTML = `<option value="">Cargando...</option>`;
-            try {
-                const res = await fetch(`${API_BASE}${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error(`Error cargando ${selectId}`);
-                
-                const data = await res.json();
-                const items = data.results || data; // Maneja paginación o no
-
-                selectElement.innerHTML = `<option value="">${defaultOption}</option>`; 
-                
-                items.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = `${item.id} - ${item[textFieldName]}`; // Usa el nombre de campo correcto
-                    selectElement.appendChild(option);
-                });
-            } catch (err) {
-                console.error(err.message);
-                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
-            }
-        }
-        
-        /**
-         * Función para poblar el <select> de Corredores (Usuarios)
-         */
-        /**
-     * ✅ CORREGIDO: Función para poblar el <select> de TODOS los Usuarios
-     */
-        async function populateUsuariosSelect() {
-            const selectId = 'reporte-usuario';
-            const selectElement = document.getElementById(selectId);
-            selectElement.innerHTML = `<option value="">Cargando...</option>`;
-            try {
-                // Usamos el endpoint que filtra por roles (ahora tenemos permiso)
-                const res = await fetch(`${API_BASE}/users/by_role/`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('Error cargando usuarios');
-
-                const data = await res.json();
-
-                selectElement.innerHTML = `<option value="">Todos los Usuarios</option>`; 
-
-                // Función auxiliar para añadir usuarios a la lista
-                const addUsersToSelect = (users, rol) => {
-                    users.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item.id;
-                        option.textContent = `${item.email} (${rol})`; 
-                        selectElement.appendChild(option);
-                    });
-                };
-
-                // Añadimos todos los roles
-                addUsersToSelect(data.administradores, 'Admin');
-                addUsersToSelect(data.supervisores, 'Supervisor');
-                addUsersToSelect(data.corredores, 'Corredor');
-
-            } catch (err) {
-                console.error(err.message);
-                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
-            }
-        }
-        
-        /**
-         * Función para poblar el <select> de Calificaciones (Reporte Específico)
-         */
-        async function populateCalificacionesSelect() {
-            const selectId = 'reporte-calificacion';
-            const selectElement = document.getElementById(selectId);
-            selectElement.innerHTML = `<option value="">Cargando...</option>`;
-            try {
-                const res = await fetch(`${API_BASE}/calificaciones/`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('Error cargando calificaciones');
-                
-                const data = await res.json();
-                const items = data.results || data; 
-
-                selectElement.innerHTML = `<option value="">Seleccione una Calificación...</option>`; 
-                
-                items.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    // Muestra texto más descriptivo
-                    option.textContent = `ID ${item.id} (${item.instrumento.nombre}) - ${item.monto_factor}`; 
-                    selectElement.appendChild(option);
-                });
-            } catch (err) {
-                console.error(err.message);
-                selectElement.innerHTML = `<option value="">Error al cargar</option>`;
-            }
-        }
-
-        /**
-         * Carga TODOS los menús desplegables de los modales de reporte
-         */
-        function loadReportDropdowns() {
-            // Reutilizamos la función genérica para Mercados y Estados
-            populateSelect('/mercados/', 'reporte-mercado', 'Todos los Mercados', 'nombre');
-            populateSelect('/estados/', 'reporte-estado', 'Todos los Estados', 'nombre');
-            
-            // Usamos las funciones específicas para Usuarios y Calificaciones
-            populateUsuariosSelect();
-            populateCalificacionesSelect();
-        }
-
-        /**
-         * Muestra el modal de reporte correcto
-         */
-        function showReportModal(tipo) {
-            if (tipo === 'consolidado') {
-                showModal('modal-reporte-consolidado');
-            } else if (tipo === 'especifico') {
-                showModal('modal-reporte-especifico');
-            }
-        }
-
-        /**
-         * Simula la generación de un reporte consolidado (AHORA LEE LOS 3 FILTROS)
-         */
-        async function generateConsolidatedReport() {
-            // ✅ Lee los 3 valores
-            const mercadoId = document.getElementById('reporte-mercado').value;
-            const estadoId = document.getElementById('reporte-estado').value;
-            const usuarioId = document.getElementById('reporte-usuario').value;
-            
-            alert(`Simulando: Generando reporte consolidado con:\n
-- Mercado ID: ${mercadoId || 'Todos'}
-- Estado ID: ${estadoId || 'Todos'}
-- Usuario ID: ${usuarioId || 'Todos'}
-            `);
-            
-            // En un caso real, la URL sería:
-            // /api/reports/consolidated/?mercado_id=${mercadoId}&estado_id=${estadoId}&usuario_id=${usuarioId}
-            
-            closeModal('modal-reporte-consolidado');
-        }
-
-        /**
-         * Simula la generación de un reporte específico
-         */
-        async function generateSpecificReport() {
-            const calificacionId = document.getElementById('reporte-calificacion').value;
-            
-            if (!calificacionId) {
-                alert("Por favor, seleccione una calificación específica.");
-                return;
-            }
-            
-            alert(`Simulando: Generando reporte específico para Calificación ID: ${calificacionId}...`);
-            
-            closeModal('modal-reporte-especifico');
-        }
-
-
-        // ---------------------------------------------------
-        // ✅ 5. INICIALIZACIÓN
-        // ---------------------------------------------------
+        const token = localStorage.getItem('access');
 
         window.onload = function() {
-            if (!token) {
-                alert("Sesión no válida. Redirigiendo al login.");
-                window.location.href = '/'; 
-                return;
-            }
-            loadProfile();  
-            fetchConsultaCalificaciones(); 
-            fetchHistorial();
-            
-            // ✅ LÍNEA AÑADIDA: Carga los menús de los modales de reporte
-            loadReportDropdowns(); 
+            if (!token) { window.location.href = '/'; return; }
+            loadProfile();
+            fetchConsultaCalificaciones();
+            fetchLogs();
+            loadReportDropdowns(); // Carga los selects de los modales
         };
-    
-        
 
+        // NAVEGACIÓN
+        function showView(viewId, btn) {
+            document.querySelectorAll('.content-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.sidenav-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if(btn) btn.classList.add('active');
+        }
+        function showModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function logout() { localStorage.removeItem('access'); window.location.href = '/'; }
 
-        
+        // DATOS
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/users/me/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const user = await res.json();
+                document.getElementById('profile-name').textContent = user.first_name || user.username;
+                document.getElementById('profile-pic').textContent = (user.first_name || 'S').charAt(0);
+            } catch(e) {}
+        }
+
+        // VISTA CONSULTA
+        async function fetchConsultaCalificaciones(query="") {
+            const tbody = document.getElementById('consulta-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Cargando...</td></tr>';
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const list = data.results || data;
+                tbody.innerHTML = "";
+                if (list.length === 0) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No hay registros.</td></tr>';
+                
+                list.forEach(c => {
+                    tbody.innerHTML += `<tr>
+                        <td>${c.id}</td>
+                        <td>${c.usuario ? (c.usuario.first_name || c.usuario.username) : 'N/A'}</td>
+                        <td>${c.monto_factor}</td>
+                        <td>${c.fecha_emision}</td>
+                        <td>${c.instrumento ? c.instrumento.nombre : 'N/A'}</td>
+                        <td>${c.estado ? c.estado.nombre : 'N/A'}</td>
+                    </tr>`;
+                });
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="6">Error.</td></tr>'; }
+        }
+        function handleSearch() {
+            const id = document.getElementById('filter-id').value;
+            const email = document.getElementById('filter-email').value;
+            const anio = document.getElementById('filter-anio').value;
+            const p = new URLSearchParams();
+            if(id) p.append('id', id);
+            if(email) p.append('usuario_email', email);
+            if(anio) p.append('anio', anio);
+            fetchConsultaCalificaciones(`?${p.toString()}`);
+        }
+
+        // VISTA LOGS
+        async function fetchLogs() {
+            try {
+                const res = await fetch(`${API_BASE}/logs/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                document.getElementById('logs-tbody').innerHTML = (data.results||data).map(l => 
+                    `<tr><td>${new Date(l.fecha).toLocaleString()}</td><td>${l.accion}</td><td>${l.usuario||'Sistema'}</td><td>${l.detalle}</td></tr>`
+                ).join('');
+            } catch(e) {}
+        }
+
+        // MODALES DE REPORTES
+        function showReportModal(tipo) {
+            if(tipo === 'consolidado') showModal('modal-reporte-consolidado');
+            if(tipo === 'especifico') showModal('modal-reporte-especifico');
+        }
+
+        async function loadReportDropdowns() {
+            await populateSelect('/mercados/', 'reporte-mercado', 'nombre');
+            await populateSelect('/estados/', 'reporte-estado', 'nombre');
+            await populateUsuarios();
+            await populateCalificaciones();
+        }
+
+        async function populateSelect(endpoint, id, field) {
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const sel = document.getElementById(id);
+                sel.innerHTML = '<option value="">Todos/Cualquiera</option>';
+                (data.results || data).forEach(i => {
+                    const opt = document.createElement('option');
+                    opt.value = i.id;
+                    opt.textContent = i[field];
+                    sel.appendChild(opt);
+                });
+            } catch(e) {}
+        }
+
+        async function populateUsuarios() {
+            try {
+                const res = await fetch(`${API_BASE}/users/by_role/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const sel = document.getElementById('reporte-usuario');
+                sel.innerHTML = '<option value="">Todos</option>';
+                const add = (users, role) => users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = `${u.email} (${role})`;
+                    sel.appendChild(opt);
+                });
+                add(data.corredores, 'Corredor');
+                add(data.administradores, 'Admin');
+            } catch(e) {}
+        }
+
+        async function populateCalificaciones() {
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const sel = document.getElementById('reporte-calificacion');
+                sel.innerHTML = '<option value="">Seleccione...</option>';
+                (data.results||data).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `ID ${c.id} - ${c.instrumento.nombre} (${c.monto_factor})`;
+                    sel.appendChild(opt);
+                });
+            } catch(e) {}
+        }
+
+        // DESCARGAS REALES
+        async function generateConsolidatedReport() {
+            const p = new URLSearchParams();
+            const merc = document.getElementById('reporte-mercado').value;
+            const est = document.getElementById('reporte-estado').value;
+            const usr = document.getElementById('reporte-usuario').value;
+            if(merc) p.append('mercado_id', merc);
+            if(est) p.append('estado_id', est);
+            if(usr) p.append('usuario_id', usr);
+            
+            closeModal('modal-reporte-consolidado');
+            await triggerDescarga(p, "reporte_consolidado.xlsx");
+        }
+
+        async function generateSpecificReport() {
+            const id = document.getElementById('reporte-calificacion').value;
+            if(!id) return alert("Seleccione una calificación");
+            const p = new URLSearchParams();
+            p.append('id', id);
+            
+            closeModal('modal-reporte-especifico');
+            await triggerDescarga(p, `reporte_calificacion_${id}.xlsx`);
+        }
+
+        async function triggerDescarga(params, filename) {
+            alert("Generando reporte...");
+            try {
+                const res = await fetch(`${API_BASE}/calificaciones/exportar_csv/?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = filename;
+                    a.click();
+                } else alert("No hay datos o hubo un error.");
+            } catch(e) { alert("Error de conexión."); }
+        }
     </script>
-
 </body>
 </html>
