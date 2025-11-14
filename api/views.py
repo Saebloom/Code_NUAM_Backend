@@ -1,7 +1,6 @@
 # api/views.py
 import logging
 import csv
-import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
@@ -289,10 +288,15 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             'tributarias', 'tributarias__factores'
         ).filter(is_active=True).order_by('-created_at')
 
-        # Filtros
+        # Filtros (Supervisor/Corredor)
         calificacion_id = self.request.query_params.get('id', None)
         usuario_email = self.request.query_params.get('usuario_email', None)
         anio = self.request.query_params.get('anio', None)
+        
+        # Filtros para Reporte Consolidado
+        mercado_id = self.request.query_params.get('mercado_id', None)
+        estado_id = self.request.query_params.get('estado_id', None)
+        usuario_id = self.request.query_params.get('usuario_id', None)
 
         if calificacion_id:
             queryset = queryset.filter(id=calificacion_id)
@@ -300,6 +304,14 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(usuario__username__icontains=usuario_email)
         if anio:
             queryset = queryset.filter(fecha_emision__year=anio)
+            
+        # Nuevos filtros para Reportes
+        if mercado_id:
+            queryset = queryset.filter(mercado_id=mercado_id)
+        if estado_id:
+            queryset = queryset.filter(estado_id=estado_id)
+        if usuario_id:
+            queryset = queryset.filter(usuario_id=usuario_id)
 
         if user.is_staff or user.groups.filter(name="Supervisor").exists():
             return queryset 
@@ -318,11 +330,24 @@ class CalificacionViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
         logger.info(f"Usuario {self.request.user.username} deshabilitó Calificación ID: {instance.id}")
 
-    # --- 1. ACCIÓN DE EXPORTAR CSV ---
+    # --- 1. ACCIÓN DE EXPORTAR CSV (REPORTES) ---
     @action(detail=False, methods=['get'], url_path='exportar_csv')
     def exportar_csv(self, request):
         user = request.user
         queryset = self.get_queryset()
+
+        # Guardar Log de Auditoría (Si es Supervisor)
+        try:
+            if user.groups.filter(name="Supervisor").exists():
+                tipo_reporte = "Específico" if request.query_params.get('id') else "Consolidado"
+                filtros = str(request.query_params.dict())
+                Log.objects.create(
+                    usuario=user,
+                    accion="Generar Reporte",
+                    detalle=f"Descarga de Reporte {tipo_reporte}. Filtros: {filtros}"
+                )
+        except Exception as e:
+            print(f"Error log reporte: {e}")
 
         wb = Workbook()
         ws = wb.active
@@ -389,10 +414,7 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     # --- 2. ACCIÓN DE IMPORTAR CSV (CARGA MASIVA) ---
     @action(detail=False, methods=['POST'])
     def importar_csv(self, request):
-        """
-        Lee un CSV o XLSX, guarda en BD y genera Log de Auditoría.
-        """
-        # 1. Validación de Permisos
+        # 1. Validación de Permisos (Corredor o Admin)
         es_corredor = request.user.groups.filter(name='Corredor').exists()
         es_admin = request.user.is_staff
         if not es_corredor and not es_admin:
@@ -407,7 +429,7 @@ class CalificacionViewSet(viewsets.ModelViewSet):
         rows = []
 
         try:
-            # 2. Leer el archivo (Excel o CSV)
+            # 2. Leer el archivo
             if archivo.name.endswith('.csv'):
                 decoded_file = archivo.read().decode('utf-8').splitlines()
                 reader = csv.DictReader(decoded_file)
@@ -416,9 +438,7 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             elif archivo.name.endswith('.xlsx'):
                 wb = load_workbook(filename=archivo, read_only=True)
                 ws = wb.active
-                # Leer encabezados de la fila 1
                 headers = [cell.value for cell in ws[1]]
-                # Leer filas desde la 2
                 for row in ws.iter_rows(min_row=2, values_only=True):
                     row_data = dict(zip(headers, row))
                     rows.append(row_data)
@@ -429,7 +449,6 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 for i, row in enumerate(rows):
                     try:
-                        # Mapeo flexible de columnas
                         inst_id = row.get('Instrumento_ID') or row.get('instrumento_id')
                         merc_id = row.get('Mercado_ID') or row.get('mercado_id')
                         est_id = row.get('Estado_ID') or row.get('estado_id')
