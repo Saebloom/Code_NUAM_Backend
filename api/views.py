@@ -1,21 +1,23 @@
 # api/views.py
 import logging
 import csv
+import pandas as pd
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
-from openpyxl import Workbook, load_workbook  
-from openpyxl.styles import Font, Alignment, PatternFill
 from django.db import models
 from django.utils import timezone
+
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-# 🔽 1. IMPORTACIÓN CORREGIDA: Añadimos IsAuthenticated
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -82,42 +84,31 @@ def login_nuam(request):
 # VISTAS DE USUARIOS (ADMIN)
 # =============================================================
 
-# =============================================================
-# VISTAS DE USUARIOS (ADMIN)
-# =============================================================
-
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gestionar Usuarios.
     """
-    # queryset = Usuario.objects.all().order_by('id') # <--- Quitamos esto
     serializer_class = UserSerializer
 
-    # --- ✅ AQUÍ ESTÁ EL MÉTODO get_queryset CORREGIDO ---
     def get_queryset(self):
         """
         Sobrescribe el queryset base para añadir filtros.
         """
         queryset = Usuario.objects.all().order_by('id')
         
-        # --- Lógica de filtro (ahora dentro de un método) ---
+        # --- Lógica de filtro ---
         email = self.request.query_params.get('email', None)
         if email is not None:
-            # Filtra por email (username) o por email real
             queryset = queryset.filter(models.Q(username__icontains=email) | models.Q(email__icontains=email))
             
         return queryset
-    # --- FIN DEL get_queryset ---
 
     def get_permissions(self):
-        
         if self.action == 'create':
             permission_classes = [AllowAny]
-        elif self.action == 'me' or self.action == 'by_role': # <-- AÑADIDO AQUÍ
-            # 'me' y 'by_role' son accesibles para CUALQUIER usuario logueado
+        elif self.action == 'me' or self.action == 'by_role':
             permission_classes = [IsAuthenticated]
         else:
-            # El resto (list, update, delete, admin_create) es solo para Admins
             permission_classes = [IsAdminUser] 
         return [permission() for permission in permission_classes]
 
@@ -125,7 +116,6 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Maneja el REGISTRO PÚBLICO desde index.html.
         """
-        # ... (Tu código de 'create' sigue igual) ...
         email = request.data.get('email', '').lower().strip()
         password = request.data.get('password')
         rol_name = request.data.get('rol', 'corredor') 
@@ -158,10 +148,9 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Crea un usuario desde el panel de admin (dashboard.html), asignando un rol.
         """
-        # ... (Tu código de 'admin_create' sigue igual) ...
         email = request.data.get('email', '').lower().strip()
         rol_name = request.data.get('rol', 'corredor') 
-        rut = request.data.get('rut_documento', '').strip() # Limpiamos el RUT
+        rut = request.data.get('rut_documento', '').strip()
 
         if not email or not request.data.get('password'):
             return Response({"detail": "Email y password son requeridos."}, status=status.HTTP_400_BAD_REQUEST)
@@ -193,7 +182,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     group, created = Group.objects.get_or_create(name=rol_name.capitalize())
                     user.groups.add(group)
                 user.save()
-                serializer = CurrentUserSerializer(user) # Usamos CurrentUserSerializer
+                serializer = CurrentUserSerializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -202,7 +191,6 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Maneja la EDICIÓN (PATCH) de un usuario desde el dashboard.
         """
-        # ... (Tu código de 'update' sigue igual) ...
         partial = kwargs.pop('partial', True) 
         instance = self.get_object()
         
@@ -229,7 +217,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
     def disable_user(self, request, pk=None):
-        # ... (Tu código de 'disable_user' sigue igual) ...
         try:
             user = self.get_object()
             if user.is_superuser:
@@ -242,7 +229,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'], permission_classes=[IsAdminUser])
     def enable_user(self, request, pk=None):
-        # ... (Tu código de 'enable_user' sigue igual) ...
         try:
             user = self.get_object()
             user.is_active = True
@@ -253,7 +239,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['DELETE'], permission_classes=[IsAdminUser], name="delete_permanent")
     def delete_permanent(self, request, pk=None):
-        # ... (Tu código de 'delete_permanent' sigue igual) ...
         try:
             user = self.get_object()
             if user.is_superuser:
@@ -265,7 +250,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def by_role(self, request):
-        # ... (Tu código de 'by_role' sigue igual) ...
         try:
             admins = Usuario.objects.filter(is_superuser=True)
             supervisors = Usuario.objects.filter(groups__name='Supervisor') 
@@ -281,13 +265,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET']) 
     def me(self, request):
-        # ... (Tu código de 'me' sigue igual) ...
         if not request.user.is_authenticated:
             return Response({"detail": "No autenticado"}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = CurrentUserSerializer(request.user)
         return Response(serializer.data)
 
-# (Aquí empieza la siguiente clase, CalificacionViewSet...)
 
 # =============================================================
 # VISTAS DE CALIFICACIONES (CORE)
@@ -300,38 +282,52 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser, FormParser, JSONParser,)
 
     def get_queryset(self):
-        
         user = self.request.user
-        # Si es admin o supervisor, ve todo
-        if user.is_staff or user.groups.filter(name='Supervisor').exists():
-            return Calificacion.objects.all()
-        # Si es corredor, solo ve lo suyo
-        return Calificacion.objects.filter(usuario=user)
+        queryset = Calificacion.objects.select_related(
+            'usuario', 'instrumento', 'mercado', 'estado'
+        ).prefetch_related(
+            'tributarias', 'tributarias__factores'
+        ).filter(is_active=True).order_by('-created_at')
+
+        # Filtros
+        calificacion_id = self.request.query_params.get('id', None)
+        usuario_email = self.request.query_params.get('usuario_email', None)
+        anio = self.request.query_params.get('anio', None)
+
+        if calificacion_id:
+            queryset = queryset.filter(id=calificacion_id)
+        if usuario_email:
+            queryset = queryset.filter(usuario__username__icontains=usuario_email)
+        if anio:
+            queryset = queryset.filter(fecha_emision__year=anio)
+
+        if user.is_staff or user.groups.filter(name="Supervisor").exists():
+            return queryset 
+        else:
+            return queryset.filter(usuario=user)
 
     def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user, created_by=self.request.user)
+        serializer.save(usuario=self.request.user, created_by=self.request.user, updated_by=self.request.user)
+        logger.info(f"Usuario {self.request.user.username} creó Calificación ID: {serializer.instance.id}")
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+        logger.info(f"Usuario {self.request.user.username} actualizó Calificación ID: {serializer.instance.id}")
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
+        logger.info(f"Usuario {self.request.user.username} deshabilitó Calificación ID: {instance.id}")
 
     # --- 1. ACCIÓN DE EXPORTAR CSV ---
     @action(detail=False, methods=['get'], url_path='exportar_csv')
     def exportar_csv(self, request):
-        """
-        Genera un archivo EXCEL (.xlsx) con toda la información anidada (aplanada).
-        """
         user = request.user
         queryset = self.get_queryset()
 
-        # --- Lógica de Openpyxl ---
         wb = Workbook()
         ws = wb.active
         ws.title = f"Calificaciones_{user.username}"
 
-        # 1. Definir Encabezados y Estilos
         headers = [
             'ID_Calificacion', 'Instrumento_ID', 'Mercado_ID', 'Estado_ID', 'Monto', 
             'Fecha_Emision', 'Fecha_Pago', 'Creado_Por', 'Fecha_Creacion',
@@ -339,20 +335,15 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             'Codigo_Factor', 'Valor_Factor'
         ]
 
-        # Estilo para cabeceras
         header_font = Font(bold=True, color="FFFFFF")
         header_align = Alignment(horizontal="center", vertical="center")
+        ws.append(headers) 
 
-        ws.append(headers) # Añadir cabeceras
-
-        # Aplicar estilo a la fila de cabecera (Fila 1)
         for cell in ws[1]:
             cell.font = header_font
             cell.alignment = header_align
-            # Añadir un color de fondo (opcional, pero "bonito")
             cell.fill = PatternFill(start_color="FD441E", end_color="FD441E", fill_type="solid")
 
-        # 2. Añadir los datos
         for cal in queryset:
             base_data = [
                 cal.id, cal.instrumento_id, cal.mercado_id, cal.estado_id, cal.monto_factor,
@@ -362,7 +353,7 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             tributarias = cal.tributarias.all()
 
             if not tributarias:
-                ws.append(base_data + ['', '', '', '', '', '']) # Rellenar celdas vacías
+                ws.append(base_data + ['', '', '', '', '', '']) 
             else:
                 for trib in tributarias:
                     trib_data = [
@@ -376,10 +367,9 @@ class CalificacionViewSet(viewsets.ModelViewSet):
                             fact_data = [fact.codigo_factor, fact.valor_factor]
                             ws.append(base_data + trib_data + fact_data)
 
-        # 3. Ajustar ancho de columnas (lo que lo hace "ordenado")
         for col in ws.columns:
             max_length = 0
-            column = col[0].column_letter # Obtener la letra de la columna
+            column = col[0].column_letter 
             for cell in col:
                 try:
                     if len(str(cell.value)) > max_length:
@@ -389,176 +379,107 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             adjusted_width = (max_length + 2)
             ws.column_dimensions[column].width = adjusted_width
 
-        # 4. Crear la respuesta HTTP
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
-        # Cambiamos la extensión a .xlsx
         response['Content-Disposition'] = f'attachment; filename="calificaciones_{user.username}.xlsx"'
-
-        wb.save(response) # Guardar el libro de Excel en la respuesta
+        wb.save(response) 
         return response
 
-    # --- 2. ACCIÓN DE IMPORTAR CSV ---
-    @action(detail=False, methods=['post'], url_path='importar_csv')
+    # --- 2. ACCIÓN DE IMPORTAR CSV (CARGA MASIVA) ---
+    @action(detail=False, methods=['POST'])
     def importar_csv(self, request):
         """
-        Lee un CSV o un XLSX y crea Calificaciones -> Tributarias -> Factores.
+        Lee un CSV o XLSX, guarda en BD y genera Log de Auditoría.
         """
-        file = request.FILES.get('file')
-        if not file:
-            return Response({'error': 'No se envió ningún archivo.'}, status=status.HTTP_400_BAD_REQUEST)
+        # 1. Validación de Permisos
+        es_corredor = request.user.groups.filter(name='Corredor').exists()
+        es_admin = request.user.is_staff
+        if not es_corredor and not es_admin:
+            return Response({"detail": "No tienes permisos."}, status=status.HTTP_403_FORBIDDEN)
+
+        archivo = request.FILES.get('archivo')
+        if not archivo:
+            return Response({"error": "No se envió ningún archivo."}, status=status.HTTP_400_BAD_REQUEST)
 
         creados = 0
         errores = []
         rows = []
 
         try:
-            # --- LÓGICA MEJORADA PARA LEER CSV O XLSX ---
-            if file.name.endswith('.csv'):
-                decoded_file = file.read().decode('utf-8').splitlines()
+            # 2. Leer el archivo (Excel o CSV)
+            if archivo.name.endswith('.csv'):
+                decoded_file = archivo.read().decode('utf-8').splitlines()
                 reader = csv.DictReader(decoded_file)
                 rows = list(reader)
 
-            elif file.name.endswith('.xlsx'):
-                # Usamos openpyxl para leer el Excel
-                wb = load_workbook(filename=file, read_only=True)
+            elif archivo.name.endswith('.xlsx'):
+                wb = load_workbook(filename=archivo, read_only=True)
                 ws = wb.active
-
-                # Convertir la hoja de Excel en una lista de diccionarios
-                headers = [cell.value for cell in ws[1]] # Lee la fila 1 como cabeceras
-                for row in ws.iter_rows(min_row=2): # Itera desde la fila 2
-                    row_data = {}
-                    for header, cell in zip(headers, row):
-                        row_data[header] = cell.value
+                # Leer encabezados de la fila 1
+                headers = [cell.value for cell in ws[1]]
+                # Leer filas desde la 2
+                for row in ws.iter_rows(min_row=2, values_only=True):
+                    row_data = dict(zip(headers, row))
                     rows.append(row_data)
             else:
-                return Response({'error': 'El archivo debe ser .csv o .xlsx'}, status=status.HTTP_400_BAD_REQUEST)
-            # --- FIN DE LA LÓGICA DE LECTURA ---
+                return Response({'error': 'Formato no soportado. Use .csv o .xlsx'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-            # Usamos atomic para que si una fila falla, no rompa todo el proceso
+            # 3. Procesar filas y guardar en BD
             with transaction.atomic():
-                for index, row in enumerate(rows):
+                for i, row in enumerate(rows):
                     try:
-                        # ... (código para obtener IDs) ...
-                        inst_id = row.get('Instrumento_ID')
-                        merc_id = row.get('Mercado_ID')
-                        est_id = row.get('Estado_ID')
-                        
-    
-                        if not (inst_id and merc_id and est_id):
-                            continue 
+                        # Mapeo flexible de columnas
+                        inst_id = row.get('Instrumento_ID') or row.get('instrumento_id')
+                        merc_id = row.get('Mercado_ID') or row.get('mercado_id')
+                        est_id = row.get('Estado_ID') or row.get('estado_id')
+                        monto = row.get('Monto') or row.get('monto_factor')
+                        f_emision = row.get('Fecha_Emision') or row.get('fecha_emision')
+                        f_pago = row.get('Fecha_Pago') or row.get('fecha_pago')
 
-                        # 2. Crear Calificación
-                        cal = Calificacion.objects.create(
+                        if not inst_id: continue 
+
+                        Calificacion.objects.create(
+                            usuario=request.user,
                             instrumento_id=inst_id,
                             mercado_id=merc_id,
                             estado_id=est_id,
-                            monto_factor=row.get('Monto'),
-                            fecha_emision=row.get('Fecha_Emision'),
-                            fecha_pago=row.get('Fecha_Pago'),
-                            usuario=request.user,
+                            monto_factor=monto,
+                            fecha_emision=f_emision,
+                            fecha_pago=f_pago,
                             created_by=request.user,
-                            updated_by=request.user  # <--- 1. AÑADE ESTA LÍNEA
+                            updated_by=request.user
                         )
-
-                        # 3. Crear Tributaria (si existen datos en la fila)
-                        sec_trib = row.get('Secuencia_Trib')
-                        if sec_trib:
-                            trib = CalificacionTributaria.objects.create(
-                                calificacion=cal,
-                                secuencia_evento=sec_trib,
-                                evento_capital=row.get('Evento_Capital') or 0,
-                                anio=row.get('Anio_Trib') or 2025,
-                                valor_historico=row.get('Valor_Historico') or 0,
-                                created_by=request.user,  # <--- 2. AÑADE ESTA LÍNEA
-                                updated_by=request.user   # <--- 3. AÑADE ESTA LÍNEA
-                            )
-
-                            # 4. Crear Factor (si existen datos y existe tributaria)
-                            cod_fact = row.get('Codigo_Factor')
-                            if cod_fact:
-                                # (FactorTributario no necesita esto, así que está bien)
-                                FactorTributario.objects.create(
-                                    calificacion_tributaria=trib,
-                                    codigo_factor=cod_fact,
-                                    valor_factor=row.get('Valor_Factor') or 0,
-                                    descripcion_factor="Carga Masiva"
-                                )
-                        
                         creados += 1
-
                     except Exception as e:
-                        errores.append(f"Fila {index + 2}: {str(e)}") 
+                        errores.append(f"Fila {i + 2}: {str(e)}")
 
+                # 4. CREAR LOG DE HISTORIAL
+                if creados > 0:
+                    Log.objects.create(
+                        usuario=request.user,
+                        accion="Carga Masiva",
+                        detalle=f"Archivo '{archivo.name}' procesado. {creados} registros creados."
+                    )
+
+            # 5. Respuesta final
             return Response({
-                'status': 'Proceso finalizado',
-                'creados': creados,
-                'errores': errores
+                "creados": creados,
+                "errores": errores,
+                "mensaje": "Carga procesada correctamente"
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        user = self.request.user
-        
-        queryset = Calificacion.objects.select_related(
-            'usuario', 'instrumento', 'mercado', 'estado'
-        ).prefetch_related(
-            'tributarias', 'tributarias__factores'
-        ).filter(is_active=True).order_by('-created_at')
-
-        # --- ✅ LÓGICA DE FILTRO AÑADIDA ---
-        calificacion_id = self.request.query_params.get('id', None)
-        usuario_email = self.request.query_params.get('usuario_email', None)
-        anio = self.request.query_params.get('anio', None)
-
-        if calificacion_id:
-            queryset = queryset.filter(id=calificacion_id)
-        
-        if usuario_email:
-            queryset = queryset.filter(usuario__username__icontains=usuario_email)
-
-        if anio:
-            queryset = queryset.filter(fecha_emision__year=anio)
-        # --- FIN DE LA LÓGICA AÑADIDA ---
-
-        if user.is_staff or user.groups.filter(name="Supervisor").exists():
-            return queryset # Devuelve todo (filtrado)
-        else:
-            # Corredor solo ve sus propias calificaciones (filtradas)
-            return queryset.filter(usuario=user)
-
-    def retrieve(self, request, *args, **kwargs):
-        # ...
-        return super().retrieve(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user, created_by=self.request.user, updated_by=self.request.user)
-        # ...
-        logger.info(f"Usuario {self.request.user.username} creó Calificación ID: {serializer.instance.id}")
-
-    def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
-        # ...
-        logger.info(f"Usuario {self.request.user.username} actualizó Calificación ID: {serializer.instance.id}")
-
-    def perform_destroy(self, instance):
-        instance.soft_delete(user=self.request.user)
-        # ...
-        logger.info(f"Usuario {self.request.user.username} deshabilitó Calificación ID: {instance.id}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     @action(detail=False, methods=['GET'], permission_classes=[IsOwnerOrAdmin])
     def mis_calificaciones(self, request):
-        # ...
         mis_calificaciones = self.get_queryset().filter(usuario=request.user, is_active=True)
-        # ...
         serializer = self.get_serializer(mis_calificaciones, many=True)
         return Response(serializer.data)
 
 # =============================================================
-# VISTAS DE MODELOS GENÉRICOS (ADMIN/SELECTS)
+# VISTAS DE MODELOS GENÉRICOS
 # =============================================================
 
 class InstrumentoViewSet(viewsets.ModelViewSet):
@@ -592,32 +513,19 @@ class FactorTributarioViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
 
 class LogViewSet(viewsets.ReadOnlyModelViewSet):
-        # ... (código serializer y permission_classes) ...
-        permission_classes = [IsAuthenticated]
-        serializer_class = LogSerializer
-        
-        def get_queryset(self):
-            """
-            Filtra los logs.
-            Admin y Supervisor ven todo.
-            Corredor ve solo sus propias acciones.
-            """
-            user = self.request.user
-            
-            # ✅ CAMBIO: Añadimos la comprobación del grupo "Supervisor"
-            if user.is_staff or user.groups.filter(name="Supervisor").exists():
-                return Log.objects.all().order_by('-fecha')
-            else:
-                # Los demás (Corredor) solo ven sus propias acciones
-                return Log.objects.filter(usuario=user).order_by('-fecha')
-# (Hacemos lo mismo para Auditoria, por si acaso)
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.groups.filter(name="Supervisor").exists():
+            return Log.objects.all().order_by('-fecha')
+        else:
+            return Log.objects.filter(usuario=user).order_by('-fecha')
+
 class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Muestra la Auditoria.
-    Los Admins ven todo. Los demás usuarios solo ven lo suyo.
-    """
     serializer_class = AuditoriaSerializer
-    permission_classes = [IsAuthenticated] # <-- CAMBIO DE PERMISO
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -626,13 +534,10 @@ class AuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             return Auditoria.objects.filter(usuario=user).order_by('-fecha')
 
-#Gestión de RESPALDO DASHBOARD SUPERUSUARIO
 class RespaldoViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gestionar los registros de Respaldos.
-    Solo los Admins pueden crear, ver, editar o borrar registros de respaldos.
     """
     queryset = Respaldo.objects.all()
     serializer_class = RespaldoSerializer
-    # Solo los Admins (is_staff) pueden gestionar respaldos
     permission_classes = [IsAdminUser]
