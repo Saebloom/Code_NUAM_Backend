@@ -92,7 +92,29 @@ class CalificacionSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "created_at", "instrumento", "mercado", "estado"
         ]
+    def validate(self, data):
+        """
+        Validación a nivel de objeto para la API.
+        """
+        # (self.instance existe si es una ACTUALIZACIÓN (PATCH), 
+        # si no, es una CREACIÓN (POST))
 
+        # Obtenemos la fecha de emisión. Si no viene en el 'data' (en un PATCH), 
+        # la sacamos de la 'instance' que ya existe.
+        fecha_emision = data.get('fecha_emision', getattr(self.instance, 'fecha_emision', None))
+        
+        # Hacemos lo mismo para la fecha de pago
+        fecha_pago = data.get('fecha_pago', getattr(self.instance, 'fecha_pago', None))
+
+        if fecha_emision and fecha_pago:
+            if fecha_pago < fecha_emision:
+                # ¡Este es el error 400 que SÍ quieres!
+                # Usamos serializers.ValidationError, no la de Django.
+                raise serializers.ValidationError(
+                    {'fecha_pago': 'La fecha de pago no puede ser anterior a la fecha de emisión.'}
+                )
+        
+        return data
 
     def create(self, validated_data):
         # 1. Saca los datos anidados del 'paquete'

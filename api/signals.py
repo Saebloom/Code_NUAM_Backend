@@ -1,12 +1,12 @@
 # api/signals.py
 import sys
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save, pre_delete
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from django.contrib.auth import get_user_model
-from .models import Instrumento, Mercado, Estado
+from .models import Instrumento, Mercado, Estado, Calificacion, CalificacionTributaria, Log, Auditoria
 from django.contrib.auth.models import Group
 from django.conf import settings
+from django.db import transaction
 
 # --- Contraseñas iniciales ---
 ADMIN_PASS = 'adminpass123'
@@ -132,55 +132,55 @@ def setup_initial_data(sender, **kwargs):
         print("--- Configuración inicial terminada ---\n")
 
 
-from django.db.models.signals import post_save, pre_delete
-from django.db import transaction
-from .models import Calificacion, CalificacionTributaria, Log, Auditoria
+
 
 @receiver(post_save, sender=Calificacion)
 def log_calificacion_save(sender, instance, created, **kwargs):
     """
-    Registra la creación o actualización de una calificación en el Log.
-    """
-    # Solo se ejecuta si no está en un test
-    if 'test' in sys.argv:
-        return
-
-    accion = "Crear calificación" if created else "Actualizar calificación"
-
-    # Usamos transaction.atomic para asegurar que el log se cree
-    try:
-        with transaction.atomic():
-            Log.objects.create(
-                accion=accion,
-                detalle=f"Calificación {instance.id} - Monto: {instance.monto_factor}",
-                usuario=instance.usuario, # <-- ¡Esto ya está corregido gracias al serializer!
-                calificacion=instance
-            )
-    except Exception as e:
-        # Si algo falla (ej. el usuario es NULO), lo imprime en consola
-        print(f"ERROR al crear Log: {e}")
-
-
-@receiver(pre_delete, sender=Calificacion)
-def log_calificacion_delete(sender, instance, **kwargs):
-    """
-    Registra la eliminación de una calificación en el Log.
+    Registra la creación, actualización O ELIMINACIÓN (lógica) 
+    de una calificación en el Log.
     """
     if 'test' in sys.argv:
         return
 
-    try:
-        with transaction.atomic():
-            # Nota: instance.usuario puede ser NULO si el usuario fue borrado
-            user = instance.usuario if instance.usuario else None
-            Log.objects.create(
-                accion="Eliminar calificación",
-                detalle=f"Calificación {instance.id} eliminada",
-                usuario=user,
-                calificacion=instance
-            )
-    except Exception as e:
-        print(f"ERROR al crear Log de eliminación: {e}")
+    accion = ""
+    detalle_accion = ""
+
+    if created:
+        accion = "Crear calificación"
+        detalle_accion = f"Calificación {instance.id} creada - Monto: {instance.monto_factor}"
+    else:
+        # Si no es 'created', verificamos si 'is_active' es Falso.
+        # Si es Falso, significa que fue un BORRADO LÓGICO (Soft Delete).
+        if not instance.is_active:
+            accion = "Eliminar calificación"
+            detalle_accion = f"Calificación {instance.id} marcada como inactiva"
+        else:
+            # Si 'is_active' es Verdadero, fue una ACTUALIZACIÓN normal.
+            accion = "Actualizar calificación"
+            detalle_accion = f"Calificación {instance.id} actualizada - Monto: {instance.monto_factor}"
+
+    # Solo crear el log si la acción se definió
+    if accion:
+        try:
+            with transaction.atomic():
+                Log.objects.create(
+                    accion=accion,
+                    detalle=detalle_accion,
+                    usuario=instance.updated_by, # Usar updated_by asegura que siempre haya un usuario
+                    calificacion=instance
+                )
+        except Exception as e:
+            print(f"ERROR al crear Log: {e}")
+
+
+
+
+# Este signal NUNCA se llamaba porque usamos "Soft Delete" (que usa .save())
+# en lugar de .delete(). Por eso lo eliminamos, para evitar confusión.
+# @receiver(pre_delete, sender=Calificacion)
+# def log_calificacion_delete(sender, instance, **kwargs):
+#    ... (código eliminado) ...
 
 
 @receiver(post_save, sender=CalificacionTributaria)
@@ -195,7 +195,8 @@ def log_auditoria_tributaria(sender, instance, created, **kwargs):
     try:
         with transaction.atomic():
             calificacion_padre = instance.calificacion
-            user = calificacion_padre.usuario if calificacion_padre.usuario else None
+            # Usamos el updated_by de la tributaria, que debería estar seteado
+            user = instance.updated_by if instance.updated_by else calificacion_padre.updated_by
 
             Auditoria.objects.create(
                 tipo="Actualización (Tributaria)",
@@ -206,4 +207,3 @@ def log_auditoria_tributaria(sender, instance, created, **kwargs):
             )
     except Exception as e:
         print(f"ERROR al crear Auditoria: {e}")
-# --- NO AGREGUES NINGÚN OTRO CÓDIGO A ESTE ARCHIVO ---
