@@ -41,7 +41,7 @@ services:
   # --- SERVICIO 3: TU BACKEND (DJANGO + CONSUMIDOR) ---
   backend:
     build: . # Construye usando tu Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runsslserver 0.0.0.0:8000 --certificate /app/certs/cert.pem --key /app/certs/key.pem
     volumes:
       - .:/app # Para que veas los cambios de código en tiempo real
     ports:

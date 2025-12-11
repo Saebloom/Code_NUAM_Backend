@@ -1,80 +1,90 @@
 import os
-from datetime import timedelta
 from pathlib import Path
+from datetime import timedelta
 import pymysql
 
+# --- Configuración Inicial de MySQL ---
+# Esto permite que Django use pymysql como si fuera el cliente nativo
 pymysql.install_as_MySQLdb()
 
+# Construye rutas dentro del proyecto: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "cambia-esto-en-produccion")
+# SEGURIDAD: Mejor usar variables de entorno en producción
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-clave-secreta-para-desarrollo-nuam")
 
+# DEBUG: True para ver errores detallados en desarrollo
 DEBUG = True
 
+# Permitimos todos los hosts para evitar problemas con Docker
 ALLOWED_HOSTS = ["*"]
 
-INSTALLED_APPS = [
-    # "jazzmin", 
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "corsheaders",
-    "rest_framework",
-    "drf_yasg",
-    "api",
-]
 
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    }
-}
+# ------------------------------------------------------------------------------
+# APLICACIONES INSTALADAS
+# ------------------------------------------------------------------------------
+INSTALLED_APPS = [
+    'sslserver',                    # <--- IMPORTANTE: Debe ir primero para HTTPS
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    
+    # Librerías de Terceros
+    'corsheaders',                  # Para permitir peticiones del frontend
+    'rest_framework',               # Django Rest Framework (DRF)
+    'rest_framework_simplejwt',     # Autenticación JWT
+    'drf_yasg',                     # Documentación Swagger
+    
+    # Tus Apps
+    'api',
+]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',  # <--- Debe ir lo más arriba posible
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = "nuam.urls"
+ROOT_URLCONF = 'nuam.urls'
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'], # Asegúrate de tener esta carpeta creada
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = "nuam.wsgi.application"
+WSGI_APPLICATION = 'nuam.wsgi.application'
 
+
+# ------------------------------------------------------------------------------
+# BASE DE DATOS (Configuración Híbrida Docker/Local)
+# ------------------------------------------------------------------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'nuam_db'),  #  minúscula, igual que en MySQL plxxx
+        'NAME': os.environ.get('DB_NAME', 'nuam_db'),
         'USER': os.environ.get('DB_USER', 'nuam_user'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'password123'),
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),  # o 'localhost'
+        # Si estamos en Docker, el host es 'db'. Si no, es '127.0.0.1'
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
@@ -82,106 +92,116 @@ DATABASES = {
         },
     }
 }
+
+
+# ------------------------------------------------------------------------------
+# USUARIO PERSONALIZADO
+# ------------------------------------------------------------------------------
+AUTH_USER_MODEL = 'api.Usuario'
+
+# Validaciones de contraseña (puedes relajarlas para desarrollo)
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
-LANGUAGE_CODE = "es-cl"
-TIME_ZONE = "America/Santiago"
+
+# ------------------------------------------------------------------------------
+# INTERNACIONALIZACIÓN
+# ------------------------------------------------------------------------------
+LANGUAGE_CODE = 'es-cl'
+TIME_ZONE = 'America/Santiago'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/static/"
+
+# ------------------------------------------------------------------------------
+# ARCHIVOS ESTÁTICOS (CSS, JavaScript, Images)
+# ------------------------------------------------------------------------------
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Donde se recolectan al hacer collectstatic
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# REST FRAMEWORK + SIMPLE JWT
+
+# ------------------------------------------------------------------------------
+# DJANGO REST FRAMEWORK + JWT
+# ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated', # Por defecto todo privado
     ),
-    "DEFAULT_THROTTLE_CLASSES": (
-        "rest_framework.throttling.UserRateThrottle",
-        "rest_framework.throttling.AnonRateThrottle",
-    ),
-    "DEFAULT_THROTTLE_RATES": {
-        "user": "1000/day",
-        "anon": "200/day",
-    },
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 20,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "AUTH_HEADER_TYPES": ("Bearer",),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+# Configuración para que Swagger sepa usar el JWT
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
 
 
-# Carpeta logs
+# ------------------------------------------------------------------------------
+# CORS (Cross-Origin Resource Sharing)
+# ------------------------------------------------------------------------------
+# En desarrollo permitimos todo para evitar dolores de cabeza
+CORS_ALLOW_ALL_ORIGINS = True 
+
+# Si quisieras ser estricta, usa esto:
+# CORS_ALLOW_ALL_ORIGINS = False
+# CORS_ALLOWED_ORIGINS = [
+#     "https://localhost:8000",
+#     "http://localhost:8000",
+#     "http://127.0.0.1:8000",
+# ]
+
+
+# ------------------------------------------------------------------------------
+# LOGGING (Para ver errores en la consola de Docker)
+# ------------------------------------------------------------------------------
 LOG_DIR = BASE_DIR / 'logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
     'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'nuam.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'filename': LOG_DIR / 'nuam.log',
         },
     },
-    'loggers': {
-        'api': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
     },
 }
 
-# ⬇️ ⬇️ ⬇️ ESTA LÍNEA ES LA CORRECCIÓN CLAVE ⬇️ ⬇️ ⬇️
-# Indicar a Django que use tu modelo personalizado
-AUTH_USER_MODEL = 'api.Usuario'
-
-# Evita redirección a /accounts/login/ cuando @login_required es usado
+# Redirecciones de Login
 LOGIN_URL = "/"
-
-# Logout redirige al index
 LOGOUT_REDIRECT_URL = "/"
