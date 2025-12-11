@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Usuario(AbstractUser):
     GENERO_CHOICES = [
@@ -124,7 +125,7 @@ class CalificacionTributaria(AuditableModel):
     calificacion = models.ForeignKey('Calificacion', on_delete=models.CASCADE, related_name="tributarias")
     secuencia_evento = models.IntegerField()
     evento_capital = models.DecimalField(max_digits=18, decimal_places=4)
-    anio = models.IntegerField(db_index=True)
+    anio = models.IntegerField(db_index=True, validators=[MinValueValidator(2000), MaxValueValidator(2100)])
     valor_historico = models.DecimalField(max_digits=18, decimal_places=4, null=True, blank=True)
     descripcion = models.TextField(blank=True)
     ingreso_por_montos = models.BooleanField(default=False)
