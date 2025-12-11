@@ -85,7 +85,7 @@ class Archivo(models.Model):
     nombre_archivo = models.CharField(max_length=255)
     fecha_carga = models.DateTimeField(auto_now_add=True)
     estado_validacion = models.CharField(max_length=100, default="pendiente")
-    ruta = models.CharField(max_length=500, blank=True)
+    ruta = models.FileField(upload_to='cargas/%Y/%m/', blank=True)
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     def __str__(self):
         return self.nombre_archivo
@@ -96,8 +96,8 @@ class Calificacion(AuditableModel):
     fecha_emision = models.DateField(db_index=True)
     fecha_pago = models.DateField(db_index=True)
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="calificaciones")
-    instrumento = models.ForeignKey('Instrumento', on_delete=models.SET_NULL, null=True, db_index=True)
-    mercado = models.ForeignKey('Mercado', on_delete=models.SET_NULL, null=True, db_index=True)
+    instrumento = models.ForeignKey('Instrumento', on_delete=models.PROTECT, null=True, db_index=True)
+    mercado = models.ForeignKey('Mercado', on_delete=models.PROTECT, null=True, db_index=True)
     archivo = models.ForeignKey('Archivo', on_delete=models.SET_NULL, null=True, blank=True)
     estado = models.ForeignKey('Estado', on_delete=models.SET_NULL, null=True, db_index=True)
 
