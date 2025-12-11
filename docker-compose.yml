@@ -1,5 +1,7 @@
-version: "3"
+version: "3.8"
+
 services:
+  # --- SERVICIO 1: BROKER DE MENSAJERÍA (KAFKA + ZOOKEEPER) ---
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     environment:
@@ -17,7 +19,43 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # --- SERVICIO 2: BASE DE DATOS (MYSQL) ---
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: nuam_db
+      MYSQL_USER: nuam_user
+      MYSQL_PASSWORD: password123
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # --- SERVICIO 3: TU BACKEND (DJANGO + CONSUMIDOR) ---
+  backend:
+    build: . # Construye usando tu Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app # Para que veas los cambios de código en tiempo real
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+      - db
+    environment:
+      - KAFKA_SERVER=kafka:9092
+      - DB_HOST=db
+      - DB_NAME=nuam_db
+      - DB_USER=nuam_user
+      - DB_PASSWORD=password123
+      - DB_PORT=3306
+
+volumes:
+  db_data:

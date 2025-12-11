@@ -1,6 +1,9 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -68,11 +71,11 @@ WSGI_APPLICATION = "nuam.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nuam',  # 👈 minúscula, igual que en MySQL
-        'USER': 'nuamuser',
-        'PASSWORD': 'NuamUser2025',
-        'HOST': '127.0.0.1',  # o 'localhost'
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', 'nuam_db'),  #  minúscula, igual que en MySQL plxxx
+        'USER': os.environ.get('DB_USER', 'nuam_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'password123'),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),  # o 'localhost'
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
