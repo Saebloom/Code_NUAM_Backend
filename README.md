@@ -1,232 +1,127 @@
 # 🚀 Proyecto: Sistema de Calificaciones Tributarias (NUAM)
+**Integrantes del Equipo**
 
-**Integrantes:**
+* **Valeska Aguirre** Consumer, Microservicios, Base de Datos, Modelos.
 
-  * Valeska Aguirre
-  * Nicolas Espejo
+* **Nicolás Espejo** Productores (Kafka), HTTPS, API RESTful, Arquitectura.
 
-Aplicación web desarrollada con **Django** y **Django REST Framework**, que incluye:
+### ✨ Descripción del Proyecto: Aplicación web empresarial desarrollada con Django y Docker, diseñada bajo una arquitectura de microservicios y eventos.
 
-  * Panel de administración (Administrador)
-  * Dashboard de Supervisión (Supervisor/Auditor)
-  * Dashboard de Mantenedor (Corredor)
-  * API REST con documentación Swagger
-  * Sistema de Auditoría y Logs automáticos
-  * Templates HTML, CSS y JS para cada rol
-  * CRUD para usuarios y calificaciones tributarias
-  * Carga Masiva (CSV/Excel) y Gestión de Respaldos
+### Características Principales:
 
------
+* **Seguridad End-to-End: Protocolo HTTPS forzado con manejo de cookies seguras (SSL/TLS).**
 
-## 🛠 Requisitos Previos
+* **Arquitectura Orientada a Eventos: Integración real con Apache Kafka (Productores y Consumidores).**
 
-Antes de comenzar, asegúrate de tener instalado:
+* **API RESTful: Endpoints estandarizados con documentación automática (Swagger).**
 
-  * Python 3.12 o superior
-  * Git
-  * **MySQL Server** (8.0 o superior, con el servicio `mysql` corriendo)
-  * Navegador web (Chrome, Firefox, Edge)
+* **Roles Diferenciados: Dashboards para Administrador, Supervisor y Corredor.**
 
-> ⚠️ **Nota Importante:** Python y MySQL Server deben instalarse manualmente. No se pueden instalar automáticamente desde el proyecto.
+* **Integridad de Datos: Validaciones transaccionales y Carga Masiva (Excel/CSV).**
 
-## 🛠 Requisitos Previos (Específicos para Linux)
-Para que el script de instalación automática (installinux.sh) funcione, el sistema (ej. Ubuntu/Debian) debe tener instaladas las siguientes dependencias de sistema.
+##  🛠 1. Requisitos Previos
+La arquitectura actual está contenerizada. No necesitas instalar Python ni MySQL en tu máquina local, todo se ejecuta dentro de Docker.
 
-Puedes instalarlas con los siguientes comandos:
+Solo necesitas:
 
-# 1. Asegurar que Python 3.12, Git y el módulo Venv estén instalados
-sudo apt update
-sudo apt install git python3.12 python3.12-venv
+Docker Desktop: Debe estar actualizado y en ejecución (En Windows, asegúrate de tener WSL2 activado).
 
-# 2. Instalar el cliente de MySQL (para que el script pueda ejecutar comandos)
-sudo apt install mysql-client
+Git: Para clonar el repositorio.
 
-# 3. Instalar librerías de compilación (CRUCIAL)
+Navegador Web: Edge, Chrome o Firefox.
 
-sudo apt install build-essential python3.12-dev default-libmysqlclient-dev libffi-dev
+## ⚡ 2. Instalación y Despliegue
+## Paso 1: Clonar el repositorio Ejecuta el siguiente comando en tu terminal: git clone https://github.com/Saebloom/Code_NUAM_Backend.git cd Code_NUAM_Backend
 
------
+## Paso 2: Ejecutar Script de Instalación Hemos automatizado todo el despliegue (Base de datos, Kafka, Certificados SSL y Backend).
 
-## ⚡ Instalación
+## En Windows: Haz doble clic en el archivo install_windows.bat o ejecútalo desde la terminal.
 
-Tienes dos formas de instalar el proyecto. La automática es la recomendada.
+## En Linux / Mac: Otorga permisos (chmod +x install_linux.sh) y ejecuta ./install_linux.sh.
 
-### Opción A: Instalación Automática (Recomendada)
+⏳ Nota: La primera vez puede tardar unos minutos en descargar las imágenes de Docker y levantar Kafka. El script intentará crear automáticamente los usuarios base.
 
-Este método automatiza la creación del entorno, la instalación de paquetes y la configuración de la base de datos.
+## 3. Paso Crítico: Acceso HTTPS (Certificado SSL)
+Para cumplir con los estándares de seguridad exigidos, el sistema usa HTTPS. Como utilizamos un certificado de desarrollo generado localmente ("autofirmado"), el navegador mostrará una advertencia la primera vez.
 
-1.  Abre una terminal (CMD o PowerShell).
+## Debes autorizar el certificado manualmente:
 
-2.  Clona el repositorio y entra a la carpeta:
+* **Intenta acceder a: https://localhost:8000/admin/**
 
-    
-    git clone https://github.com/Saebloom/Code_NUAM_Backend.git
-    
-    cd Code_NUAM_Backend
-  
+Verás una pantalla roja o gris de advertencia ("La conexión no es privada" o "No seguro").
 
-3.  Asegúrate de que tu servicio MySQL Server se esté ejecutando en segundo plano.
+Haz clic en el botón "Configuración Avanzada" (o "Más información").
 
-4.  Ejecuta el script de instalación correspondiente:
+## Haz clic en el enlace inferior que dice: "Continuar a localhost (no seguro)".
 
-      * **En Windows:**
+Una vez veas el inicio de sesión azul de Django, el navegador ya confía en el sitio.
 
-          * Haz doble clic en el archivo `installwin.bat`.
-          * O, desde tu terminal, escribe: `installwin.bat`
+Ya puedes acceder al inicio del sistema en: https://localhost:8000/
 
-      * **En Linux / Mac:**
+## 4. Credenciales de Acceso
+El sistema crea automáticamente estos usuarios al iniciar:
 
-        1.  Otorga permisos de ejecución al script: `chmod +x installinux.
+* **Administrador**
 
-        2.  Ejecuta el script: ./installinux.sh
+Usuario: admin@nuam.cl
 
-5.  **IMPORTANTE:** El script te pedirá tu contraseña de **`root` de MySQL**.
+Contraseña: adminpass123
 
-      * Esto es necesario para que el script pueda ejecutar automáticamente los comandos SQL para crear la base de datos `nuam` y el usuario `nuamuser`.
+Función: Gestión total, Usuarios, Backups y Logs.
 
-6.  Una vez que el script termine, activa el entorno virtual y levanta el servidor:
+* **Supervisor**
 
-      * **En Windows:**
+Usuario: supervisor@nuam.cl
 
-        1.  `test\Scripts\activate`
-        2.  `python manage.py runserver`
+Contraseña: superpass123
 
-      * **En Linux / Mac:**
+Función: Auditoría, Reportes y Consulta Global.
 
-        1.  `source test/bin/activate`
-        2.  `python manage.py runserver`
+* **Corredor**
 
------
+Usuario: corredor@nuam.cl
 
-### Opción B: Instalación Manual (Paso a Paso)
+Contraseña: correpass123
 
-Si la opción automática falla o prefieres un control total, sigue estos 5 pasos.
+Función: Carga Masiva, Registro Manual, Productores Kafka.
 
-#### 1\. Clonar el Repositorio
+## 5. 🔗 Endpoints del Sistema
+Debido a la seguridad SSL, asegúrate de usar siempre el protocolo https://.
 
+* **Frontend (Login y Dashboards): https://localhost:8000/**
 
-git clone https://github.com/Saebloom/Code_NUAM_Backend.git
+* **Documentación API (Swagger): https://localhost:8000/swagger/**
 
-cd Code_NUAM_Backend
+* **Admin Panel (Backend): https://localhost:8000/admin/**
 
+## 6. 🏗️ Arquitectura Técnica
+El proyecto se ejecuta sobre 4 contenedores orquestados en Docker:
 
-#### 2\. Crear y Activar Entorno Virtual
+Backend (Django + Gunicorn + SSL): Expone el puerto 8000. Maneja la lógica de negocio, Productores Kafka y API REST.
 
-  * **Windows:**
-    
-    python -m venv test
-    test\Scripts\activate
-    
-  * **Linux / Mac:**
-    
-    python3 -m venv test
-    source test/bin/activate
-    
+Kafka (Message Broker):
 
-#### 3\. Instalar Dependencias
+Puerto Interno: 29092 (Comunicación con Django).
 
+Puerto Externo: 9092 (Monitoreo).
 
-pip install -r requirements.txt
+Zookeeper: Coordinador del clúster Kafka.
 
+MySQL 8.0: Persistencia de datos relacional (Puerto 3307).
 
-#### 4\. Configurar la Base de Datos (Paso Manual de MySQL)
+Detalle de Responsabilidades:
 
-El proyecto está configurado en `settings.py` para buscar una base de datos MySQL específica. Debes crearla manualmente.
+Productores Kafka: Implementados en el módulo api/producers.py. Se activan al crear calificaciones en el ViewSet.
 
-1.  Abre una terminal y conéctate a MySQL como `root`:
-   
-    mysql -u root -p
-    
-2.  Introduce tu contraseña de `root` de MySQL.
-3.  Ejecuta los siguientes 3 comandos (uno por uno):
-    
-    CREATE DATABASE nuam CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    
-    
-    CREATE USER 'nuamuser'@'localhost' IDENTIFIED BY 'NuamUser2025';
-    
-    
-    GRANT ALL PRIVILEGES ON nuam.* TO 'nuamuser'@'localhost';
-    
-    EXIT;
-    
-    *Esto crea la base de datos `nuam` y le da al usuario `nuamuser` (definido en `settings.py`) todos los permisos sobre ella.*
+Seguridad HTTPS: Implementada mediante django-sslserver y certificados X.509 (cert.pem, key.pem).
 
-#### 5\. Aplicar Migraciones y Ejecutar
+API RESTful: Uso estricto de ModelViewSet y DefaultRouter en api/views.py.
 
-1.  **Ejecuta `migrate`:** Este comando se conectará a la base de datos MySQL que acabas de crear, construirá todas las tablas y ejecutará los `signals` para crear los usuarios de prueba.
-   
-    python manage.py migrate
-    
-2.  **Ejecuta el servidor:**
-    
-    python manage.py runserver
-   
+Manejo de Errores: Bloques try/except transaccionales para cargas masivas y conexión a Kafka.
 
------
+## 7. 🆘 Solución de Problemas Comunes
+* **Problema 1: El navegador dice "No seguro" en rojo. Es normal en un entorno local (localhost). El tráfico sí está encriptado. Solo debes aceptar la excepción de seguridad como se indicó en la sección 3.**
 
-## 👤 Cuentas de Prueba (Creadas Automáticamente)
+* **Problema 2: Error "Connection refused" en Kafka. Asegúrate de que los contenedores estén corriendo ejecutando docker compose ps en la terminal. Si Kafka está detenido ("Exited"), reinícialo con el comando: docker compose restart zookeeper kafka.**
 
-El proyecto **no** requiere que crees un superusuario manualmente. Estas 3 cuentas se crean automáticamente al ejecutar `migrate` (gracias al archivo `api/signals.py`):
-
-| Rol | Correo | Contraseña |
-| :--- | :--- | :--- |
-| **Administrador** | `admin@nuam.cl` | `adminpass123` |
-| **Supervisor** | `supervisor@nuam.cl` | `superpass123` |
-| **Corredor** | `corredor@nuam.cl` | `correpass123` |
-
-El sistema está disponible en **`http://127.0.0.1:8000/`**.
-
------
-
-## 🚀 Uso (Flujo de Roles)
-
-El sistema opera bajo 3 roles principales. El acceso al login principal (`/`) redirigirá al dashboard correspondiente según el usuario.
-
-  * **Administrador:**
-
-      * Gestión de Usuarios y Roles.
-      * Visualización de Logs/Auditoría completos.
-      * Gestión de Respaldos del sistema.
-      * Revisión del historial de Cargas Masivas.
-
-  * **Supervisor (Auditor):**
-
-      * Rol de solo lectura.
-      * Consulta calificaciones registradas.
-      * Accede a registros completos de operaciones (Historial).
-      * Genera reportes consolidados (simulado).
-
-  * **Corredor (Mantenedor):**
-
-      * Rol de ingreso de datos.
-      * Realiza el CRUD (Registrar, Modificar, Eliminar) de calificaciones.
-      * Realiza Cargas Masivas vía archivos (CSV/Excel).
-      * Visualización de su propio historial de operaciones.
-
------
-
-## 📂 Estructura del proyecto
-
-```
-Code_NUAM_Backend/
-├─ api/         # App principal (models, views, serializers, signals)
-├─ nuam/        # Configuración del proyecto (settings.py, urls.py)
-├─ templates/   # Plantillas HTML (Admin, Corredor, Supervisor)
-├─ static/      # CSS, JS, Imágenes
-├─ logs/        # Archivos de log (ej. nuam.log)
-├─ manage.py
-├─ requirements.txt
-├─ installwin.bat # Script de instalación Windows
-├─ installinux.sh # Script de instalación Linux/Mac
-├─ .gitignore
-└─ README.md    # Este archivo
-```
-
------
-
-## 📝 Notas Importantes
-
-  * **Base de datos:** El proyecto está configurado para usar **MySQL**. La conexión está definida en `settings.py`. Los scripts de instalación (`installwin.bat`, `installinux.sh`) configuran esto automáticamente si proporcionas la contraseña de `root` correcta.
-  * **Migraciones:** Solo necesitas ejecutar `python manage.py migrate`. No ejecutes `makemigrations` a menos que modifiques activamente los archivos `models.py`.
-  * **Debug:** `DEBUG=True` está activado por defecto para desarrollo.
+* **Problema 3: No puedo iniciar sesión (Error de red). Verifica que estás usando https:// y no http://. El servidor está configurado para rechazar conexiones inseguras.**

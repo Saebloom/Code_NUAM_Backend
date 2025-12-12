@@ -202,6 +202,17 @@ LOGGING = {
     },
 }
 
+# En producción esto debe ser True, pero con runsslserver en Docker lo simulamos
+SECURE_SSL_REDIRECT = False # Lo maneja runsslserver localmente
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# --- CONFIGURACIÓN KAFKA ---
+import os
+KAFKA_SERVER = os.environ.get('KAFKA_SERVER', 'localhost:9092')
+
 # Redirecciones de Login
 LOGIN_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

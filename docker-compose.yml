@@ -19,7 +19,9 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      # CORRECCIÓN AQUÍ: Separamos los puertos (29092 interno, 9092 externo)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -40,17 +42,18 @@ services:
 
   # --- SERVICIO 3: TU BACKEND (DJANGO + CONSUMIDOR) ---
   backend:
-    build: . # Construye usando tu Dockerfile
+    build: . 
     command: python manage.py runsslserver 0.0.0.0:8000 --certificate /app/certs/cert.pem --key /app/certs/key.pem
     volumes:
-      - .:/app # Para que veas los cambios de código en tiempo real
+      - .:/app 
     ports:
       - "8000:8000"
     depends_on:
       - kafka
       - db
     environment:
-      - KAFKA_SERVER=kafka:9092
+      # CORRECCIÓN AQUÍ: El backend ahora busca a Kafka en el puerto interno 29092
+      - KAFKA_SERVER=kafka:29092
       - DB_HOST=db
       - DB_NAME=nuam_db
       - DB_USER=nuam_user
