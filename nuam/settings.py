@@ -203,11 +203,16 @@ LOGGING = {
 }
 
 # En producción esto debe ser True, pero con runsslserver en Docker lo simulamos
+
 SECURE_SSL_REDIRECT = False # Lo maneja runsslserver localmente
 SESSION_COOKIE_SECURE = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = 31536000  
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 # --- CONFIGURACIÓN KAFKA ---
 import os
